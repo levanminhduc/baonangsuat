@@ -1,5 +1,7 @@
 <?php
-session_start();
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
 require_once __DIR__ . '/classes/Auth.php';
 
 if (!Auth::isLoggedIn()) {
@@ -32,12 +34,11 @@ $session = Auth::getSession();
     include __DIR__ . '/includes/navbar.php';
     ?>
     <div class="app-container">
-        <header class="header">
-            <div class="header-right">
-                <span class="user-info"><?php echo htmlspecialchars($session['ho_ten']); ?> | <?php echo htmlspecialchars($session['line_ten']); ?></span>
-                <button id="logoutBtn" class="btn btn-logout">Đăng xuất</button>
-            </div>
-        </header>
+        <div style="text-align: right; background: transparent; padding: 5px 15px; font-size: 0.85em; color: #666;">
+            <span class="user-info" style="font-weight: 500;"><?php echo htmlspecialchars($session['ho_ten']); ?> (<?php echo htmlspecialchars($session['line_ten']); ?>)</span>
+            <span style="margin: 0 5px;">|</span>
+            <a href="#" id="logoutBtn" style="color: #666; text-decoration: none;">Đăng xuất</a>
+        </div>
         
         <div id="reportListContainer" class="report-list">
             <div class="report-list-header">
@@ -48,7 +49,6 @@ $session = Auth::getSession();
                 <thead>
                     <tr>
                         <th>Ngày</th>
-                        <th>Ca</th>
                         <th>Mã hàng</th>
                         <th>Lao động</th>
                         <th>CTNS</th>
@@ -84,7 +84,7 @@ $session = Auth::getSession();
                     <label for="modalNgay">Ngày báo cáo</label>
                     <input type="date" id="modalNgay" value="<?php echo date('Y-m-d'); ?>" required>
                 </div>
-                <div class="form-group">
+                <div class="form-group" style="display: none;">
                     <label for="modalCa">Ca làm việc</label>
                     <select id="modalCa" required></select>
                 </div>
@@ -108,6 +108,13 @@ $session = Auth::getSession();
         </div>
     </div>
     
+    <script>
+        window.initialParams = {
+            line: "<?php echo isset($_GET['line']) ? htmlspecialchars($_GET['line']) : ''; ?>",
+            ma_hang: "<?php echo isset($_GET['ma_hang']) ? htmlspecialchars($_GET['ma_hang']) : ''; ?>",
+            ngay: "<?php echo isset($_GET['ngay']) ? htmlspecialchars($_GET['ngay']) : ''; ?>"
+        };
+    </script>
     <script src="assets/js/app.js"></script>
 </body>
 </html>

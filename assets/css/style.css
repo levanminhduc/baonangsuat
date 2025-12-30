@@ -21,13 +21,15 @@ body {
     font-size: 14px;
     background: #f0f0f0;
     min-height: 100vh;
+    display: flex;
+    flex-direction: column;
 }
 
 .login-container {
     display: flex;
     justify-content: center;
     align-items: center;
-    min-height: 100vh;
+    flex: 1;
     padding: 20px;
 }
 
@@ -186,7 +188,8 @@ body {
 .app-container {
     display: flex;
     flex-direction: column;
-    min-height: 100vh;
+    flex: 1;
+    padding-bottom: 40px;
 }
 
 .header {
@@ -344,6 +347,30 @@ body {
     padding: 5px;
 }
 
+.excel-grid .row-hieuSuat {
+    background: #f5f5f5;
+    font-weight: 600;
+}
+
+.excel-grid .row-hieuSuat td {
+    padding: 5px;
+}
+
+.hieu-suat-green {
+    color: #2e7d32 !important;
+    background: #e8f5e9 !important;
+}
+
+.hieu-suat-yellow {
+    color: #f57c00 !important;
+    background: #fff3e0 !important;
+}
+
+.hieu-suat-red {
+    color: #c62828 !important;
+    background: #ffebee !important;
+}
+
 .cell-input {
     width: 100%;
     height: 100%;
@@ -400,12 +427,23 @@ body {
     display: flex;
     justify-content: space-between;
     align-items: center;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    z-index: 100;
+    flex-shrink: 0;
 }
 
 .status-message {
     display: flex;
     align-items: center;
     gap: 8px;
+    white-space: nowrap;
+}
+
+.status-info {
+    white-space: nowrap;
 }
 
 .status-indicator {
@@ -600,31 +638,309 @@ body {
 }
 
 @media (max-width: 768px) {
+    /* Global & Layout */
+    .app-container {
+        padding-bottom: 50px;
+    }
+
     .header {
         flex-direction: column;
         gap: 10px;
+        padding: 10px;
     }
-    
-    .report-header {
+
+    .header h1 {
+        width: 100%;
+        text-align: center;
+    }
+
+    .header-right {
+        width: 100%;
+        justify-content: space-between;
+    }
+
+    /* Report List */
+    .report-list {
+        margin: 10px;
+    }
+
+    .report-list-header {
         flex-direction: column;
+        gap: 10px;
+        align-items: stretch;
+        padding: 12px;
+    }
+
+    .report-list-header button {
+        width: 100%;
+        padding: 12px;
+    }
+
+    .report-table {
+        display: block;
+        overflow-x: auto;
+        white-space: nowrap;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    .report-table th, 
+    .report-table td {
+        padding: 10px;
+    }
+
+    .report-header {
+        display: grid;
+        grid-template-columns: 1fr 1.2fr 1fr;
+        gap: 8px;
+        padding: 12px 10px;
+        background: #f8f9fa;
         align-items: stretch;
     }
-    
-    .header-actions {
-        margin-left: 0;
+
+    .header-field {
+        background: #fff;
+        padding: 8px 4px;
+        border: 1px solid #e0e0e0;
+        border-radius: 4px;
+        flex-direction: column;
+        align-items: center;
         justify-content: center;
+        gap: 4px;
+        width: 100%;
+        min-height: 64px;
     }
-    
+
+    .header-field label {
+        font-size: 11px;
+        color: #666;
+        text-transform: uppercase;
+        font-weight: 600;
+        margin-bottom: 0;
+        line-height: 1.2;
+    }
+
+    .header-field .value,
+    .header-field input,
+    .header-field select {
+        font-size: 16px;
+        font-weight: 700;
+        color: #333;
+        text-align: center;
+        width: 100% !important;
+    }
+
+    .header-field input {
+        border: 1px solid #ddd;
+        padding: 4px;
+        border-radius: 4px;
+        height: 32px;
+    }
+
+    .header-field:nth-child(1) {
+        grid-column: 1 / 2;
+        grid-row: 1;
+        background: transparent;
+        border: none;
+        padding: 0 4px;
+        min-height: auto;
+        align-items: flex-start;
+        justify-content: flex-end;
+        margin-bottom: 4px;
+    }
+    .header-field:nth-child(1) label { display: inline-block; margin-right: 4px; }
+    .header-field:nth-child(1) .value { 
+        display: inline-block; 
+        font-size: 13px; 
+        font-weight: 600;
+        width: auto !important; 
+        text-align: left; 
+    }
+
+    .header-field:nth-child(3) {
+        grid-column: 2 / 4;
+        grid-row: 1;
+        background: transparent;
+        border: none;
+        padding: 0 4px;
+        min-height: auto;
+        align-items: flex-end;
+        justify-content: flex-end;
+        margin-bottom: 4px;
+    }
+    .header-field:nth-child(3) label { display: inline-block; margin-right: 4px; }
+    .header-field:nth-child(3) .value { 
+        display: inline-block; 
+        font-size: 13px;
+        font-weight: 600; 
+        width: auto !important; 
+        text-align: right;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        max-width: 100%;
+    }
+
+    .header-field:nth-child(2) {
+        grid-column: 1 / 2;
+        grid-row: 2;
+    }
+
+    .header-field:nth-child(4) {
+        grid-column: 2 / 3;
+        grid-row: 2;
+    }
+
+    .header-field:nth-child(5) {
+        grid-column: 3 / 4;
+        grid-row: 2;
+        background: #e3f2fd;
+        border-color: #2196F3;
+    }
+    .header-field:nth-child(5) .value {
+        color: #1565C0;
+        font-size: 18px;
+    }
+
+    .header-actions {
+        grid-column: 1 / -1;
+        grid-row: 3;
+        display: flex;
+        gap: 10px;
+        margin-top: 8px;
+        margin-left: 0;
+        justify-content: space-between;
+    }
+
+    .header-actions .btn {
+        flex: 1;
+        justify-content: center;
+        padding: 0 16px;
+        height: 44px;
+        font-size: 14px;
+        display: flex;
+        align-items: center;
+    }
+
+    /* Grid Container & Excel Grid */
+    .grid-container {
+        padding: 5px;
+    }
+
     .excel-grid {
+        font-size: 13px;
+        border: none;
+    }
+
+    .excel-grid th,
+    .excel-grid td {
+        height: 44px; /* Touch friendly height */
+        padding: 4px;
+    }
+
+    .excel-grid th {
+        height: auto;
+        padding: 8px 4px;
+    }
+
+    /* Sticky Columns Logic */
+    .excel-grid th:nth-child(1),
+    .excel-grid td:nth-child(1) {
+        position: sticky;
+        left: 0;
+        z-index: 20;
+        background: #fff;
+        border-right: 1px solid #ccc;
+        width: 35px;
+    }
+
+    .excel-grid th:nth-child(2),
+    .excel-grid td:nth-child(2) {
+        position: sticky;
+        left: 35px;
+        z-index: 20;
+        background: #fff;
+        border-right: 2px solid #999;
+        width: 130px;
+        max-width: 130px;
+    }
+
+    /* Ensure header row z-index is higher than body sticky cols */
+    .excel-grid thead th {
+        z-index: 30; 
+    }
+    
+    /* Super high z-index for top-left intersection headers */
+    .excel-grid thead th:nth-child(1),
+    .excel-grid thead th:nth-child(2) {
+        z-index: 40;
+    }
+
+    .excel-grid .col-stt { width: 35px; }
+    .excel-grid .col-name { width: 130px; }
+    .excel-grid .col-hour { width: 50px; }
+    .excel-grid .col-luyke { width: 60px; }
+
+    .excel-grid td.cell-name {
+        white-space: normal;
+        line-height: 1.2;
         font-size: 12px;
+        padding: 2px 5px;
+    }
+
+    .cell-input {
+        font-size: 16px; /* Prevent iOS zoom on focus */
+        padding: 0;
+        text-align: center;
     }
     
-    .excel-grid .col-name {
-        width: 120px;
+    /* Highlight readonly/system cells to distinguish from input */
+    .excel-grid td.cell-readonly {
+        background-color: #f5f5f5;
     }
     
-    .excel-grid .col-hour {
-        width: 55px;
+    /* Fix sticky background colors */
+    .excel-grid td:nth-child(1),
+    .excel-grid td:nth-child(2) {
+        background-color: #fff;
+    }
+    
+    .excel-grid tr.row-chitieu td:nth-child(1),
+    .excel-grid tr.row-chitieu td:nth-child(2) {
+        background-color: #e8f5e9;
+    }
+    
+    .excel-grid tr.row-hieuSuat td:nth-child(1),
+    .excel-grid tr.row-hieuSuat td:nth-child(2) {
+        background-color: #f5f5f5;
+    }
+
+    /* Modal Mobile */
+    .modal-content {
+        width: 95%;
+        padding: 20px 15px;
+        max-height: 95vh;
+    }
+
+    .modal-actions {
+        flex-direction: column-reverse;
+        gap: 10px;
+    }
+
+    .modal-actions .btn {
+        width: 100%;
+        padding: 12px;
+    }
+
+    .form-group input,
+    .form-group select {
+        padding: 12px;
+        font-size: 16px;
+    }
+
+    /* Status bar tweaks */
+    .status-bar {
+        font-size: 11px;
+        padding: 8px 10px;
     }
 }
 

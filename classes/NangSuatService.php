@@ -125,13 +125,13 @@ class NangSuatService {
             $ct_gio = round($ctns / ($tong_phut_hieu_dung / 60), 2);
         }
         
-        $stmt = mysqli_prepare($this->db, 
-            "INSERT INTO bao_cao_nang_suat 
+        $stmt = mysqli_prepare($this->db,
+            "INSERT INTO bao_cao_nang_suat
              (ngay_bao_cao, line_id, ca_id, ma_hang_id, so_lao_dong, ctns, ct_gio, tong_phut_hieu_dung, ghi_chu, tao_boi)
              VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
         );
-        mysqli_stmt_bind_param($stmt, "siiiiddiss", 
-            $ngay_bao_cao, $line_id, $ca_id, $ma_hang_id, 
+        mysqli_stmt_bind_param($stmt, "siiiiidiss",
+            $ngay_bao_cao, $line_id, $ca_id, $ma_hang_id,
             $so_lao_dong, $ctns, $ct_gio, $tong_phut_hieu_dung, $ghi_chu, $ma_nv
         );
         

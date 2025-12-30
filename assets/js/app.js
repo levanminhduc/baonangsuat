@@ -14,7 +14,53 @@ class NangSuatApp {
     
     init() {
         this.bindEvents();
-        this.loadContext();
+        this.loadContext().then(() => {
+            this.handleInitialRoute();
+        });
+        
+        window.addEventListener('popstate', (e) => {
+            if (e.state && e.state.reportId) {
+                this.loadReport(e.state.reportId, false);
+            } else if (e.state === null) {
+                this.showReportList(false);
+            }
+        });
+    }
+
+    async handleInitialRoute() {
+        const params = new URLSearchParams(window.location.search);
+        const line = params.get('line');
+        const ma_hang = params.get('ma_hang');
+        const ngay = params.get('ngay');
+
+        if (line && ma_hang && ngay) {
+            try {
+                this.showLoading();
+                const response = await this.api('GET', `/bao-cao?ngay_tu=${ngay}&ngay_den=${ngay}`);
+                
+                if (response.success && Array.isArray(response.data)) {
+                    // Tìm báo cáo khớp với mã hàng và ngày (line được filter bởi session backend)
+                    const report = response.data.find(r => 
+                        r.ma_hang === ma_hang && 
+                        r.ngay_bao_cao === ngay
+                    );
+                    
+                    if (report) {
+                        this.loadReport(report.id, false);
+                    } else {
+                        this.showToast('Không tìm thấy báo cáo', 'error');
+                        window.history.replaceState(null, '', window.location.pathname);
+                    }
+                } else {
+                    this.showToast('Không tìm thấy dữ liệu', 'error');
+                }
+            } catch (error) {
+                console.error(error);
+                this.showToast('Lỗi tải báo cáo từ URL', 'error');
+            } finally {
+                this.hideLoading();
+            }
+        }
     }
     
     bindEvents() {
@@ -68,7 +114,7 @@ class NangSuatApp {
     renderHeader(context) {
         const userInfo = document.querySelector('.user-info');
         if (userInfo && context.session) {
-            userInfo.innerHTML = `${context.session.ho_ten} | ${context.session.line_ten || ''}`;
+            userInfo.innerHTML = `${context.session.ho_ten} (${context.session.line_ten || 'User'})`;
         }
     }
     
@@ -97,14 +143,13 @@ class NangSuatApp {
         if (!tbody) return;
         
         if (reports.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:30px;">Chưa có báo cáo nào hôm nay</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:30px;">Chưa có báo cáo nào hôm nay</td></tr>';
             return;
         }
         
         tbody.innerHTML = reports.map(r => `
-            <tr data-id="${r.id}">
+            <tr data-id="${r.id}" data-line="${r.ma_line}" data-ma-hang="${r.ma_hang}" data-ngay="${r.ngay_bao_cao}" style="cursor: pointer;">
                 <td>${r.ngay_bao_cao}</td>
-                <td>${r.ma_ca}</td>
                 <td>${r.ma_hang}</td>
                 <td>${r.so_lao_dong}</td>
                 <td>${r.ctns}</td>
@@ -114,7 +159,9 @@ class NangSuatApp {
         `).join('');
         
         tbody.querySelectorAll('tr[data-id]').forEach(row => {
-            row.addEventListener('click', () => {
+            row.addEventListener('click', (e) => {
+                if (e.ctrlKey || e.metaKey) return; 
+                e.preventDefault();
                 this.loadReport(parseInt(row.dataset.id));
             });
         });
@@ -196,7 +243,7 @@ class NangSuatApp {
         document.querySelectorAll('.modal').forEach(m => m.classList.add('hidden'));
     }
     
-    async loadReport(baoCaoId) {
+    async loadReport(baoCaoId, updateUrl = true) {
         try {
             this.showLoading();
             const response = await this.api('GET', `/bao-cao/${baoCaoId}`);
@@ -204,6 +251,16 @@ class NangSuatApp {
                 this.baoCao = response.data;
                 this.version = this.baoCao.version;
                 this.modifiedEntries.clear();
+                
+                if (updateUrl) {
+                    const params = new URLSearchParams();
+                    params.set('line', this.baoCao.ma_line);
+                    params.set('ma_hang', this.baoCao.ma_hang);
+                    params.set('ngay', this.baoCao.ngay_bao_cao);
+                    const newUrl = `${window.location.pathname}?${params.toString()}`;
+                    window.history.pushState({ reportId: baoCaoId }, '', newUrl);
+                }
+                
                 this.renderEditor();
             } else {
                 this.showToast(response.message, 'error');
@@ -290,6 +347,12 @@ class NangSuatApp {
         }
     }
     
+    formatGio(gioString) {
+        const parts = gioString.split(':');
+        const hour = parseInt(parts[0], 10);
+        return `${hour}h`;
+    }
+    
     renderGrid() {
         const container = document.getElementById('gridContainer');
         if (!container || !this.baoCao) return;
@@ -299,13 +362,16 @@ class NangSuatApp {
         
         let headerHtml = `
             <tr>
-                <th class="col-stt" rowspan="2">STT</th>
-                <th class="col-name" rowspan="2">Tên công đoạn</th>
-                ${bc.moc_gio_list.map(m => `<th class="col-hour">${m.gio}</th>`).join('')}
-                <th class="col-luyke" rowspan="2">Lũy kế</th>
+                <th class="col-stt" rowspan="3">STT</th>
+                <th class="col-name" rowspan="3">Tên công đoạn</th>
+                ${bc.moc_gio_list.map(m => `<th class="col-hour">${this.formatGio(m.gio)}</th>`).join('')}
+                <th class="col-luyke" rowspan="3">Lũy kế</th>
             </tr>
             <tr class="row-chitieu">
                 ${bc.moc_gio_list.map(m => `<td>${bc.chi_tieu_luy_ke[m.id] || 0}</td>`).join('')}
+            </tr>
+            <tr class="row-hieuSuat">
+                ${bc.moc_gio_list.map(m => `<td class="hieu-suat-cell" data-moc="${m.id}">-</td>`).join('')}
             </tr>
         `;
         
@@ -350,6 +416,63 @@ class NangSuatApp {
         if (isEditable) {
             this.bindGridEvents();
         }
+        
+        this.updateHieuSuat();
+    }
+    
+    updateHieuSuat() {
+        if (!this.baoCao) return;
+        
+        const bc = this.baoCao;
+        
+        bc.moc_gio_list.forEach(moc => {
+            const chiTieu = bc.chi_tieu_luy_ke[moc.id] || 0;
+            
+            let tongThucTe = 0;
+            bc.routing.forEach(cd => {
+                if (cd.la_cong_doan_tinh_luy_ke === 1 || cd.la_cong_doan_tinh_luy_ke === '1') {
+                    const inputs = document.querySelectorAll(`.cell-input[data-cd="${cd.cong_doan_id}"]`);
+                    inputs.forEach(input => {
+                        const mocId = parseInt(input.dataset.moc);
+                        const currentMocThuTu = bc.moc_gio_list.find(m => m.id === moc.id)?.thu_tu || 0;
+                        const inputMocThuTu = bc.moc_gio_list.find(m => m.id === mocId)?.thu_tu || 0;
+                        if (inputMocThuTu <= currentMocThuTu) {
+                            tongThucTe += parseInt(input.value) || 0;
+                        }
+                    });
+                    
+                    if (inputs.length === 0) {
+                        bc.moc_gio_list.forEach(m => {
+                            if (m.thu_tu <= (bc.moc_gio_list.find(x => x.id === moc.id)?.thu_tu || 0)) {
+                                const key = `${cd.cong_doan_id}_${m.id}`;
+                                const entry = bc.entries[key];
+                                if (entry) {
+                                    tongThucTe += parseInt(entry.so_luong) || 0;
+                                }
+                            }
+                        });
+                    }
+                }
+            });
+            
+            const hieuSuatCell = document.querySelector(`.hieu-suat-cell[data-moc="${moc.id}"]`);
+            if (hieuSuatCell && chiTieu > 0) {
+                const hieuSuat = (tongThucTe / chiTieu) * 100;
+                hieuSuatCell.textContent = hieuSuat.toFixed(1) + '%';
+                
+                hieuSuatCell.classList.remove('hieu-suat-green', 'hieu-suat-yellow', 'hieu-suat-red');
+                if (hieuSuat >= 100) {
+                    hieuSuatCell.classList.add('hieu-suat-green');
+                } else if (hieuSuat >= 90) {
+                    hieuSuatCell.classList.add('hieu-suat-yellow');
+                } else {
+                    hieuSuatCell.classList.add('hieu-suat-red');
+                }
+            } else if (hieuSuatCell) {
+                hieuSuatCell.textContent = '-';
+                hieuSuatCell.classList.remove('hieu-suat-green', 'hieu-suat-yellow', 'hieu-suat-red');
+            }
+        });
     }
     
     bindGridEvents() {
@@ -385,6 +508,7 @@ class NangSuatApp {
         
         input.classList.add('modified');
         this.updateRowLuyKe(cdId);
+        this.updateHieuSuat();
         this.scheduleSave();
     }
     
@@ -510,11 +634,14 @@ class NangSuatApp {
         }
     }
     
-    showReportList() {
+    showReportList(updateUrl = true) {
         if (this.modifiedEntries.size > 0) {
             this.saveChanges();
         }
         this.baoCao = null;
+        if (updateUrl) {
+            window.history.pushState(null, '', window.location.pathname);
+        }
         this.loadReportList();
     }
     

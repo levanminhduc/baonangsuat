@@ -28,9 +28,9 @@ $showHomeBtn = $showHomeBtn ?? true;
     <tr style="text-align:center;color:white;">
         <td bgcolor="143583" style="text-align:center;border-right-color:#143583;width:60px;">
             <?php if ($showHomeBtn): ?>
-            <a href="./"><img width="45px" src="img/logoht.png"/></a>
+            <a href="./"><img width="45px" src="img/logoht.svg"/></a>
             <?php else: ?>
-            <img width="45px" src="img/logoht.png"/>
+            <img width="45px" src="img/logoht.svg"/>
             <?php endif; ?>
         </td>
         <td colspan="6" bgcolor="143583" style="font-size:2em;font-weight:bold;text-align:center;line-height: 1.0em;padding:10px 5px;">
@@ -38,26 +38,26 @@ $showHomeBtn = $showHomeBtn ?? true;
         </td>
         <td bgcolor="143583" style="width:60px;">
             <?php if ($showAddBtn): ?>
-            <a href="<?php echo htmlspecialchars($addBtnUrl); ?>"<?php echo $addBtnId ? ' id="' . htmlspecialchars($addBtnId) . '"' : ''; ?>><img style="border-radius:5px;" src="img/add.png" width="55px"/></a>
+            <a href="<?php echo htmlspecialchars($addBtnUrl); ?>"<?php echo $addBtnId ? ' id="' . htmlspecialchars($addBtnId) . '"' : ''; ?>><img style="border-radius:5px;" src="img/add.svg" width="55px"/></a>
             <?php endif; ?>
         </td>
     </tr>
 </table>
 
 <div class="navbar-mobile-container">
-    <div style="text-align:center; background:#143583; color:white; padding:15px; border-radius:8px; margin-bottom:16px;">
+    <div style="text-align:center; background:#143583; color:white; padding:15px;">
         <div style="display:flex; align-items:center; justify-content:space-between;">
             <?php if ($showHomeBtn): ?>
-            <a href="./"><img width="35px" src="img/logoht.png" /></a>
+            <a href="./"><img width="35px" src="img/logoht.svg" /></a>
             <?php else: ?>
-            <img width="35px" src="img/logoht.png" />
+            <img width="35px" src="img/logoht.svg" />
             <?php endif; ?>
             <div style="flex:1; font-size:1.2em; font-weight:bold; margin:0 10px;">
                 <?php echo htmlspecialchars($navTitle); ?>
             </div>
             <div>
                 <?php if ($showAddBtn): ?>
-                <a href="<?php echo htmlspecialchars($addBtnUrl); ?>"<?php echo $addBtnId ? ' class="' . htmlspecialchars($addBtnId) . '-mobile"' : ''; ?>><img style="border-radius:5px;" src="img/add.png" width="30px" /></a>
+                <a href="<?php echo htmlspecialchars($addBtnUrl); ?>"<?php echo $addBtnId ? ' class="' . htmlspecialchars($addBtnId) . '-mobile"' : ''; ?>><img style="border-radius:5px;" src="img/add.svg" width="30px" /></a>
                 <?php endif; ?>
             </div>
         </div>

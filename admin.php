@@ -1,4 +1,7 @@
 <?php
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
 require_once __DIR__ . '/classes/Auth.php';
 
 if (!Auth::isLoggedIn()) {
@@ -29,12 +32,12 @@ $session = Auth::getSession();
     include __DIR__ . '/includes/navbar.php';
     ?>
     <div class="app-container">
-        <div class="header">
-            <div class="header-right">
-                <span class="user-info"><?php echo htmlspecialchars($session['ho_ten']); ?> (Admin)</span>
-                <a href="nhap-nang-suat.php" class="btn btn-logout">Về trang chính</a>
-                <button id="logoutBtn" class="btn btn-logout">Đăng xuất</button>
-            </div>
+        <div style="text-align: right; background: transparent; padding: 5px 15px; font-size: 0.85em; color: #666;">
+            <span style="font-weight: 500;"><?php echo htmlspecialchars($session['ho_ten']); ?> (Admin)</span>
+            <span style="margin: 0 5px;">|</span>
+            <a href="nhap-nang-suat.php" style="color: #666; text-decoration: none;">Về trang chính</a>
+            <span style="margin: 0 5px;">|</span>
+            <a href="#" id="logoutBtn" style="color: #666; text-decoration: none;">Đăng xuất</a>
         </div>
         
         <div class="admin-content">

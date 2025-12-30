@@ -139,21 +139,13 @@ CREATE TABLE nhap_lieu_nang_suat_audit (
 ) ENGINE=InnoDB;
 
 INSERT INTO ca_lam (ma_ca, ten_ca, gio_bat_dau, gio_ket_thuc) VALUES
-('CA1', 'Ca sáng', '06:00:00', '14:00:00'),
-('CA2', 'Ca chiều', '14:00:00', '22:00:00'),
-('HC', 'Hành chính', '08:00:00', '17:00:00');
+('CA', 'Ca làm việc', '07:30:00', '17:00:00');
 
 INSERT INTO moc_gio (ca_id, gio, thu_tu, so_phut_hieu_dung_luy_ke) VALUES
-(1, '09:00:00', 1, 150),
-(1, '11:00:00', 2, 270),
-(1, '14:00:00', 3, 420),
-(2, '17:00:00', 1, 150),
-(2, '19:00:00', 2, 270),
-(2, '22:00:00', 3, 420),
-(3, '09:00:00', 1, 60),
-(3, '11:00:00', 2, 180),
-(3, '14:30:00', 3, 330),
-(3, '17:00:00', 4, 480);
+(1, '09:00:00', 1, 90),
+(1, '11:00:00', 2, 210),
+(1, '14:00:00', 3, 300),
+(1, '17:00:00', 4, 480);
 
 INSERT INTO line (ma_line, ten_line) VALUES
 ('LINE_1', 'Chuyền 1'),

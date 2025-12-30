@@ -599,7 +599,6 @@ function loadMobileDepartmentFilter() {
     <img src="img/ok.png" alt="Complete" />
     <span>Hoàn thành</span>
 </a>
-                        </a>
                     <?php } ?>
                 </div>
             </div>
