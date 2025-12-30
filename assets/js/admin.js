@@ -755,3 +755,14 @@ function deleteRouting(routingId) {
         closeModal('confirmModal');
     });
 }
+
+window.closeModal = closeModal;
+window.editLine = editLine;
+window.deleteLine = deleteLine;
+window.editMaHang = editMaHang;
+window.deleteMaHang = deleteMaHang;
+window.editCongDoan = editCongDoan;
+window.deleteCongDoan = deleteCongDoan;
+window.editRouting = editRouting;
+window.deleteRouting = deleteRouting;
+window.deleteUserLine = deleteUserLine;
