@@ -1,9 +1,8 @@
 <?php
-if (session_status() === PHP_SESSION_NONE) {
-    session_start();
-}
-if (isset($_SESSION['user_id']) && isset($_SESSION['line_id'])) {
-    header('Location: nhap-nang-suat.php');
+require_once __DIR__ . '/classes/Auth.php';
+
+if (Auth::isLoggedIn()) {
+    header('Location: ' . Auth::getDefaultPage());
     exit;
 }
 ?>
@@ -14,6 +13,22 @@ if (isset($_SESSION['user_id']) && isset($_SESSION['line_id'])) {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Đăng nhập - Hệ thống Nhập Năng Suất</title>
     <link rel="stylesheet" href="assets/css/style.css">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            colors: {
+              primary: '#2196F3',
+              'primary-dark': '#1976D2',
+              success: '#4CAF50',
+              warning: '#ff9800',
+              danger: '#f44336',
+            }
+          }
+        }
+      }
+    </script>
 </head>
 <body>
     <?php
@@ -43,10 +58,10 @@ if (isset($_SESSION['user_id']) && isset($_SESSION['line_id'])) {
         </div>
     </div>
     
-    <div id="lineSelectModal" class="line-select-modal hidden">
-        <div class="line-select-box">
-            <h2>Chọn LINE làm việc</h2>
-            <ul id="lineList" class="line-list"></ul>
+    <div id="lineSelectModal" class="line-select-modal hidden fixed inset-0 z-50 flex items-center justify-center bg-gray-900/50 backdrop-blur-sm transition-opacity opacity-0 pointer-events-none data-[show=true]:opacity-100 data-[show=true]:pointer-events-auto">
+        <div class="line-select-box bg-white rounded-xl shadow-2xl w-full max-w-md transform transition-all scale-95 data-[show=true]:scale-100 p-6">
+            <h2 class="text-xl font-bold text-gray-800 mb-6 border-b pb-3">Chọn LINE làm việc</h2>
+            <ul id="lineList" class="line-list space-y-2 max-h-[60vh] overflow-y-auto pr-2"></ul>
         </div>
     </div>
     

@@ -5,8 +5,8 @@
 }
 
 :root {
-    --primary-color: #2196F3;
-    --primary-dark: #1976D2;
+    --primary-color: #143583;
+    --primary-dark: #0f2a66;
     --success-color: #4CAF50;
     --warning-color: #ff9800;
     --danger-color: #f44336;
@@ -60,7 +60,7 @@ body {
     color: #333;
 }
 
-.form-group input,
+.form-group input:not([type="checkbox"]):not([type="radio"]),
 .form-group select {
     width: 100%;
     padding: 12px 15px;
@@ -68,6 +68,23 @@ body {
     border-radius: 4px;
     font-size: 14px;
     transition: border-color 0.2s;
+}
+
+/* Reset margin for labels inside flex containers (checkboxes) */
+.form-group .flex label {
+    margin-bottom: 0;
+}
+
+/* Custom Select Style using Tailwind-like approach but with custom arrow */
+select.custom-select {
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%236b7280' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+    background-repeat: no-repeat;
+    background-position: right 1rem center;
+    background-size: 1em;
+    padding-right: 2.5rem !important;
 }
 
 .form-group input:focus,
@@ -141,48 +158,31 @@ body {
     border: 1px solid #c8e6c9;
 }
 
+/* Legacy overrides for line select modal */
 .line-select-modal {
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: rgba(0,0,0,0.5);
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    z-index: 1000;
-}
-
-.line-select-box {
-    background: #fff;
-    padding: 30px;
-    border-radius: 8px;
-    width: 100%;
-    max-width: 400px;
+    /* Tailwind handles positioning */
 }
 
 .line-select-box h2 {
-    margin-bottom: 20px;
-    color: #333;
-}
-
-.line-list {
-    list-style: none;
+    /* Handled by Tailwind classes */
+    margin-bottom: 0;
 }
 
 .line-list li {
-    padding: 12px 15px;
-    border: 1px solid var(--border-color);
-    margin-bottom: 10px;
-    border-radius: 4px;
+    /* Enhance list items to match Tailwind style */
+    padding: 12px 16px;
+    border: 1px solid #e5e7eb; /* gray-200 */
+    margin-bottom: 8px;
+    border-radius: 0.5rem; /* rounded-lg */
     cursor: pointer;
     transition: all 0.2s;
+    background-color: white;
 }
 
 .line-list li:hover {
-    background: var(--cell-focus);
-    border-color: var(--primary-color);
+    background: #f0f9ff; /* sky-50 */
+    border-color: #143583; /* primary */
+    transform: translateX(4px);
 }
 
 .app-container {
@@ -493,40 +493,60 @@ body {
     to { transform: rotate(360deg); }
 }
 
+/* Modal override with Tailwind-like features but keeping legacy selectors */
 .modal {
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: rgba(0,0,0,0.5);
-    display: flex;
-    justify-content: center;
-    align-items: center;
+    /* Tailwind classes handle layout now, but we keep z-index assurance */
     z-index: 1000;
 }
 
+/* Remove old modal styles that might conflict or look bad with Tailwind */
 .modal-content {
-    background: #fff;
-    padding: 25px;
-    border-radius: 8px;
-    width: 100%;
-    max-width: 500px;
-    max-height: 90vh;
-    overflow-y: auto;
+    /* Reset old styles */
+    background: transparent;
+    padding: 0;
+    border-radius: 0;
+    width: auto;
+    max-width: none;
+    max-height: none;
+    overflow-y: visible;
+    
+    /* Animation entry */
+    animation: modalPopIn 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
-.modal-content h2 {
-    margin-bottom: 20px;
-    color: #333;
+@keyframes modalPopIn {
+    0% {
+        opacity: 0;
+        transform: scale(0.95) translateY(10px);
+    }
+    100% {
+        opacity: 1;
+        transform: scale(1) translateY(0);
+    }
 }
 
-.modal-actions {
-    display: flex;
-    gap: 10px;
-    justify-content: flex-end;
-    margin-top: 20px;
+/* Line Select Modal Specifics */
+.line-select-modal {
+    z-index: 1000;
 }
+
+.line-select-box {
+    /* Reset old styles */
+    background: transparent;
+    padding: 0;
+    border-radius: 0;
+    width: auto;
+    max-width: none;
+    
+    /* Animation entry */
+    animation: modalPopIn 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* 
+   Since we cannot change JS to add transition classes, 
+   we use CSS animations on the content elements.
+   The backdrop blur is handled by Tailwind classes on the container.
+*/
 
 .report-list {
     background: #fff;
@@ -794,10 +814,10 @@ body {
         grid-column: 3 / 4;
         grid-row: 2;
         background: #e3f2fd;
-        border-color: #2196F3;
+        border-color: #143583;
     }
     .header-field:nth-child(5) .value {
-        color: #1565C0;
+        color: #143583;
         font-size: 18px;
     }
 

@@ -84,7 +84,15 @@ function handleAuth($segments, $method, $input) {
             if (empty($username) || empty($password)) {
                 response(['success' => false, 'message' => 'Vui lòng nhập đầy đủ thông tin']);
             }
-            response(Auth::login($username, $password));
+            $result = Auth::login($username, $password);
+            if ($result['success']) {
+                if (isset($result['no_line']) && $result['no_line']) {
+                    $result['redirect_url'] = 'no-line.php';
+                } elseif (!isset($result['need_select_line']) || !$result['need_select_line']) {
+                    $result['redirect_url'] = Auth::getDefaultPage();
+                }
+            }
+            response($result);
             break;
             
         case 'select-line':
@@ -93,7 +101,11 @@ function handleAuth($segments, $method, $input) {
             }
             requireLogin();
             $line_id = intval($input['line_id'] ?? 0);
-            response(Auth::selectLine($line_id));
+            $result = Auth::selectLine($line_id);
+            if ($result['success']) {
+                $result['redirect_url'] = Auth::getDefaultPage();
+            }
+            response($result);
             break;
             
         case 'logout':

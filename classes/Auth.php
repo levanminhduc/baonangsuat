@@ -179,4 +179,20 @@ class Auth {
         }
         return in_array($currentRole, $allowedRoles);
     }
+    
+    public static function getDefaultPage() {
+        if (!self::isLoggedIn()) {
+            return 'index.php';
+        }
+        
+        if (self::checkRole(['admin'])) {
+            return 'admin.php';
+        }
+        
+        if (self::hasLine()) {
+            return 'nhap-nang-suat.php';
+        }
+        
+        return 'no-line.php';
+    }
 }

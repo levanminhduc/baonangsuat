@@ -1,9 +1,11 @@
 <?php
+require_once __DIR__ . '/../classes/Auth.php';
 $navTitle = $navTitle ?? 'HỆ THỐNG NHẬP NĂNG SUẤT';
 $showAddBtn = $showAddBtn ?? false;
 $addBtnUrl = $addBtnUrl ?? '#';
 $addBtnId = $addBtnId ?? '';
 $showHomeBtn = $showHomeBtn ?? true;
+$homeUrl = Auth::isLoggedIn() ? Auth::getDefaultPage() : 'index.php';
 ?>
 <style>
 .navbar-desktop-table {
@@ -28,7 +30,7 @@ $showHomeBtn = $showHomeBtn ?? true;
     <tr style="text-align:center;color:white;">
         <td bgcolor="143583" style="text-align:center;border-right-color:#143583;width:60px;">
             <?php if ($showHomeBtn): ?>
-            <a href="./"><img width="45px" src="img/logoht.svg"/></a>
+            <a href="<?php echo htmlspecialchars($homeUrl); ?>"><img width="45px" src="img/logoht.svg"/></a>
             <?php else: ?>
             <img width="45px" src="img/logoht.svg"/>
             <?php endif; ?>
@@ -48,7 +50,7 @@ $showHomeBtn = $showHomeBtn ?? true;
     <div style="text-align:center; background:#143583; color:white; padding:15px;">
         <div style="display:flex; align-items:center; justify-content:space-between;">
             <?php if ($showHomeBtn): ?>
-            <a href="./"><img width="35px" src="img/logoht.svg" /></a>
+            <a href="<?php echo htmlspecialchars($homeUrl); ?>"><img width="35px" src="img/logoht.svg" /></a>
             <?php else: ?>
             <img width="35px" src="img/logoht.svg" />
             <?php endif; ?>

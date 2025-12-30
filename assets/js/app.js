@@ -826,10 +826,10 @@ class LoginApp {
             if (result.success) {
                 if (result.need_select_line) {
                     this.showLineSelect(result.lines);
-                } else if (result.no_line) {
-                    this.showError('Tài khoản chưa được phân LINE. Liên hệ admin.');
+                } else if (result.redirect_url) {
+                    window.location.href = result.redirect_url;
                 } else {
-                    window.location.href = 'nhap-nang-suat.php';
+                    window.location.href = 'index.php';
                 }
             } else {
                 this.showError(result.message);
@@ -871,7 +871,7 @@ class LoginApp {
                     });
                     const result = await response.json();
                     if (result.success) {
-                        window.location.href = 'nhap-nang-suat.php';
+                        window.location.href = result.redirect_url || 'nhap-nang-suat.php';
                     } else {
                         alert(result.message);
                     }
