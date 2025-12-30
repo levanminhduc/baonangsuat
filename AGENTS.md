@@ -13,11 +13,15 @@ This file provides guidance to agents when working with code in this repository.
 ## Non-Obvious Behaviors
 
 - **`ma_nv` MUST be UPPERCASE**: All code uses `strtoupper(trim($ma_nv))` before queries
-- **Plaintext password fallback**: Auth accepts BOTH bcrypt AND plaintext passwords
+- **Configurable plaintext password fallback**: `ALLOW_PLAINTEXT_PASSWORD` constant (default: `true`) controls whether plaintext password comparison is allowed after bcrypt fails
+- **Session regeneration on login**: Prevents session fixation attacks
 - **Hardcoded base path**: `/baonangsuat/` is hardcoded in PHP redirects and JS fetch calls
 - **Pre-generated entries**: Creating a report auto-generates ALL entries with `so_luong = 0`
 - **`la_cong_doan_tinh_luy_ke` flag**: Only stages with this flag=1 are cumulative-calculated
-- **CSRF for login only**: API endpoints use session-based auth, no CSRF tokens
+- **CSRF protection for API**: All POST/PUT/DELETE endpoints (except login) require X-CSRF-Token header. Token fetched via GET /api/csrf-token
+- **CORS restricted**: API only allows localhost origins (127.0.0.1, localhost with any port)
+- **Remember username only**: Login remembers username in localStorage, never password
+- **Login rate limiting**: 5 failed attempts per IP within 15 minutes triggers lockout. Returns HTTP 429. Counter resets on successful login.
 
 ## Key Files
 

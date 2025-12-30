@@ -1,0 +1,39 @@
+.user-info-bar {
+    text-align: right;
+    background: transparent;
+    padding: 5px 15px;
+    font-size: 0.85em;
+    color: #666;
+}
+
+.user-info-bar .user-name {
+    font-weight: 500;
+}
+
+.user-info-bar .separator {
+    margin: 0 5px;
+}
+
+.user-info-bar a {
+    color: #666;
+    text-decoration: none;
+}
+
+.filter-group {
+    margin-bottom: 20px;
+}
+
+.filter-select-line {
+    max-width: 300px;
+    display: inline-block;
+    margin-left: 10px !important;
+}
+
+.filter-select-routing {
+    max-width: 400px;
+}
+
+/* Functional classes replacing inline styles where appropriate */
+.hidden {
+    display: none;
+}

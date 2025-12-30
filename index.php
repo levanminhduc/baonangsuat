@@ -1,4 +1,5 @@
 <?php
+require_once __DIR__ . '/includes/security-headers.php';
 require_once __DIR__ . '/classes/Auth.php';
 require_once __DIR__ . '/csrf.php';
 

@@ -16,14 +16,9 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    // Load saved credentials
     const savedUsername = localStorage.getItem('rememberedUsername');
-    // Note: Storing passwords in localStorage is generally not recommended for security, 
-    // but following existing pattern from request. Consider using cookies or tokens instead.
-    const savedPassword = localStorage.getItem('rememberedPassword');
-    if (savedUsername && savedPassword) {
+    if (savedUsername) {
         if (usernameInput) usernameInput.value = savedUsername;
-        if (passwordInput) passwordInput.value = savedPassword;
         if (rememberCheckbox) rememberCheckbox.checked = true;
     }
 
@@ -39,7 +34,25 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 });
 
-// Class to handle login logic, integrating with existing app structure
+const API_BASE = '/baonangsuat/api';
+let loginCsrfToken = null;
+
+async function fetchLoginCsrfToken() {
+    try {
+        const response = await fetch(API_BASE + '/csrf-token', {
+            method: 'GET',
+            credentials: 'include'
+        });
+        const result = await response.json();
+        if (result.success) {
+            loginCsrfToken = result.token;
+        }
+    } catch (error) {
+        console.error('Failed to fetch CSRF token:', error);
+    }
+    return loginCsrfToken;
+}
+
 class LoginApp {
     constructor() {
         this.bindEvents();
@@ -69,13 +82,10 @@ class LoginApp {
             return;
         }
 
-        // Save credentials if remember me is checked
         if (rememberCheckbox && rememberCheckbox.checked) {
             localStorage.setItem('rememberedUsername', username);
-            localStorage.setItem('rememberedPassword', password);
         } else {
             localStorage.removeItem('rememberedUsername');
-            localStorage.removeItem('rememberedPassword');
         }
         
         // Show loading state
@@ -125,14 +135,15 @@ class LoginApp {
         }
     }
     
-    showLineSelect(lines) {
-        // Use Bootstrap Modal
+    async showLineSelect(lines) {
         const modalEl = document.getElementById('lineSelectModal');
         const list = document.getElementById('lineList');
         
         if (!modalEl || !list) return;
+
+        await fetchLoginCsrfToken();
         
-        list.innerHTML = lines.map(line => 
+        list.innerHTML = lines.map(line =>
             `<li data-id="${line.id}">${line.ma_line} - ${line.ten_line}</li>`
         ).join('');
         
@@ -140,9 +151,14 @@ class LoginApp {
             li.addEventListener('click', async () => {
                 const lineId = li.dataset.id;
                 try {
+                    const headers = { 'Content-Type': 'application/json' };
+                    if (loginCsrfToken) {
+                        headers['X-CSRF-Token'] = loginCsrfToken;
+                    }
                     const response = await fetch('/baonangsuat/api/auth/select-line', {
                         method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
+                        headers: headers,
+                        credentials: 'include',
                         body: JSON.stringify({ line_id: parseInt(lineId) })
                     });
                     const result = await response.json();

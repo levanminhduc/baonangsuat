@@ -4,6 +4,10 @@ if (session_status() === PHP_SESSION_NONE) {
 }
 require_once __DIR__ . '/../config/Database.php';
 
+if (!defined('ALLOW_PLAINTEXT_PASSWORD')) {
+    define('ALLOW_PLAINTEXT_PASSWORD', true);
+}
+
 class Auth {
     public static function login($username, $password) {
         $mysqli = Database::getMysqli();
@@ -20,9 +24,13 @@ class Auth {
             return ['success' => false, 'message' => 'Tài khoản không tồn tại'];
         }
         
-        if (!password_verify($password, $user['password']) && $user['password'] !== $password) {
-            return ['success' => false, 'message' => 'Mật khẩu không đúng'];
+        if (!password_verify($password, $user['password'])) {
+            if (!ALLOW_PLAINTEXT_PASSWORD || $user['password'] !== $password) {
+                return ['success' => false, 'message' => 'Mật khẩu không đúng'];
+            }
         }
+        
+        session_regenerate_id(true);
         
         $ma_nv = $user['name'];
         $nhanVienInfo = self::getNhanVienInfo($ma_nv);

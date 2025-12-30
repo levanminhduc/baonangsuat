@@ -1,8 +1,23 @@
 <?php
 header('Content-Type: application/json; charset=utf-8');
-header('Access-Control-Allow-Origin: *');
+
+$allowedOrigins = [
+    'http://localhost',
+    'http://127.0.0.1',
+    'https://localhost',
+    'https://127.0.0.1'
+];
+
+$origin = $_SERVER['HTTP_ORIGIN'] ?? '';
+if (in_array($origin, $allowedOrigins) || strpos($origin, 'http://localhost:') === 0 || strpos($origin, 'http://127.0.0.1:') === 0) {
+    header('Access-Control-Allow-Origin: ' . $origin);
+    header('Access-Control-Allow-Credentials: true');
+}
+
 header('Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS');
-header('Access-Control-Allow-Headers: Content-Type');
+header('Access-Control-Allow-Headers: Content-Type, X-CSRF-Token');
+header('X-Content-Type-Options: nosniff');
+header('X-Frame-Options: DENY');
 
 if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     exit(0);
@@ -11,6 +26,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
 require_once __DIR__ . '/../classes/Auth.php';
 require_once __DIR__ . '/../classes/NangSuatService.php';
 require_once __DIR__ . '/../classes/AdminService.php';
+require_once __DIR__ . '/../csrf.php';
 
 $requestUri = $_SERVER['REQUEST_URI'];
 $basePath = '/baonangsuat/api/';
@@ -25,6 +41,42 @@ function response($data, $code = 200) {
     http_response_code($code);
     echo json_encode($data, JSON_UNESCAPED_UNICODE);
     exit;
+}
+
+function checkRateLimit($identifier) {
+    $key = 'rate_limit_' . md5($identifier);
+    $maxAttempts = 5;
+    $lockoutTime = 900;
+    
+    if (!isset($_SESSION[$key])) {
+        $_SESSION[$key] = ['attempts' => 0, 'first_attempt' => time()];
+    }
+    
+    $data = $_SESSION[$key];
+    
+    if (time() - $data['first_attempt'] > $lockoutTime) {
+        $_SESSION[$key] = ['attempts' => 0, 'first_attempt' => time()];
+        return true;
+    }
+    
+    if ($data['attempts'] >= $maxAttempts) {
+        return false;
+    }
+    
+    return true;
+}
+
+function incrementRateLimit($identifier) {
+    $key = 'rate_limit_' . md5($identifier);
+    if (!isset($_SESSION[$key])) {
+        $_SESSION[$key] = ['attempts' => 0, 'first_attempt' => time()];
+    }
+    $_SESSION[$key]['attempts']++;
+}
+
+function resetRateLimit($identifier) {
+    $key = 'rate_limit_' . md5($identifier);
+    unset($_SESSION[$key]);
 }
 
 function requireLogin() {
@@ -47,8 +99,28 @@ function requireRole($roles) {
     }
 }
 
+function validateCsrf() {
+    $token = $_SERVER['HTTP_X_CSRF_TOKEN'] ?? '';
+    if (empty($token)) {
+        return false;
+    }
+    return validateCsrfToken($token);
+}
+
+function requireCsrf() {
+    if (!validateCsrf()) {
+        response(['success' => false, 'message' => 'CSRF token không hợp lệ', 'csrf_error' => true], 403);
+    }
+}
+
 try {
     switch ($segments[0]) {
+        case 'csrf-token':
+            if ($method === 'GET') {
+                response(['success' => true, 'token' => getCsrfToken()]);
+            }
+            response(['success' => false, 'message' => 'Method not allowed'], 405);
+            break;
         case 'auth':
             handleAuth($segments, $method, $input);
             break;
@@ -79,6 +151,10 @@ function handleAuth($segments, $method, $input) {
             if ($method !== 'POST') {
                 response(['success' => false, 'message' => 'Method not allowed'], 405);
             }
+            $clientIp = $_SERVER['REMOTE_ADDR'] ?? 'unknown';
+            if (!checkRateLimit($clientIp)) {
+                response(['success' => false, 'message' => 'Quá nhiều lần thử. Vui lòng đợi 15 phút'], 429);
+            }
             $username = trim($input['username'] ?? '');
             $password = $input['password'] ?? '';
             if (empty($username) || empty($password)) {
@@ -86,11 +162,14 @@ function handleAuth($segments, $method, $input) {
             }
             $result = Auth::login($username, $password);
             if ($result['success']) {
+                resetRateLimit($clientIp);
                 if (isset($result['no_line']) && $result['no_line']) {
                     $result['redirect_url'] = 'no-line.php';
                 } elseif (!isset($result['need_select_line']) || !$result['need_select_line']) {
                     $result['redirect_url'] = Auth::getDefaultPage();
                 }
+            } else {
+                incrementRateLimit($clientIp);
             }
             response($result);
             break;
@@ -100,6 +179,7 @@ function handleAuth($segments, $method, $input) {
                 response(['success' => false, 'message' => 'Method not allowed'], 405);
             }
             requireLogin();
+            requireCsrf();
             $line_id = intval($input['line_id'] ?? 0);
             $result = Auth::selectLine($line_id);
             if ($result['success']) {
@@ -158,6 +238,7 @@ function handleBaoCao($segments, $method, $input) {
     }
     
     if ($method === 'POST' && !$baoCaoId) {
+        requireCsrf();
         $input['line_id'] = $session['line_id'];
         $result = $service->createBaoCao($input, $session['ma_nv']);
         response($result);
@@ -181,6 +262,7 @@ function handleBaoCao($segments, $method, $input) {
     
     if ($method === 'PUT' && $baoCaoId && $action === 'entries') {
         requireRole(['to_truong', 'quan_doc', 'admin']);
+        requireCsrf();
         $entries = $input['entries'] ?? [];
         $version = $input['version'] ?? 1;
         $result = $service->updateEntries($baoCaoId, $entries, $version, $session['ma_nv']);
@@ -189,6 +271,7 @@ function handleBaoCao($segments, $method, $input) {
     
     if ($method === 'PUT' && $baoCaoId && $action === 'header') {
         requireRole(['to_truong', 'quan_doc', 'admin']);
+        requireCsrf();
         $version = $input['version'] ?? 1;
         $result = $service->updateHeader($baoCaoId, $input, $version);
         response($result);
@@ -196,16 +279,19 @@ function handleBaoCao($segments, $method, $input) {
     
     if ($method === 'POST' && $baoCaoId && $action === 'submit') {
         requireRole(['to_truong', 'quan_doc', 'admin']);
+        requireCsrf();
         response($service->submitBaoCao($baoCaoId, $session['ma_nv']));
     }
     
     if ($method === 'POST' && $baoCaoId && $action === 'approve') {
         requireRole(['quan_doc', 'admin']);
+        requireCsrf();
         response($service->approveBaoCao($baoCaoId, $session['ma_nv']));
     }
     
     if ($method === 'POST' && $baoCaoId && $action === 'unlock') {
         requireRole(['admin']);
+        requireCsrf();
         response($service->unlockBaoCao($baoCaoId, $session['ma_nv']));
     }
     
@@ -275,12 +361,14 @@ function handleAdmin($segments, $method, $input) {
             }
             
             if ($method === 'POST') {
+                requireCsrf();
                 $ma_line = $input['ma_line'] ?? '';
                 $ten_line = $input['ten_line'] ?? '';
                 response($service->createLine($ma_line, $ten_line));
             }
             
             if ($method === 'PUT' && $id) {
+                requireCsrf();
                 $ma_line = $input['ma_line'] ?? '';
                 $ten_line = $input['ten_line'] ?? '';
                 $is_active = isset($input['is_active']) ? intval($input['is_active']) : 1;
@@ -288,6 +376,7 @@ function handleAdmin($segments, $method, $input) {
             }
             
             if ($method === 'DELETE' && $id) {
+                requireCsrf();
                 response($service->deleteLine($id));
             }
             break;
@@ -304,12 +393,14 @@ function handleAdmin($segments, $method, $input) {
             }
             
             if ($method === 'POST') {
+                requireCsrf();
                 $ma_nv = $input['ma_nv'] ?? '';
                 $line_id = intval($input['line_id'] ?? 0);
                 response($service->addUserLine($ma_nv, $line_id));
             }
             
             if ($method === 'DELETE') {
+                requireCsrf();
                 $ma_nv = $input['ma_nv'] ?? '';
                 $line_id = intval($input['line_id'] ?? 0);
                 response($service->removeUserLine($ma_nv, $line_id));
@@ -330,12 +421,14 @@ function handleAdmin($segments, $method, $input) {
             }
             
             if ($method === 'POST') {
+                requireCsrf();
                 $ma_hang = $input['ma_hang'] ?? '';
                 $ten_hang = $input['ten_hang'] ?? '';
                 response($service->createMaHang($ma_hang, $ten_hang));
             }
             
             if ($method === 'PUT' && $id) {
+                requireCsrf();
                 $ma_hang = $input['ma_hang'] ?? '';
                 $ten_hang = $input['ten_hang'] ?? '';
                 $is_active = isset($input['is_active']) ? intval($input['is_active']) : 1;
@@ -343,6 +436,7 @@ function handleAdmin($segments, $method, $input) {
             }
             
             if ($method === 'DELETE' && $id) {
+                requireCsrf();
                 response($service->deleteMaHang($id));
             }
             break;
@@ -361,6 +455,7 @@ function handleAdmin($segments, $method, $input) {
             }
             
             if ($method === 'POST') {
+                requireCsrf();
                 $ma_cong_doan = $input['ma_cong_doan'] ?? '';
                 $ten_cong_doan = $input['ten_cong_doan'] ?? '';
                 $la_cong_doan_thanh_pham = isset($input['la_cong_doan_thanh_pham']) ? intval($input['la_cong_doan_thanh_pham']) : 0;
@@ -368,6 +463,7 @@ function handleAdmin($segments, $method, $input) {
             }
             
             if ($method === 'PUT' && $id) {
+                requireCsrf();
                 $ma_cong_doan = $input['ma_cong_doan'] ?? '';
                 $ten_cong_doan = $input['ten_cong_doan'] ?? '';
                 $is_active = isset($input['is_active']) ? intval($input['is_active']) : 1;
@@ -376,6 +472,7 @@ function handleAdmin($segments, $method, $input) {
             }
             
             if ($method === 'DELETE' && $id) {
+                requireCsrf();
                 response($service->deleteCongDoan($id));
             }
             break;
@@ -395,6 +492,7 @@ function handleAdmin($segments, $method, $input) {
             }
             
             if ($method === 'POST') {
+                requireCsrf();
                 $ma_hang_id = intval($input['ma_hang_id'] ?? 0);
                 $cong_doan_id = intval($input['cong_doan_id'] ?? 0);
                 $thu_tu = intval($input['thu_tu'] ?? 1);
@@ -406,6 +504,7 @@ function handleAdmin($segments, $method, $input) {
             }
             
             if ($method === 'PUT' && $id) {
+                requireCsrf();
                 $thu_tu = intval($input['thu_tu'] ?? 1);
                 $bat_buoc = isset($input['bat_buoc']) ? intval($input['bat_buoc']) : 1;
                 $la_cong_doan_tinh_luy_ke = isset($input['la_cong_doan_tinh_luy_ke']) ? intval($input['la_cong_doan_tinh_luy_ke']) : 0;
@@ -415,6 +514,7 @@ function handleAdmin($segments, $method, $input) {
             }
             
             if ($method === 'DELETE' && $id) {
+                requireCsrf();
                 response($service->removeRouting($id));
             }
             break;

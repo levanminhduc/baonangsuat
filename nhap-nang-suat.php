@@ -1,4 +1,5 @@
 <?php
+require_once __DIR__ . '/includes/security-headers.php';
 require_once __DIR__ . '/classes/Auth.php';
 
 if (!Auth::isLoggedIn()) {
@@ -140,6 +141,6 @@ $session = Auth::getSession();
             ngay: "<?php echo isset($_GET['ngay']) ? htmlspecialchars($_GET['ngay']) : ''; ?>"
         };
     </script>
-    <script src="assets/js/app.js"></script>
+    <script type="module" src="assets/js/app.js"></script>
 </body>
 </html>
