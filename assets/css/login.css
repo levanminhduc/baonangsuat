@@ -1,0 +1,166 @@
+.login-wrapper {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    background: linear-gradient(135deg, #5b73e8, #44c4fa);
+    padding: 10px;
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+}
+
+.login-box {
+    background-color: #fff;
+    border-radius: 10px;
+    box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
+    width: 100%;
+    max-width: 400px;
+    overflow: hidden;
+}
+
+.login-header {
+    padding: 30px 20px 20px;
+}
+
+.hoatho-logo img {
+    margin-bottom: 15px;
+}
+
+.login-title {
+    color: #3d4465;
+    font-size: 1.3rem;
+    font-weight: 600;
+    margin-bottom: 0;
+}
+
+.login-body {
+    padding: 0 30px 20px;
+}
+
+.login-body .form-group label {
+    font-weight: 500;
+    color: #555;
+    font-size: 14px;
+    margin-bottom: 8px;
+}
+
+.login-body .form-control {
+    padding: 10px 15px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+}
+
+.login-body .form-control:focus {
+    border-color: #5b73e8;
+    box-shadow: 0 0 0 0.2rem rgba(91, 115, 232, 0.25);
+}
+
+.login-options {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    font-size: 14px;
+}
+
+.remember-me {
+    display: flex;
+    align-items: center;
+}
+
+.remember-me input {
+    margin-right: 8px;
+}
+
+.forgot-password a {
+    color: #5b73e8;
+    text-decoration: none;
+}
+
+.forgot-password a:hover {
+    text-decoration: underline;
+}
+
+.login-button {
+    margin-top: 10px;
+}
+
+.btn-primary {
+    color: #fff;
+    background-color: #5b73e8;
+    border-color: #5b73e8;
+    width: 100%;
+    padding: 10px;
+}
+
+.btn-primary:hover {
+    background-color: #4a62d7;
+    border-color: #4a62d7;
+}
+
+.login-footer {
+    background-color: #f8f9fa;
+    padding: 15px;
+    border-top: 1px solid #eee;
+}
+
+.login-footer p {
+    margin-bottom: 0;
+    font-size: 12px;
+    color: #888;
+}
+
+/* Modal Styles for Line Selection */
+.modal-content {
+    border-radius: 10px;
+    border: none;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+}
+
+.line-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    max-height: 300px;
+    overflow-y: auto;
+}
+
+.line-list li {
+    padding: 12px 15px;
+    border-bottom: 1px solid #eee;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.line-list li:last-child {
+    border-bottom: none;
+}
+
+.line-list li:hover {
+    background-color: #f8f9fa;
+    color: #5b73e8;
+    font-weight: 500;
+}
+
+@media (max-width: 576px) {
+    .login-wrapper {
+        background: #fff;
+        padding: 0;
+    }
+    .login-box {
+        max-width: 100%;
+        min-height: 100vh;
+        border-radius: 0;
+        box-shadow: none;
+    }
+    .login-body {
+        padding: 0 20px 20px;
+    }
+    .form-group {
+        margin-bottom: 25px !important;
+    }
+    .btn-primary {
+        padding: 12px;
+        font-size: 16px;
+    }
+}
