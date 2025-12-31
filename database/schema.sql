@@ -75,12 +75,17 @@ CREATE TABLE ca_lam (
 CREATE TABLE moc_gio (
     id INT AUTO_INCREMENT PRIMARY KEY,
     ca_id INT NOT NULL,
+    line_id INT DEFAULT NULL,
     gio TIME NOT NULL,
     thu_tu INT NOT NULL DEFAULT 0,
     so_phut_hieu_dung_luy_ke INT DEFAULT 0,
     is_active TINYINT(1) DEFAULT 1,
     FOREIGN KEY (ca_id) REFERENCES ca_lam(id) ON DELETE CASCADE,
-    INDEX idx_ca_thu_tu (ca_id, thu_tu)
+    FOREIGN KEY (line_id) REFERENCES line(id) ON DELETE CASCADE,
+    INDEX idx_ca_thu_tu (ca_id, thu_tu),
+    INDEX idx_moc_gio_line (line_id),
+    INDEX idx_moc_gio_ca_line (ca_id, line_id),
+    UNIQUE KEY uk_moc_gio_ca_line_gio (ca_id, line_id, gio)
 ) ENGINE=InnoDB;
 
 CREATE TABLE bao_cao_nang_suat (
@@ -144,8 +149,8 @@ INSERT INTO ca_lam (ma_ca, ten_ca, gio_bat_dau, gio_ket_thuc) VALUES
 INSERT INTO moc_gio (ca_id, gio, thu_tu, so_phut_hieu_dung_luy_ke) VALUES
 (1, '09:00:00', 1, 90),
 (1, '11:00:00', 2, 210),
-(1, '14:00:00', 3, 300),
-(1, '17:00:00', 4, 480);
+(1, '14:00:00', 3, 330),
+(1, '17:00:00', 4, 510);
 
 INSERT INTO line (ma_line, ten_line) VALUES
 ('LINE_1', 'Chuyền 1'),
@@ -184,3 +189,13 @@ INSERT INTO ma_hang_cong_doan (ma_hang_id, cong_doan_id, thu_tu, la_cong_doan_ti
 
 INSERT INTO user_line (ma_nv, line_id) VALUES
 ('4211', 6);
+
+INSERT INTO moc_gio (ca_id, line_id, gio, thu_tu, so_phut_hieu_dung_luy_ke) VALUES
+(1, 4, '09:00:00', 1, 90),
+(1, 4, '11:00:00', 2, 210),
+(1, 4, '14:00:00', 3, 330),
+(1, 4, '17:00:00', 4, 510),
+(1, 5, '09:00:00', 1, 90),
+(1, 5, '11:00:00', 2, 210),
+(1, 5, '14:00:00', 3, 330),
+(1, 5, '17:00:00', 4, 510);

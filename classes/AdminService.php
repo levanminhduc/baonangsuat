@@ -5,6 +5,7 @@ require_once __DIR__ . '/services/UserService.php';
 require_once __DIR__ . '/services/MaHangService.php';
 require_once __DIR__ . '/services/CongDoanService.php';
 require_once __DIR__ . '/services/RoutingService.php';
+require_once __DIR__ . '/services/MocGioService.php';
 
 class AdminService {
     private $lineService;
@@ -12,6 +13,7 @@ class AdminService {
     private $maHangService;
     private $congDoanService;
     private $routingService;
+    private $mocGioService;
     
     public function __construct() {
         $this->lineService = new LineService();
@@ -19,6 +21,7 @@ class AdminService {
         $this->maHangService = new MaHangService();
         $this->congDoanService = new CongDoanService();
         $this->routingService = new RoutingService();
+        $this->mocGioService = new MocGioService();
     }
     
     public function getAllUsers() {
@@ -123,5 +126,33 @@ class AdminService {
     
     public function removeRouting($id) {
         return $this->routingService->remove($id);
+    }
+    
+    public function getMocGioList($ca_id = null, $line_id = null) {
+        return $this->mocGioService->getList($ca_id, $line_id);
+    }
+    
+    public function getMocGio($id) {
+        return $this->mocGioService->get($id);
+    }
+    
+    public function createMocGio($ca_id, $line_id, $gio, $thu_tu, $so_phut_hieu_dung_luy_ke) {
+        return $this->mocGioService->create($ca_id, $line_id, $gio, $thu_tu, $so_phut_hieu_dung_luy_ke);
+    }
+    
+    public function updateMocGio($id, $gio, $thu_tu, $so_phut_hieu_dung_luy_ke, $is_active) {
+        return $this->mocGioService->update($id, $gio, $thu_tu, $so_phut_hieu_dung_luy_ke, $is_active);
+    }
+    
+    public function deleteMocGio($id) {
+        return $this->mocGioService->delete($id);
+    }
+    
+    public function copyMocGioDefaultToLine($ca_id, $line_id) {
+        return $this->mocGioService->copyDefaultToLine($ca_id, $line_id);
+    }
+    
+    public function getCaListForMocGio() {
+        return $this->mocGioService->getCaList();
     }
 }

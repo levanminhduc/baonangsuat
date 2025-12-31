@@ -62,6 +62,8 @@ $session = Auth::getSession();
                 <button class="admin-tab" data-tab="ma-hang">Quản lý Mã hàng</button>
                 <button class="admin-tab" data-tab="cong-doan">Quản lý Công đoạn</button>
                 <button class="admin-tab" data-tab="routing">Quản lý Routing</button>
+                <button class="admin-tab" data-tab="presets">Quản lý Preset Mốc Giờ</button>
+                <button class="admin-tab" data-tab="moc-gio">Quản lý Mốc giờ (Cũ)</button>
             </div>
             
             <div id="linesTab" class="admin-tab-content active">
@@ -188,6 +190,79 @@ $session = Auth::getSession();
                     </div>
                 </div>
             </div>
+
+            <div id="presetsTab" class="admin-tab-content">
+                <!-- Preset List View -->
+                <div id="presetsListView" class="admin-panel">
+                    <div class="panel-header">
+                        <h2>Quản lý Preset Mốc Giờ</h2>
+                        <button id="addPresetBtn" class="btn btn-primary">+ Thêm Preset</button>
+                    </div>
+                    <table class="admin-table" id="presetsTable">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Tên Preset</th>
+                                <th>Ca</th>
+                                <th>Mặc định</th>
+                                <th>Trạng thái</th>
+                                <th>Thao tác</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+            </div>
+            
+            <div id="moc-gioTab" class="admin-tab-content">
+                <div class="admin-panel">
+                    <div class="panel-header">
+                        <h2>Quản lý Mốc giờ theo LINE</h2>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                        <div class="form-group filter-group">
+                            <label for="mocGioCaSelect">Chọn Ca:</label>
+                            <select id="mocGioCaSelect" class="custom-select form-control">
+                                <option value="">-- Chọn ca --</option>
+                            </select>
+                        </div>
+                        <div class="form-group filter-group">
+                            <label for="mocGioLineSelect">Chọn LINE:</label>
+                            <select id="mocGioLineSelect" class="custom-select form-control">
+                                <option value="">-- Tất cả (xem default) --</option>
+                                <option value="default">Mốc giờ mặc định</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div id="mocGioTableContainer" style="display: none;">
+                        <div class="panel-header">
+                            <h3 id="mocGioTitle">Mốc giờ: </h3>
+                            <div class="flex gap-2">
+                                <button id="copyDefaultBtn" class="btn bg-green-600 hover:bg-green-700 text-white" style="display: none;">Copy từ Default</button>
+                                <button id="addMocGioBtn" class="btn btn-primary">+ Thêm Mốc giờ</button>
+                            </div>
+                        </div>
+                        <div id="mocGioFallbackNotice" class="bg-yellow-100 border-l-4 border-yellow-500 text-yellow-700 p-3 mb-4" style="display: none;">
+                            <p class="font-medium">LINE này đang sử dụng mốc giờ mặc định</p>
+                            <p class="text-sm">Nhấn "Copy từ Default" để tạo mốc giờ riêng cho LINE này.</p>
+                        </div>
+                        <table class="admin-table" id="mocGioTable">
+                            <thead>
+                                <tr>
+                                    <th>STT</th>
+                                    <th>Giờ</th>
+                                    <th>Phút lũy kế</th>
+                                    <th>Ca</th>
+                                    <th>LINE</th>
+                                    <th>Trạng thái</th>
+                                    <th>Thao tác</th>
+                                </tr>
+                            </thead>
+                            <tbody></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
     
@@ -256,24 +331,11 @@ $session = Auth::getSession();
     </div>
     
     <!-- Confirm Modal -->
-    <div id="confirmModal" class="modal hidden fixed inset-0 z-50 flex items-center justify-center bg-gray-900/50 backdrop-blur-sm" onclick="closeModal('confirmModal')">
-        <div class="modal-content bg-white rounded-xl shadow-2xl w-full max-w-sm p-0 overflow-hidden" onclick="event.stopPropagation()">
-            <div class="px-6 py-4 border-b border-gray-100 bg-gray-50 flex justify-between items-center">
-                <h2 class="text-xl font-bold text-gray-800 m-0">Xác nhận</h2>
-                <button type="button" class="w-8 h-8 flex items-center justify-center bg-red-500 hover:bg-red-700 rounded text-white transition-colors" onclick="closeModal('confirmModal')">
-                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
-                </button>
-            </div>
-            <div class="p-6">
-                <p id="confirmMessage" class="text-gray-600 text-base leading-relaxed"></p>
-                <div class="modal-actions flex justify-end gap-3 pt-6 mt-2">
-                    <button type="button" class="btn px-4 py-2 rounded-lg bg-red-500 hover:bg-red-700 text-white transition-colors font-medium" onclick="closeModal('confirmModal')">Hủy</button>
-                    <button type="button" id="confirmBtn" class="btn btn-danger px-4 py-2 rounded-lg bg-red-600 hover:bg-red-700 text-white shadow-md hover:shadow-lg transition-all font-medium">Xác nhận</button>
-                </div>
-            </div>
-        </div>
-    </div>
+    <?php include __DIR__ . '/includes/components/confirm-modal.php'; ?>
     
+    <!-- Loading Overlay -->
+    <?php include __DIR__ . '/includes/components/loading-overlay.php'; ?>
+
     <!-- Ma Hang Modal -->
     <div id="maHangModal" class="modal hidden fixed inset-0 z-50 flex items-center justify-center bg-gray-900/50 backdrop-blur-sm" onclick="closeModal('maHangModal')">
         <div class="modal-content bg-white rounded-xl shadow-2xl w-full max-w-md p-0 overflow-hidden" onclick="event.stopPropagation()">
@@ -396,6 +458,212 @@ $session = Auth::getSession();
                 </div>
                 <div class="modal-actions flex justify-end gap-3 pt-4 border-t border-gray-100 mt-6">
                     <button type="button" class="btn px-4 py-2 rounded-lg bg-red-500 hover:bg-red-700 text-white transition-colors font-medium" onclick="closeModal('routingModal')">Hủy</button>
+                    <button type="submit" class="btn btn-primary px-4 py-2 rounded-lg bg-primary hover:bg-primary-dark text-white shadow-md hover:shadow-lg transition-all font-medium">Lưu</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    <div id="mocGioModal" class="modal hidden fixed inset-0 z-50 flex items-center justify-center bg-gray-900/50 backdrop-blur-sm" onclick="closeModal('mocGioModal')">
+        <div class="modal-content bg-white rounded-xl shadow-2xl w-full max-w-lg p-0 overflow-hidden" onclick="event.stopPropagation()">
+            <div class="px-6 py-4 border-b border-gray-100 bg-gray-50 flex justify-between items-center">
+                <h2 id="mocGioModalTitle" class="text-xl font-bold text-gray-800 m-0">Thêm Mốc giờ mới</h2>
+                <button type="button" class="w-8 h-8 flex items-center justify-center bg-red-500 hover:bg-red-700 rounded text-white transition-colors" onclick="closeModal('mocGioModal')">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                </button>
+            </div>
+            <form id="mocGioForm" class="p-6 space-y-4">
+                <input type="hidden" id="mocGioId" name="id">
+                <input type="hidden" id="mocGioFormCaId" name="ca_id">
+                <input type="hidden" id="mocGioFormLineId" name="line_id">
+                <div class="grid grid-cols-2 gap-4">
+                    <div class="form-group space-y-1">
+                        <label for="mocGioGio" class="block text-sm font-medium text-gray-700">Giờ (HH:MM)</label>
+                        <input type="time" id="mocGioGio" name="gio" required class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary transition-colors outline-none">
+                    </div>
+                    <div class="form-group space-y-1">
+                        <label for="mocGioThuTu" class="block text-sm font-medium text-gray-700">Thứ tự</label>
+                        <input type="number" id="mocGioThuTu" name="thu_tu" value="1" min="1" required class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary transition-colors outline-none">
+                    </div>
+                </div>
+                <div class="form-group space-y-1">
+                    <label for="mocGioPhutLuyKe" class="block text-sm font-medium text-gray-700">Số phút hiệu dụng lũy kế</label>
+                    <input type="number" id="mocGioPhutLuyKe" name="so_phut_hieu_dung_luy_ke" value="0" min="0" required class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary transition-colors outline-none">
+                    <p class="text-xs text-gray-500">Tổng số phút làm việc hiệu dụng tính đến mốc giờ này</p>
+                </div>
+                <div class="form-group" id="mocGioIsActiveGroup" style="display:none">
+                    <div class="flex items-center gap-2 cursor-pointer">
+                        <input type="checkbox" id="mocGioIsActive" name="is_active" checked class="w-5 h-5 text-primary border-gray-300 rounded focus:ring-primary">
+                        <label for="mocGioIsActive" class="text-sm font-medium text-gray-700 cursor-pointer select-none">Đang hoạt động</label>
+                    </div>
+                </div>
+                <div class="modal-actions flex justify-end gap-3 pt-4 border-t border-gray-100 mt-6">
+                    <button type="button" class="btn px-4 py-2 rounded-lg bg-red-500 hover:bg-red-700 text-white transition-colors font-medium" onclick="closeModal('mocGioModal')">Hủy</button>
+                    <button type="submit" class="btn btn-primary px-4 py-2 rounded-lg bg-primary hover:bg-primary-dark text-white shadow-md hover:shadow-lg transition-all font-medium">Lưu</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Preset Detail Modal -->
+    <div id="presetDetailModal" class="modal hidden fixed inset-0 z-50 flex items-center justify-center bg-gray-900/50 backdrop-blur-sm" onclick="closeModal('presetDetailModal')">
+        <div class="modal-content bg-white rounded-xl shadow-2xl w-full max-w-2xl p-0 overflow-hidden flex flex-col max-h-[90vh]" onclick="event.stopPropagation()">
+            <div class="px-6 py-4 border-b border-gray-100 bg-gray-50 flex justify-between items-center flex-shrink-0">
+                <h2 id="presetDetailTitle" class="text-xl font-bold text-gray-800 m-0">Chi tiết Preset</h2>
+                <button type="button" class="w-8 h-8 flex items-center justify-center bg-red-500 hover:bg-red-700 rounded text-white transition-colors" onclick="closeModal('presetDetailModal')">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                </button>
+            </div>
+            
+            <div class="p-6 overflow-y-auto flex-grow">
+                <div class="mb-6 border-b border-gray-100 pb-6">
+                    <div class="flex justify-between items-center mb-4">
+                        <h3 class="text-lg font-semibold text-gray-700">Mốc giờ thiết lập</h3>
+                    </div>
+                    <div id="presetMocGioList" class="flex flex-wrap gap-2">
+                        <!-- Mốc giờ sẽ được render ở đây -->
+                    </div>
+                </div>
+
+                <div class="mb-6">
+                    <div class="flex justify-between items-center mb-4">
+                        <h3 class="text-lg font-semibold text-gray-700">Danh sách LINE áp dụng</h3>
+                        <button type="button" class="btn btn-sm btn-primary" onclick="showAssignLinesModal(currentPresetDetail.id)">+ Gán thêm LINE</button>
+                    </div>
+                    <div id="presetAssignedLines" class="border rounded-lg overflow-hidden">
+                        <!-- Table content populated by JS -->
+                    </div>
+                </div>
+            </div>
+
+            <div class="modal-actions flex justify-end gap-3 p-4 border-t border-gray-100 bg-gray-50 flex-shrink-0">
+                <button type="button" class="btn px-4 py-2 rounded-lg bg-gray-500 hover:bg-gray-700 text-white transition-colors font-medium" onclick="closeModal('presetDetailModal')">Đóng</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Preset Modal (Create/Edit) -->
+    <div id="presetModal" class="modal hidden fixed inset-0 z-50 flex items-center justify-center bg-gray-900/50 backdrop-blur-sm" onclick="closeModal('presetModal')">
+        <div class="modal-content bg-white rounded-xl shadow-2xl w-full max-w-md p-0 overflow-hidden" onclick="event.stopPropagation()">
+            <div class="px-6 py-4 border-b border-gray-100 bg-gray-50 flex justify-between items-center">
+                <h2 id="presetModalTitle" class="text-xl font-bold text-gray-800 m-0">Thêm Preset mới</h2>
+                <button type="button" class="w-8 h-8 flex items-center justify-center bg-red-500 hover:bg-red-700 rounded text-white transition-colors" onclick="closeModal('presetModal')">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                </button>
+            </div>
+            <form id="presetForm" class="p-6 space-y-4">
+                <input type="hidden" id="presetId" name="id">
+                <div class="form-group space-y-1">
+                    <label for="presetTenSet" class="block text-sm font-medium text-gray-700">Tên Preset</label>
+                    <input type="text" id="presetTenSet" name="ten_set" required class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary transition-colors outline-none" placeholder="VD: Ca Sáng - Chuẩn">
+                </div>
+                <div class="form-group space-y-1">
+                    <label for="presetCaSelect" class="block text-sm font-medium text-gray-700">Áp dụng cho Ca</label>
+                    <select id="presetCaSelect" name="ca_id" required class="custom-select w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary transition-colors outline-none bg-white">
+                        <option value="">-- Chọn ca --</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <div class="flex items-center gap-2 cursor-pointer">
+                        <input type="checkbox" id="presetIsDefault" name="is_default" class="w-5 h-5 text-primary border-gray-300 rounded focus:ring-primary">
+                        <label for="presetIsDefault" class="text-sm font-medium text-gray-700 cursor-pointer select-none">Đặt làm mặc định cho ca này</label>
+                    </div>
+                </div>
+                <div class="form-group" id="presetIsActiveGroup" style="display:none">
+                    <div class="flex items-center gap-2 cursor-pointer">
+                        <input type="checkbox" id="presetIsActive" name="is_active" checked class="w-5 h-5 text-primary border-gray-300 rounded focus:ring-primary">
+                        <label for="presetIsActive" class="text-sm font-medium text-gray-700 cursor-pointer select-none">Đang hoạt động</label>
+                    </div>
+                </div>
+                <div class="modal-actions flex justify-end gap-3 pt-4 border-t border-gray-100 mt-6">
+                    <button type="button" class="btn px-4 py-2 rounded-lg bg-red-500 hover:bg-red-700 text-white transition-colors font-medium" onclick="closeModal('presetModal')">Hủy</button>
+                    <button type="submit" class="btn btn-primary px-4 py-2 rounded-lg bg-primary hover:bg-primary-dark text-white shadow-md hover:shadow-lg transition-all font-medium">Lưu</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Assign Lines Modal (Multi-select) -->
+    <div id="assignLinesModal" class="modal hidden fixed inset-0 z-50 flex items-center justify-center bg-gray-900/50 backdrop-blur-sm" onclick="closeModal('assignLinesModal')">
+        <div class="modal-content bg-white rounded-xl shadow-2xl w-full max-w-2xl p-0 overflow-hidden flex flex-col max-h-[90vh]" onclick="event.stopPropagation()">
+            <div class="px-6 py-4 border-b border-gray-100 bg-gray-50 flex justify-between items-center flex-shrink-0">
+                <h2 id="assignLinesTitle" class="text-xl font-bold text-gray-800 m-0">Gán LINE vào Preset</h2>
+                <button type="button" class="w-8 h-8 flex items-center justify-center bg-red-500 hover:bg-red-700 rounded text-white transition-colors" onclick="closeModal('assignLinesModal')">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                </button>
+            </div>
+            <form id="assignLinesForm" class="flex flex-col flex-grow overflow-hidden">
+                <input type="hidden" id="assignLinesPresetId" name="preset_id">
+                
+                <div class="p-4 border-b bg-gray-50 flex-shrink-0">
+                    <input type="text" id="assignLinesSearch" placeholder="Tìm kiếm LINE..." class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary outline-none">
+                </div>
+
+                <div class="p-6 overflow-y-auto flex-grow">
+                    <div id="unassignedLinesContainer" class="grid grid-cols-2 md:grid-cols-3 gap-3">
+                        <!-- Checkboxes populated by JS -->
+                    </div>
+                </div>
+
+                <div class="modal-actions flex justify-end gap-3 p-4 border-t border-gray-100 bg-gray-50 flex-shrink-0">
+                    <button type="button" class="btn px-4 py-2 rounded-lg bg-red-500 hover:bg-red-700 text-white transition-colors font-medium" onclick="closeModal('assignLinesModal')">Hủy</button>
+                    <button type="submit" class="btn btn-primary px-4 py-2 rounded-lg bg-primary hover:bg-primary-dark text-white shadow-md hover:shadow-lg transition-all font-medium">Gán đã chọn</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Copy Preset Modal -->
+    <div id="copyPresetModal" class="modal hidden fixed inset-0 z-50 flex items-center justify-center bg-gray-900/50 backdrop-blur-sm" onclick="closeModal('copyPresetModal')">
+        <div class="modal-content bg-white rounded-xl shadow-2xl w-full max-w-md p-0 overflow-hidden" onclick="event.stopPropagation()">
+            <div class="px-6 py-4 border-b border-gray-100 bg-gray-50 flex justify-between items-center">
+                <h2 class="text-xl font-bold text-gray-800 m-0">Copy Preset</h2>
+                <button type="button" class="w-8 h-8 flex items-center justify-center bg-red-500 hover:bg-red-700 rounded text-white transition-colors" onclick="closeModal('copyPresetModal')">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                </button>
+            </div>
+            <form id="copyPresetForm" class="p-6 space-y-4">
+                <input type="hidden" id="copyPresetSourceId" name="source_set_id">
+                <div class="form-group space-y-1">
+                    <label for="copyPresetNewName" class="block text-sm font-medium text-gray-700">Tên Preset Mới</label>
+                    <input type="text" id="copyPresetNewName" name="ten_set" required class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary transition-colors outline-none">
+                </div>
+                <div class="modal-actions flex justify-end gap-3 pt-4 border-t border-gray-100 mt-6">
+                    <button type="button" class="btn px-4 py-2 rounded-lg bg-red-500 hover:bg-red-700 text-white transition-colors font-medium" onclick="closeModal('copyPresetModal')">Hủy</button>
+                    <button type="submit" class="btn btn-primary px-4 py-2 rounded-lg bg-primary hover:bg-primary-dark text-white shadow-md hover:shadow-lg transition-all font-medium">Copy</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    <!-- Preset Moc Gio Modal (Reusing structure but specific IDs for Preset context) -->
+    <div id="presetMocGioModal" class="modal hidden fixed inset-0 z-50 flex items-center justify-center bg-gray-900/50 backdrop-blur-sm" onclick="closeModal('presetMocGioModal')">
+        <div class="modal-content bg-white rounded-xl shadow-2xl w-full max-w-lg p-0 overflow-hidden" onclick="event.stopPropagation()">
+            <div class="px-6 py-4 border-b border-gray-100 bg-gray-50 flex justify-between items-center">
+                <h2 id="presetMocGioModalTitle" class="text-xl font-bold text-gray-800 m-0">Thêm Mốc giờ vào Preset</h2>
+                <button type="button" class="w-8 h-8 flex items-center justify-center bg-red-500 hover:bg-red-700 rounded text-white transition-colors" onclick="closeModal('presetMocGioModal')">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                </button>
+            </div>
+            <form id="presetMocGioForm" class="p-6 space-y-4">
+                <input type="hidden" id="presetMocGioId" name="id">
+                <input type="hidden" id="presetMocGioPresetId" name="preset_id">
+                <div class="grid grid-cols-2 gap-4">
+                    <div class="form-group space-y-1">
+                        <label for="presetMocGioGio" class="block text-sm font-medium text-gray-700">Giờ (HH:MM)</label>
+                        <input type="time" id="presetMocGioGio" name="gio" required class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary transition-colors outline-none">
+                    </div>
+                    <div class="form-group space-y-1">
+                        <label for="presetMocGioThuTu" class="block text-sm font-medium text-gray-700">Thứ tự</label>
+                        <input type="number" id="presetMocGioThuTu" name="thu_tu" value="1" min="1" required class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary transition-colors outline-none">
+                    </div>
+                </div>
+                <div class="form-group space-y-1">
+                    <label for="presetMocGioPhutLuyKe" class="block text-sm font-medium text-gray-700">Số phút hiệu dụng lũy kế</label>
+                    <input type="number" id="presetMocGioPhutLuyKe" name="so_phut_hieu_dung_luy_ke" value="0" min="0" required class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary transition-colors outline-none">
+                </div>
+                <div class="modal-actions flex justify-end gap-3 pt-4 border-t border-gray-100 mt-6">
+                    <button type="button" class="btn px-4 py-2 rounded-lg bg-red-500 hover:bg-red-700 text-white transition-colors font-medium" onclick="closeModal('presetMocGioModal')">Hủy</button>
                     <button type="submit" class="btn btn-primary px-4 py-2 rounded-lg bg-primary hover:bg-primary-dark text-white shadow-md hover:shadow-lg transition-all font-medium">Lưu</button>
                 </div>
             </form>

@@ -9,10 +9,12 @@ class NangSuatService {
     }
     
     public function getContext($line_id, $ca_id = null) {
+        $mocGioResult = $ca_id ? $this->getMocGioList($ca_id, $line_id) : ['data' => [], 'is_fallback' => true];
         $context = [
             'line' => $this->getLine($line_id),
             'ca_list' => $this->getCaList(),
-            'moc_gio_list' => $ca_id ? $this->getMocGioList($ca_id) : [],
+            'moc_gio_list' => $mocGioResult['data'],
+            'moc_gio_is_fallback' => $mocGioResult['is_fallback'],
             'ma_hang_list' => $this->getMaHangList()
         ];
         return $context;
@@ -37,9 +39,33 @@ class NangSuatService {
         return $list;
     }
     
-    public function getMocGioList($ca_id) {
-        $stmt = mysqli_prepare($this->db, 
-            "SELECT id, gio, thu_tu, so_phut_hieu_dung_luy_ke FROM moc_gio WHERE ca_id = ? AND is_active = 1 ORDER BY thu_tu"
+    public function getMocGioList($ca_id, $line_id = null) {
+        if ($line_id !== null) {
+            $stmt = mysqli_prepare($this->db,
+                "SELECT id, gio, thu_tu, so_phut_hieu_dung_luy_ke, 1 as is_line_specific
+                 FROM moc_gio
+                 WHERE ca_id = ? AND line_id = ? AND is_active = 1
+                 ORDER BY thu_tu"
+            );
+            mysqli_stmt_bind_param($stmt, "ii", $ca_id, $line_id);
+            mysqli_stmt_execute($stmt);
+            $result = mysqli_stmt_get_result($stmt);
+            $list = [];
+            while ($row = mysqli_fetch_assoc($result)) {
+                $list[] = $row;
+            }
+            mysqli_stmt_close($stmt);
+            
+            if (count($list) > 0) {
+                return ['data' => $list, 'is_fallback' => false];
+            }
+        }
+        
+        $stmt = mysqli_prepare($this->db,
+            "SELECT id, gio, thu_tu, so_phut_hieu_dung_luy_ke, 0 as is_line_specific
+             FROM moc_gio
+             WHERE ca_id = ? AND line_id IS NULL AND is_active = 1
+             ORDER BY thu_tu"
         );
         mysqli_stmt_bind_param($stmt, "i", $ca_id);
         mysqli_stmt_execute($stmt);
@@ -49,7 +75,8 @@ class NangSuatService {
             $list[] = $row;
         }
         mysqli_stmt_close($stmt);
-        return $list;
+        
+        return ['data' => $list, 'is_fallback' => true];
     }
     
     public function getMaHangList() {
@@ -113,7 +140,8 @@ class NangSuatService {
         }
         mysqli_stmt_close($checkStmt);
         
-        $mocGioList = $this->getMocGioList($ca_id);
+        $mocGioResult = $this->getMocGioList($ca_id, $line_id);
+        $mocGioList = $mocGioResult['data'];
         $tong_phut_hieu_dung = 0;
         if (count($mocGioList) > 0) {
             $lastMoc = $mocGioList[count($mocGioList) - 1];
@@ -188,7 +216,9 @@ class NangSuatService {
         }
         
         $baoCao['routing'] = $this->getRouting($baoCao['ma_hang_id'], $baoCao['line_id']);
-        $baoCao['moc_gio_list'] = $this->getMocGioList($baoCao['ca_id']);
+        $mocGioResult = $this->getMocGioList($baoCao['ca_id'], $baoCao['line_id']);
+        $baoCao['moc_gio_list'] = $mocGioResult['data'];
+        $baoCao['moc_gio_is_fallback'] = $mocGioResult['is_fallback'];
         $baoCao['entries'] = $this->getEntries($bao_cao_id);
         $baoCao['chi_tieu_luy_ke'] = $this->calculateChiTieuLuyKe($baoCao);
         $baoCao['luy_ke_thuc_te'] = $this->calculateLuyKeThucTe($baoCao);
@@ -340,8 +370,8 @@ class NangSuatService {
     }
     
     public function updateHeader($bao_cao_id, $data, $version) {
-        $stmt = mysqli_prepare($this->db, 
-            "SELECT version, trang_thai, ca_id FROM bao_cao_nang_suat WHERE id = ?"
+        $stmt = mysqli_prepare($this->db,
+            "SELECT version, trang_thai, ca_id, line_id FROM bao_cao_nang_suat WHERE id = ?"
         );
         mysqli_stmt_bind_param($stmt, "i", $bao_cao_id);
         mysqli_stmt_execute($stmt);
@@ -365,7 +395,8 @@ class NangSuatService {
         $ctns = intval($data['ctns'] ?? 0);
         $ghi_chu = $data['ghi_chu'] ?? '';
         
-        $mocGioList = $this->getMocGioList($baoCao['ca_id']);
+        $mocGioResult = $this->getMocGioList($baoCao['ca_id'], $baoCao['line_id']);
+        $mocGioList = $mocGioResult['data'];
         $tong_phut_hieu_dung = 0;
         if (count($mocGioList) > 0) {
             $lastMoc = $mocGioList[count($mocGioList) - 1];

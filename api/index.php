@@ -26,6 +26,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
 require_once __DIR__ . '/../classes/Auth.php';
 require_once __DIR__ . '/../classes/NangSuatService.php';
 require_once __DIR__ . '/../classes/AdminService.php';
+require_once __DIR__ . '/../classes/services/MocGioSetService.php';
 require_once __DIR__ . '/../csrf.php';
 
 $requestUri = $_SERVER['REQUEST_URI'];
@@ -135,6 +136,9 @@ try {
             break;
         case 'admin':
             handleAdmin($segments, $method, $input);
+            break;
+        case 'moc-gio-sets':
+            handleMocGioSets($segments, $method, $input);
             break;
         default:
             response(['success' => false, 'message' => 'API không tồn tại'], 404);
@@ -519,8 +523,139 @@ function handleAdmin($segments, $method, $input) {
             }
             break;
             
+        case 'moc-gio':
+            $action = $segments[2] ?? '';
+            
+            if ($method === 'GET' && $action === 'ca-list') {
+                response(['success' => true, 'data' => $service->getCaListForMocGio()]);
+            }
+            
+            if ($method === 'GET' && !$id && $action !== 'ca-list') {
+                $ca_id = isset($_GET['ca_id']) ? intval($_GET['ca_id']) : null;
+                $line_id = $_GET['line_id'] ?? null;
+                response(['success' => true, 'data' => $service->getMocGioList($ca_id, $line_id)]);
+            }
+            
+            if ($method === 'GET' && $id) {
+                $mocGio = $service->getMocGio($id);
+                if (!$mocGio) {
+                    response(['success' => false, 'message' => 'Mốc giờ không tồn tại'], 404);
+                }
+                response(['success' => true, 'data' => $mocGio]);
+            }
+            
+            if ($method === 'POST' && $action === 'copy-default') {
+                requireCsrf();
+                $ca_id = intval($input['ca_id'] ?? 0);
+                $line_id = intval($input['line_id'] ?? 0);
+                response($service->copyMocGioDefaultToLine($ca_id, $line_id));
+            }
+            
+            if ($method === 'POST' && !$action) {
+                requireCsrf();
+                $ca_id = intval($input['ca_id'] ?? 0);
+                $line_id = isset($input['line_id']) && $input['line_id'] !== '' ? intval($input['line_id']) : null;
+                $gio = $input['gio'] ?? '';
+                $thu_tu = intval($input['thu_tu'] ?? 1);
+                $so_phut_hieu_dung_luy_ke = intval($input['so_phut_hieu_dung_luy_ke'] ?? 0);
+                response($service->createMocGio($ca_id, $line_id, $gio, $thu_tu, $so_phut_hieu_dung_luy_ke));
+            }
+            
+            if ($method === 'PUT' && $id) {
+                requireCsrf();
+                $gio = $input['gio'] ?? '';
+                $thu_tu = intval($input['thu_tu'] ?? 1);
+                $so_phut_hieu_dung_luy_ke = intval($input['so_phut_hieu_dung_luy_ke'] ?? 0);
+                $is_active = isset($input['is_active']) ? intval($input['is_active']) : 1;
+                response($service->updateMocGio($id, $gio, $thu_tu, $so_phut_hieu_dung_luy_ke, $is_active));
+            }
+            
+            if ($method === 'DELETE' && $id) {
+                requireCsrf();
+                response($service->deleteMocGio($id));
+            }
+            break;
+            
         default:
             response(['success' => false, 'message' => 'Resource không hợp lệ'], 404);
+    }
+    
+    response(['success' => false, 'message' => 'Endpoint không hợp lệ'], 404);
+}
+
+function handleMocGioSets($segments, $method, $input) {
+    requireRole(['admin']);
+    $service = new MocGioSetService();
+    
+    $id = isset($segments[1]) && is_numeric($segments[1]) ? intval($segments[1]) : null;
+    $action = $id ? ($segments[2] ?? '') : ($segments[1] ?? '');
+    
+    if ($method === 'GET' && !$id && !$action) {
+        $ca_id = isset($_GET['ca_id']) ? intval($_GET['ca_id']) : null;
+        response(['success' => true, 'data' => $service->getList($ca_id)]);
+    }
+    
+    if ($method === 'GET' && $id && !$action) {
+        $set = $service->get($id);
+        if (!$set) {
+            response(['success' => false, 'message' => 'Preset không tồn tại'], 404);
+        }
+        response(['success' => true, 'data' => $set]);
+    }
+    
+    if ($method === 'POST' && !$id && !$action) {
+        requireCsrf();
+        $ca_id = intval($input['ca_id'] ?? 0);
+        $ten_set = $input['ten_set'] ?? '';
+        $is_default = isset($input['is_default']) ? intval($input['is_default']) : 0;
+        response($service->create($ca_id, $ten_set, $is_default));
+    }
+    
+    if ($method === 'POST' && !$id && $action === 'copy') {
+        requireCsrf();
+        $source_set_id = intval($input['source_set_id'] ?? 0);
+        $new_ten_set = $input['ten_set'] ?? '';
+        response($service->copyPreset($source_set_id, $new_ten_set));
+    }
+    
+    if ($method === 'PUT' && $id && !$action) {
+        requireCsrf();
+        $ten_set = $input['ten_set'] ?? '';
+        $is_default = isset($input['is_default']) ? intval($input['is_default']) : null;
+        $is_active = isset($input['is_active']) ? intval($input['is_active']) : null;
+        response($service->update($id, $ten_set, $is_default, $is_active));
+    }
+    
+    if ($method === 'DELETE' && $id && !$action) {
+        requireCsrf();
+        response($service->delete($id));
+    }
+    
+    if ($method === 'GET' && $id && $action === 'lines') {
+        response(['success' => true, 'data' => $service->getLines($id)]);
+    }
+    
+    if ($method === 'POST' && $id && $action === 'lines') {
+        requireCsrf();
+        $line_ids = $input['line_ids'] ?? [];
+        response($service->assignLines($id, $line_ids));
+    }
+    
+    if ($method === 'DELETE' && $id && $action === 'lines') {
+        requireCsrf();
+        $line_ids = $input['line_ids'] ?? [];
+        response($service->unassignLines($id, $line_ids));
+    }
+    
+    if ($method === 'GET' && $action === 'unassigned-lines') {
+        $ca_id = isset($_GET['ca_id']) ? intval($_GET['ca_id']) : 0;
+        response(['success' => true, 'data' => $service->getUnassignedLines($ca_id)]);
+    }
+    
+    if ($method === 'GET' && $action === 'resolve') {
+        $ca_id = isset($_GET['ca_id']) ? intval($_GET['ca_id']) : 0;
+        $line_id = isset($_GET['line_id']) ? intval($_GET['line_id']) : 0;
+        response(['success' => true, 'data' => $service->getMocGioForLine($ca_id, $line_id)]);
     }
     
     response(['success' => false, 'message' => 'Endpoint không hợp lệ'], 404);

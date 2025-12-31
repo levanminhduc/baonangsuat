@@ -8,6 +8,17 @@ let congDoanData = [];
 let routingData = [];
 let selectedMaHangId = null;
 let userLineFilterLineId = '';
+let mocGioData = [];
+let caListData = [];
+let selectedCaId = null;
+let selectedLineIdForMocGio = null;
+let csrfToken = null;
+
+// Preset Management Variables
+let presetsData = [];
+let currentPresetDetail = null;
+let currentPresetMocGio = [];
+let assignedLines = [];
 
 document.addEventListener('DOMContentLoaded', () => {
     loadLines();
@@ -15,14 +26,31 @@ document.addEventListener('DOMContentLoaded', () => {
     loadUserLines();
     loadMaHang();
     loadCongDoan();
+    loadCaList();
+    loadPresets(); // New function call
     bindEvents();
+
+    const initialTab = getTabFromHash();
+    if (initialTab) {
+        switchTab(initialTab, false);
+    }
 });
 
 function bindEvents() {
     document.getElementById('logoutBtn').addEventListener('click', logout);
     
     document.querySelectorAll('.admin-tab').forEach(tab => {
-        tab.addEventListener('click', () => switchTab(tab.dataset.tab));
+        tab.addEventListener('click', (e) => {
+            e.preventDefault();
+            switchTab(tab.dataset.tab);
+        });
+    });
+    
+    window.addEventListener('hashchange', () => {
+        const tab = getTabFromHash();
+        if (tab) {
+            switchTab(tab, false);
+        }
     });
     
     document.getElementById('addLineBtn').addEventListener('click', () => showLineModal());
@@ -30,16 +58,21 @@ function bindEvents() {
     document.getElementById('addMaHangBtn').addEventListener('click', () => showMaHangModal());
     document.getElementById('addCongDoanBtn').addEventListener('click', () => showCongDoanModal());
     document.getElementById('addRoutingBtn').addEventListener('click', () => showRoutingModal());
+    document.getElementById('addMocGioBtn').addEventListener('click', () => showMocGioModal());
+    document.getElementById('copyDefaultBtn').addEventListener('click', handleCopyDefault);
     
     document.getElementById('lineForm').addEventListener('submit', handleLineSubmit);
     document.getElementById('userLineForm').addEventListener('submit', handleUserLineSubmit);
     document.getElementById('maHangForm').addEventListener('submit', handleMaHangSubmit);
     document.getElementById('congDoanForm').addEventListener('submit', handleCongDoanSubmit);
     document.getElementById('routingForm').addEventListener('submit', handleRoutingSubmit);
+    document.getElementById('mocGioForm').addEventListener('submit', handleMocGioSubmit);
     
     document.getElementById('routingMaHangSelect').addEventListener('change', handleRoutingMaHangChange);
     document.getElementById('userLineFilterLine').addEventListener('change', handleUserLineFilterChange);
     document.getElementById('userSearchInput').addEventListener('input', handleUserSearch);
+    document.getElementById('mocGioCaSelect').addEventListener('change', handleMocGioFilterChange);
+    document.getElementById('mocGioLineSelect').addEventListener('change', handleMocGioFilterChange);
 }
 
 async function loadUsers() {
@@ -91,12 +124,27 @@ function updateUserLineFilterSelect() {
         ).join('');
 }
 
-function switchTab(tabName) {
+function getTabFromHash() {
+    const hash = window.location.hash.substring(1);
+    const validTabs = ['lines', 'user-lines', 'ma-hang', 'cong-doan', 'routing', 'presets', 'moc-gio'];
+    return validTabs.includes(hash) ? hash : null;
+}
+
+function switchTab(tabName, updateHistory = true) {
     document.querySelectorAll('.admin-tab').forEach(t => t.classList.remove('active'));
     document.querySelectorAll('.admin-tab-content').forEach(c => c.classList.remove('active'));
     
-    document.querySelector(`[data-tab="${tabName}"]`).classList.add('active');
-    document.getElementById(`${tabName}Tab`).classList.add('active');
+    const tabBtn = document.querySelector(`[data-tab="${tabName}"]`);
+    const tabContent = document.getElementById(`${tabName}Tab`);
+    
+    if (tabBtn) tabBtn.classList.add('active');
+    if (tabContent) tabContent.classList.add('active');
+
+    if (updateHistory) {
+        history.pushState(null, null, `#${tabName}`);
+    }
+
+    window.scrollTo(0, 0);
 }
 
 async function loadLines() {
@@ -106,6 +154,7 @@ async function loadLines() {
             linesData = response.data;
             renderLinesTable();
             updateUserLineFilterSelect();
+            updateMocGioLineSelect();
         }
     } catch (error) {
         showToast('Lỗi tải danh sách LINE', 'error');
@@ -313,8 +362,15 @@ function deleteUserLine(ma_nv, line_id) {
     });
 }
 
-function showConfirmModal(message, callback) {
+function showConfirmModal(message, callback, title = 'Xác nhận') {
     const modal = document.getElementById('confirmModal');
+    
+    // Update title if element exists
+    const titleEl = document.getElementById('confirmModalTitle');
+    if (titleEl) {
+        titleEl.textContent = title;
+    }
+    
     document.getElementById('confirmMessage').textContent = message;
     document.getElementById('confirmBtn').onclick = callback;
     modal.classList.remove('hidden');
@@ -324,11 +380,31 @@ function closeModal(modalId) {
     document.getElementById(modalId).classList.add('hidden');
 }
 
+async function ensureCsrfToken() {
+    if (csrfToken) {
+        return csrfToken;
+    }
+    const response = await fetch(API_BASE + '/csrf-token');
+    const result = await response.json();
+    if (result && result.token) {
+        csrfToken = result.token;
+    }
+    return csrfToken;
+}
+
 async function api(method, endpoint, data = null) {
     const options = {
         method: method,
-        headers: { 'Content-Type': 'application/json' }
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'same-origin'
     };
+    
+    if (method === 'POST' || method === 'PUT' || method === 'DELETE') {
+        await ensureCsrfToken();
+        if (csrfToken) {
+            options.headers['X-CSRF-Token'] = csrfToken;
+        }
+    }
     
     if (data && (method === 'POST' || method === 'PUT' || method === 'DELETE')) {
         options.body = JSON.stringify(data);
@@ -336,6 +412,62 @@ async function api(method, endpoint, data = null) {
     
     const response = await fetch(API_BASE + endpoint, options);
     return await response.json();
+}
+
+/**
+ * Hiển thị loading overlay
+ * @param {string} message - (Optional) Message tùy chỉnh, hiện tại dùng mặc định trong HTML
+ */
+function showLoading(message = null) {
+    const overlay = document.getElementById('loadingOverlay');
+    if (!overlay) return;
+    
+    overlay.classList.remove('hidden');
+    // Force reflow
+    void overlay.offsetWidth;
+    
+    overlay.style.pointerEvents = 'auto';
+    overlay.classList.remove('opacity-0');
+    overlay.querySelector('.transform').classList.remove('scale-95');
+    
+    // Disable all submit buttons/inputs to prevent double interactions
+    const activeModal = document.querySelector('.modal:not(.hidden)');
+    if (activeModal) {
+        const buttons = activeModal.querySelectorAll('button, input, select, textarea');
+        buttons.forEach(btn => {
+            if (!btn.disabled) {
+                btn.dataset.tempDisabled = 'true';
+                btn.disabled = true;
+                if (btn.classList.contains('btn-primary')) {
+                    btn.classList.add('opacity-70', 'cursor-wait');
+                }
+            }
+        });
+    }
+}
+
+/**
+ * Ẩn loading overlay
+ */
+function hideLoading() {
+    const overlay = document.getElementById('loadingOverlay');
+    if (!overlay) return;
+    
+    overlay.classList.add('opacity-0');
+    overlay.querySelector('.transform').classList.add('scale-95');
+    overlay.style.pointerEvents = 'none';
+    
+    setTimeout(() => {
+        overlay.classList.add('hidden');
+    }, 300);
+    
+    // Re-enable elements
+    const disabledElements = document.querySelectorAll('[data-temp-disabled="true"]');
+    disabledElements.forEach(el => {
+        el.disabled = false;
+        delete el.dataset.tempDisabled;
+        el.classList.remove('opacity-70', 'cursor-wait');
+    });
 }
 
 async function logout() {
@@ -756,6 +888,242 @@ function deleteRouting(routingId) {
     });
 }
 
+async function loadCaList() {
+    try {
+        const response = await api('GET', '/admin/moc-gio/ca-list');
+        if (response.success) {
+            caListData = response.data;
+            updateMocGioCaSelect();
+            updateMocGioLineSelect();
+        }
+    } catch (error) {
+        showToast('Lỗi tải danh sách ca', 'error');
+    }
+}
+
+function updateMocGioCaSelect() {
+    const select = document.getElementById('mocGioCaSelect');
+    select.innerHTML = '<option value="">-- Chọn ca --</option>' +
+        caListData.map(ca =>
+            `<option value="${ca.id}">${escapeHtml(ca.ma_ca)} - ${escapeHtml(ca.ten_ca)}</option>`
+        ).join('');
+}
+
+function updateMocGioLineSelect() {
+    const select = document.getElementById('mocGioLineSelect');
+    select.innerHTML = '<option value="">-- Tất cả (xem default) --</option>' +
+        '<option value="default">Mốc giờ mặc định</option>' +
+        linesData.filter(l => l.is_active == 1).map(l =>
+            `<option value="${l.id}">${escapeHtml(l.ma_line)} - ${escapeHtml(l.ten_line)}</option>`
+        ).join('');
+}
+
+async function handleMocGioFilterChange() {
+    const caId = document.getElementById('mocGioCaSelect').value;
+    const lineId = document.getElementById('mocGioLineSelect').value;
+    const container = document.getElementById('mocGioTableContainer');
+    const copyBtn = document.getElementById('copyDefaultBtn');
+    const fallbackNotice = document.getElementById('mocGioFallbackNotice');
+    
+    if (!caId) {
+        container.style.display = 'none';
+        selectedCaId = null;
+        selectedLineIdForMocGio = null;
+        return;
+    }
+    
+    selectedCaId = parseInt(caId);
+    selectedLineIdForMocGio = lineId;
+    
+    const ca = caListData.find(c => c.id == selectedCaId);
+    let titleText = `Mốc giờ: ${ca ? ca.ma_ca + ' - ' + ca.ten_ca : ''}`;
+    
+    if (lineId && lineId !== 'default') {
+        const line = linesData.find(l => l.id == lineId);
+        titleText += ` - ${line ? line.ten_line : 'LINE ' + lineId}`;
+        copyBtn.style.display = 'inline-block';
+    } else {
+        titleText += ' (Mặc định)';
+        copyBtn.style.display = 'none';
+    }
+    
+    document.getElementById('mocGioTitle').textContent = titleText;
+    
+    await loadMocGio(caId, lineId === 'default' ? 'default' : lineId);
+    container.style.display = 'block';
+    
+    const hasLineSpecific = mocGioData.length > 0 && mocGioData.some(m => m.line_id != null);
+    if (lineId && lineId !== 'default' && !hasLineSpecific) {
+        fallbackNotice.style.display = 'block';
+        copyBtn.style.display = 'inline-block';
+    } else {
+        fallbackNotice.style.display = 'none';
+        if (lineId && lineId !== 'default') {
+            copyBtn.style.display = 'none';
+        }
+    }
+}
+
+async function loadMocGio(caId, lineId) {
+    try {
+        let url = `/admin/moc-gio?ca_id=${caId}`;
+        if (lineId && lineId !== '') {
+            url += `&line_id=${lineId}`;
+        }
+        const response = await api('GET', url);
+        if (response.success) {
+            mocGioData = response.data;
+            renderMocGioTable();
+        }
+    } catch (error) {
+        showToast('Lỗi tải mốc giờ', 'error');
+    }
+}
+
+function renderMocGioTable() {
+    const tbody = document.querySelector('#mocGioTable tbody');
+    if (mocGioData.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="7" class="text-center">Chưa có mốc giờ nào</td></tr>';
+        return;
+    }
+    
+    tbody.innerHTML = mocGioData.map(mg => {
+        const isDefault = mg.line_id === null;
+        const canDelete = !isDefault;
+        return `
+        <tr>
+            <td>${mg.thu_tu}</td>
+            <td>${escapeHtml(mg.gio)}</td>
+            <td>${mg.so_phut_hieu_dung_luy_ke}</td>
+            <td>${escapeHtml(mg.ma_ca)}</td>
+            <td>${isDefault ? '<span class="text-gray-500 italic">Mặc định</span>' : escapeHtml(mg.ma_line)}</td>
+            <td><span class="status-badge ${mg.is_active == 1 ? 'status-approved' : 'status-locked'}">${mg.is_active == 1 ? 'Hoạt động' : 'Tắt'}</span></td>
+            <td>
+                <button class="btn btn-sm btn-primary" onclick="editMocGio(${mg.id})">Sửa</button>
+                ${canDelete ? `<button class="btn btn-sm btn-danger" onclick="deleteMocGio(${mg.id})">Xóa</button>` : ''}
+            </td>
+        </tr>
+    `}).join('');
+}
+
+function showMocGioModal(mocGioId = null) {
+    if (!selectedCaId) {
+        showToast('Vui lòng chọn ca trước', 'error');
+        return;
+    }
+    
+    const modal = document.getElementById('mocGioModal');
+    const title = document.getElementById('mocGioModalTitle');
+    const form = document.getElementById('mocGioForm');
+    const isActiveGroup = document.getElementById('mocGioIsActiveGroup');
+    
+    form.reset();
+    document.getElementById('mocGioId').value = '';
+    document.getElementById('mocGioFormCaId').value = selectedCaId;
+    
+    const lineIdForForm = (selectedLineIdForMocGio && selectedLineIdForMocGio !== 'default') ? selectedLineIdForMocGio : '';
+    document.getElementById('mocGioFormLineId').value = lineIdForForm;
+    
+    if (mocGioId) {
+        title.textContent = 'Sửa Mốc giờ';
+        isActiveGroup.style.display = 'block';
+        const mg = mocGioData.find(m => m.id == mocGioId);
+        if (mg) {
+            document.getElementById('mocGioId').value = mg.id;
+            document.getElementById('mocGioGio').value = mg.gio;
+            document.getElementById('mocGioThuTu').value = mg.thu_tu;
+            document.getElementById('mocGioPhutLuyKe').value = mg.so_phut_hieu_dung_luy_ke;
+            document.getElementById('mocGioIsActive').checked = mg.is_active == 1;
+        }
+    } else {
+        title.textContent = 'Thêm Mốc giờ mới';
+        isActiveGroup.style.display = 'none';
+        const maxThuTu = mocGioData.length > 0 ? Math.max(...mocGioData.map(m => m.thu_tu)) : 0;
+        document.getElementById('mocGioThuTu').value = maxThuTu + 1;
+        const lastMoc = mocGioData[mocGioData.length - 1];
+        document.getElementById('mocGioPhutLuyKe').value = lastMoc ? lastMoc.so_phut_hieu_dung_luy_ke : 0;
+    }
+    
+    modal.classList.remove('hidden');
+}
+
+function editMocGio(mocGioId) {
+    showMocGioModal(mocGioId);
+}
+
+async function handleMocGioSubmit(e) {
+    e.preventDefault();
+    
+    const mocGioId = document.getElementById('mocGioId').value;
+    const ca_id = parseInt(document.getElementById('mocGioFormCaId').value);
+    const line_id = document.getElementById('mocGioFormLineId').value || null;
+    const gio = document.getElementById('mocGioGio').value;
+    const thu_tu = parseInt(document.getElementById('mocGioThuTu').value);
+    const so_phut_hieu_dung_luy_ke = parseInt(document.getElementById('mocGioPhutLuyKe').value);
+    const is_active = document.getElementById('mocGioIsActive').checked ? 1 : 0;
+    
+    try {
+        let response;
+        if (mocGioId) {
+            response = await api('PUT', `/admin/moc-gio/${mocGioId}`, { gio, thu_tu, so_phut_hieu_dung_luy_ke, is_active });
+        } else {
+            response = await api('POST', '/admin/moc-gio', { ca_id, line_id, gio, thu_tu, so_phut_hieu_dung_luy_ke });
+        }
+        
+        if (response.success) {
+            showToast(response.message, 'success');
+            closeModal('mocGioModal');
+            handleMocGioFilterChange();
+        } else {
+            showToast(response.message, 'error');
+        }
+    } catch (error) {
+        showToast('Lỗi lưu mốc giờ', 'error');
+    }
+}
+
+function deleteMocGio(mocGioId) {
+    showConfirmModal('Bạn có chắc muốn xóa mốc giờ này?', async () => {
+        try {
+            const response = await api('DELETE', `/admin/moc-gio/${mocGioId}`);
+            if (response.success) {
+                showToast(response.message, 'success');
+                handleMocGioFilterChange();
+            } else {
+                showToast(response.message, 'error');
+            }
+        } catch (error) {
+            showToast('Lỗi xóa mốc giờ', 'error');
+        }
+        closeModal('confirmModal');
+    });
+}
+
+async function handleCopyDefault() {
+    if (!selectedCaId || !selectedLineIdForMocGio || selectedLineIdForMocGio === 'default') {
+        showToast('Vui lòng chọn ca và LINE cụ thể', 'error');
+        return;
+    }
+    
+    showConfirmModal('Copy mốc giờ mặc định sang LINE này?', async () => {
+        try {
+            const response = await api('POST', '/admin/moc-gio/copy-default', {
+                ca_id: selectedCaId,
+                line_id: parseInt(selectedLineIdForMocGio)
+            });
+            if (response.success) {
+                showToast(response.message, 'success');
+                handleMocGioFilterChange();
+            } else {
+                showToast(response.message, 'error');
+            }
+        } catch (error) {
+            showToast('Lỗi copy mốc giờ', 'error');
+        }
+        closeModal('confirmModal');
+    });
+}
+
 window.closeModal = closeModal;
 window.editLine = editLine;
 window.deleteLine = deleteLine;
@@ -766,3 +1134,514 @@ window.deleteCongDoan = deleteCongDoan;
 window.editRouting = editRouting;
 window.deleteRouting = deleteRouting;
 window.deleteUserLine = deleteUserLine;
+window.editMocGio = editMocGio;
+window.deleteMocGio = deleteMocGio;
+
+async function loadPresets() {
+    try {
+        const response = await api('GET', '/moc-gio-sets');
+        if (response.success) {
+            presetsData = response.data;
+            renderPresetsTable();
+        }
+    } catch (error) {
+        showToast('Lỗi tải danh sách preset', 'error');
+    }
+}
+
+function renderPresetsTable() {
+    const tbody = document.querySelector('#presetsTable tbody');
+    if (!tbody) return;
+    
+    if (presetsData.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="6" class="text-center">Chưa có preset nào</td></tr>';
+        return;
+    }
+    
+    tbody.innerHTML = presetsData.map(preset => `
+        <tr>
+            <td>${preset.id}</td>
+            <td>${escapeHtml(preset.ten_set)}</td>
+            <td>${escapeHtml(preset.ma_ca || '')} - ${escapeHtml(preset.ten_ca || '')}</td>
+            <td><span class="status-badge ${preset.is_default == 1 ? 'status-approved' : 'status-draft'}">${preset.is_default == 1 ? 'Có' : 'Không'}</span></td>
+            <td><span class="status-badge ${preset.is_active == 1 ? 'status-approved' : 'status-locked'}">${preset.is_active == 1 ? 'Hoạt động' : 'Tắt'}</span></td>
+            <td>
+                <button class="btn btn-sm btn-secondary" onclick="viewPresetDetail(${preset.id})">Chi tiết</button>
+                <button class="btn btn-sm btn-primary" onclick="editPreset(${preset.id})">Sửa</button>
+                <button class="btn btn-sm btn-info" onclick="showCopyPresetModal(${preset.id})">Copy</button>
+                <button class="btn btn-sm btn-danger" onclick="deletePreset(${preset.id})">Xóa</button>
+            </td>
+        </tr>
+    `).join('');
+}
+
+function showPresetModal(presetId = null) {
+    const modal = document.getElementById('presetModal');
+    if (!modal) return;
+    
+    const title = document.getElementById('presetModalTitle');
+    const form = document.getElementById('presetForm');
+    const isActiveGroup = document.getElementById('presetIsActiveGroup');
+    const caSelect = document.getElementById('presetCaSelect');
+    
+    form.reset();
+    document.getElementById('presetId').value = '';
+    
+    caSelect.innerHTML = '<option value="">-- Chọn ca --</option>' +
+        caListData.map(ca =>
+            `<option value="${ca.id}">${escapeHtml(ca.ma_ca)} - ${escapeHtml(ca.ten_ca)}</option>`
+        ).join('');
+    
+    if (presetId) {
+        title.textContent = 'Sửa Preset';
+        isActiveGroup.style.display = 'block';
+        const preset = presetsData.find(p => p.id == presetId);
+        if (preset) {
+            document.getElementById('presetId').value = preset.id;
+            document.getElementById('presetTenSet').value = preset.ten_set;
+            document.getElementById('presetCaSelect').value = preset.ca_id;
+            document.getElementById('presetIsDefault').checked = preset.is_default == 1;
+            document.getElementById('presetIsActive').checked = preset.is_active == 1;
+        }
+    } else {
+        title.textContent = 'Thêm Preset mới';
+        isActiveGroup.style.display = 'none';
+    }
+    
+    modal.classList.remove('hidden');
+}
+
+function editPreset(presetId) {
+    showPresetModal(presetId);
+}
+
+async function handlePresetSubmit(e) {
+    e.preventDefault();
+    
+    const presetId = document.getElementById('presetId').value;
+    const ten_set = document.getElementById('presetTenSet').value.trim();
+    const ca_id = parseInt(document.getElementById('presetCaSelect').value);
+    const is_default = document.getElementById('presetIsDefault').checked ? 1 : 0;
+    const is_active = document.getElementById('presetIsActive')?.checked ? 1 : 0;
+    
+    if (!ten_set || !ca_id) {
+        showToast('Vui lòng nhập đầy đủ thông tin', 'error');
+        return;
+    }
+    
+    showLoading();
+    try {
+        let response;
+        if (presetId) {
+            response = await api('PUT', `/moc-gio-sets/${presetId}`, { ten_set, is_default, is_active });
+        } else {
+            response = await api('POST', '/moc-gio-sets', { ca_id, ten_set, is_default });
+        }
+        
+        if (response.success) {
+            showToast(response.message, 'success');
+            closeModal('presetModal');
+            
+            // Partial Update Logic
+            const caInfo = caListData.find(c => c.id == ca_id) || { ma_ca: '', ten_ca: '' };
+            
+            // Nếu set là default, bỏ default các preset khác cùng ca
+            if (is_default === 1) {
+                presetsData.forEach(p => {
+                    if (p.ca_id == ca_id) {
+                        p.is_default = 0;
+                    }
+                });
+            }
+
+            if (presetId) {
+                // UPDATE
+                const index = presetsData.findIndex(p => p.id == presetId);
+                if (index !== -1) {
+                    presetsData[index] = {
+                        ...presetsData[index],
+                        ten_set,
+                        ca_id, // Cho phép đổi ca? API backend có thể chặn, nhưng cứ update state
+                        ma_ca: caInfo.ma_ca,
+                        ten_ca: caInfo.ten_ca,
+                        is_default,
+                        is_active
+                    };
+                    
+                    // Nếu đang xem chi tiết preset này, update title modal
+                    if (currentPresetDetail && currentPresetDetail.id == presetId) {
+                        currentPresetDetail.ten_set = ten_set;
+                        document.getElementById('presetDetailTitle').textContent = `Chi tiết: ${ten_set}`;
+                    }
+                }
+            } else {
+                // CREATE
+                // API response cho create thường trả về id của item mới tạo trong data hoặc id field
+                // Giả sử response.data chứa object mới hoặc id. 
+                // Nếu API trả về ID:
+                const newId = response.data?.id || response.id; 
+                
+                // Nếu API trả về full object thì dùng luôn, không thì construct
+                const newPreset = response.data && typeof response.data === 'object' && response.data.ten_set ? response.data : {
+                    id: newId,
+                    ten_set,
+                    ca_id,
+                    ma_ca: caInfo.ma_ca,
+                    ten_ca: caInfo.ten_ca,
+                    is_default,
+                    is_active: 1 // Default active on create usually
+                };
+                
+                // Nếu response.data không có ma_ca/ten_ca, patch vào
+                if (!newPreset.ma_ca) newPreset.ma_ca = caInfo.ma_ca;
+                if (!newPreset.ten_ca) newPreset.ten_ca = caInfo.ten_ca;
+
+                presetsData.push(newPreset);
+            }
+            
+            renderPresetsTable();
+        } else {
+            showToast(response.message, 'error');
+        }
+    } catch (error) {
+        console.error(error);
+        showToast('Lỗi lưu preset', 'error');
+    } finally {
+        hideLoading();
+    }
+}
+
+function deletePreset(presetId) {
+    showConfirmModal('Bạn có chắc muốn xóa preset này?', async () => {
+        showLoading();
+        try {
+            const response = await api('DELETE', `/moc-gio-sets/${presetId}`);
+            if (response.success) {
+                showToast(response.message, 'success');
+                
+                // Partial Update Logic
+                presetsData = presetsData.filter(p => p.id != presetId);
+                renderPresetsTable();
+                
+                // Nếu đang xem chi tiết preset bị xóa, đóng modal
+                if (currentPresetDetail && currentPresetDetail.id == presetId) {
+                    closeModal('presetDetailModal');
+                    currentPresetDetail = null;
+                }
+            } else {
+                showToast(response.message, 'error');
+            }
+        } catch (error) {
+            showToast('Lỗi xóa preset', 'error');
+        } finally {
+            hideLoading();
+        }
+        closeModal('confirmModal');
+    });
+}
+
+async function viewPresetDetail(presetId) {
+    try {
+        const [presetResponse, linesResponse] = await Promise.all([
+            api('GET', `/moc-gio-sets/${presetId}`),
+            api('GET', `/moc-gio-sets/${presetId}/lines`)
+        ]);
+        
+        if (presetResponse.success) {
+            currentPresetDetail = presetResponse.data;
+            assignedLines = linesResponse.success ? linesResponse.data : [];
+            renderPresetDetailModal();
+        } else {
+            showToast(presetResponse.message, 'error');
+        }
+    } catch (error) {
+        showToast('Lỗi tải chi tiết preset', 'error');
+    }
+}
+
+function renderPresetDetailModal() {
+    const modal = document.getElementById('presetDetailModal');
+    if (!modal || !currentPresetDetail) return;
+    
+    document.getElementById('presetDetailTitle').textContent = `Chi tiết: ${currentPresetDetail.ten_set}`;
+    
+    // Render Mốc Giờ
+    const mocGioContainer = document.getElementById('presetMocGioList');
+    if (mocGioContainer) {
+        const mocGios = currentPresetDetail.moc_gio || [];
+        if (mocGios.length === 0) {
+            mocGioContainer.innerHTML = '<p class="text-gray-500 italic w-full">Chưa có mốc giờ nào được thiết lập. Vui lòng thêm mốc giờ trong phần quản lý Mốc giờ.</p>';
+        } else {
+            // Sort theo thứ tự
+            mocGios.sort((a, b) => a.thu_tu - b.thu_tu);
+            
+            mocGioContainer.innerHTML = mocGios.map(mg => `
+                <div class="px-3 py-1 bg-blue-50 text-blue-700 rounded-full text-sm font-medium border border-blue-100 flex items-center gap-2 shadow-sm">
+                    <span class="font-bold">${escapeHtml(mg.gio)}</span>
+                    <span class="text-blue-300">|</span>
+                    <span class="text-gray-600 text-xs" title="Phút lũy kế">${mg.so_phut_hieu_dung_luy_ke}p</span>
+                </div>
+            `).join('');
+        }
+    }
+    
+    renderAssignedLinesSection();
+    
+    modal.classList.remove('hidden');
+}
+
+function renderAssignedLinesSection() {
+    const linesContainer = document.getElementById('presetAssignedLines');
+    if (!linesContainer) return;
+
+    if (assignedLines.length === 0) {
+        linesContainer.innerHTML = '<div class="p-8 text-center text-gray-500 bg-gray-50 rounded-lg border border-dashed border-gray-300"><p>Chưa có LINE nào được gán</p><p class="text-xs mt-1">Sử dụng nút "Gán thêm LINE" để thêm</p></div>';
+    } else {
+        linesContainer.innerHTML = `
+            <div class="overflow-hidden shadow ring-1 ring-black ring-opacity-5 rounded-lg">
+                <table class="min-w-full divide-y divide-gray-300">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th scope="col" class="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 sm:pl-6">Mã LINE</th>
+                            <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">Tên LINE</th>
+                            <th scope="col" class="relative py-3.5 pl-3 pr-4 text-right text-sm font-semibold text-gray-900 sm:pr-6">
+                                Thao Tác
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-gray-200 bg-white">
+                        ${assignedLines.map((line, index) => `
+                            <tr class="${index % 2 === 0 ? 'bg-white' : 'bg-gray-50'} hover:bg-gray-100 transition-colors">
+                                <td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-gray-900 sm:pl-6">${escapeHtml(line.ma_line)}</td>
+                                <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">${escapeHtml(line.ten_line)}</td>
+                                <td class="relative whitespace-nowrap py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-6">
+                                    <button class="text-red-600 hover:text-red-900 px-3 py-1 rounded-md hover:bg-red-50 transition-colors border border-transparent hover:border-red-200" onclick="unassignLine(${currentPresetDetail.id}, ${line.line_id})">
+                                        Bỏ gán
+                                    </button>
+                                </td>
+                            </tr>
+                        `).join('')}
+                    </tbody>
+                </table>
+            </div>
+            <div class="mt-2 text-right text-xs text-gray-500">
+                Tổng số: <span class="font-semibold text-gray-700">${assignedLines.length}</span> LINE
+            </div>
+        `;
+    }
+}
+
+async function showAssignLinesModal(presetId) {
+    const preset = presetsData.find(p => p.id == presetId);
+    if (!preset) return;
+    
+    try {
+        const response = await api('GET', `/moc-gio-sets/unassigned-lines?ca_id=${preset.ca_id}`);
+        if (response.success) {
+            const unassignedLines = response.data;
+            const modal = document.getElementById('assignLinesModal');
+            if (!modal) return;
+            
+            document.getElementById('assignLinesPresetId').value = presetId;
+            document.getElementById('assignLinesTitle').textContent = `Gán LINE cho: ${preset.ten_set}`;
+            
+            // Reset search input
+            const searchInput = document.getElementById('assignLinesSearch');
+            if (searchInput) searchInput.value = '';
+            
+            const container = document.getElementById('unassignedLinesContainer');
+            if (unassignedLines.length === 0) {
+                container.innerHTML = '<p class="text-gray-500 col-span-full text-center py-4">Không có LINE nào chưa được gán hoặc tất cả đã được gán</p>';
+            } else {
+                container.innerHTML = unassignedLines.map(line => `
+                    <label class="checkbox-item flex items-center gap-3 p-3 border border-gray-200 rounded-lg cursor-pointer hover:bg-blue-50 hover:border-blue-200 transition-all bg-white shadow-sm group">
+                        <input type="checkbox" name="line_ids" value="${line.id}" class="w-5 h-5 text-primary border-gray-300 rounded focus:ring-primary group-hover:scale-110 transition-transform">
+                        <div class="flex flex-col overflow-hidden">
+                            <span class="text-gray-800 font-bold truncate group-hover:text-primary transition-colors">${escapeHtml(line.ma_line)}</span>
+                            <span class="text-gray-500 text-xs truncate">${escapeHtml(line.ten_line)}</span>
+                        </div>
+                    </label>
+                `).join('');
+            }
+            
+            modal.classList.remove('hidden');
+        } else {
+            showToast(response.message, 'error');
+        }
+    } catch (error) {
+        showToast('Lỗi tải danh sách LINE', 'error');
+    }
+}
+
+async function handleAssignLines(e) {
+    e.preventDefault();
+    
+    const presetId = document.getElementById('assignLinesPresetId').value;
+    const checkboxes = document.querySelectorAll('#unassignedLinesContainer input[name="line_ids"]:checked');
+    const line_ids = Array.from(checkboxes).map(cb => parseInt(cb.value));
+    
+    if (line_ids.length === 0) {
+        showToast('Vui lòng chọn ít nhất một LINE', 'error');
+        return;
+    }
+    
+    showLoading();
+    try {
+        const response = await api('POST', `/moc-gio-sets/${presetId}/lines`, { line_ids });
+        if (response.success) {
+            showToast(response.message, 'success');
+            closeModal('assignLinesModal');
+            
+            const newLines = linesData
+                .filter(l => line_ids.includes(Number(l.id)))
+                .map(l => ({ line_id: Number(l.id), ma_line: l.ma_line, ten_line: l.ten_line }));
+            
+            const currentIds = new Set(assignedLines.map(l => Number(l.line_id)));
+            const linesToAdd = newLines.filter(l => !currentIds.has(l.line_id));
+            
+            assignedLines = [...assignedLines, ...linesToAdd];
+            renderAssignedLinesSection();
+        } else {
+            showToast(response.message, 'error');
+        }
+    } catch (error) {
+        showToast('Lỗi gán LINE', 'error');
+    } finally {
+        hideLoading();
+    }
+}
+
+function unassignLine(presetId, lineId) {
+    showConfirmModal('Bạn có chắc muốn bỏ gán LINE này?', async () => {
+        showLoading();
+        try {
+            const response = await api('DELETE', `/moc-gio-sets/${presetId}/lines`, { line_ids: [lineId] });
+            if (response.success) {
+                showToast(response.message, 'success');
+                
+                assignedLines = assignedLines.filter(l => Number(l.line_id) !== Number(lineId));
+                renderAssignedLinesSection();
+            } else {
+                showToast(response.message, 'error');
+            }
+        } catch (error) {
+            showToast('Lỗi bỏ gán LINE', 'error');
+        } finally {
+            hideLoading();
+        }
+        closeModal('confirmModal');
+    });
+}
+
+function showCopyPresetModal(presetId) {
+    const preset = presetsData.find(p => p.id == presetId);
+    if (!preset) return;
+    
+    const modal = document.getElementById('copyPresetModal');
+    if (!modal) return;
+    
+    document.getElementById('copyPresetSourceId').value = presetId;
+    document.getElementById('copyPresetNewName').value = `${preset.ten_set} (Copy)`;
+    
+    modal.classList.remove('hidden');
+}
+
+async function handleCopyPreset(e) {
+    e.preventDefault();
+    
+    const source_set_id = parseInt(document.getElementById('copyPresetSourceId').value);
+    const ten_set = document.getElementById('copyPresetNewName').value.trim();
+    
+    if (!ten_set) {
+        showToast('Vui lòng nhập tên preset mới', 'error');
+        return;
+    }
+    
+    showLoading();
+    try {
+        const response = await api('POST', '/moc-gio-sets/copy', { source_set_id, ten_set });
+        if (response.success) {
+            showToast(response.message, 'success');
+            closeModal('copyPresetModal');
+            
+            // Partial Update Logic
+            // Lấy thông tin preset nguồn để copy metadata (ca_id, ma_ca, ten_ca)
+            const sourcePreset = presetsData.find(p => p.id == source_set_id);
+            
+            // API copy thường trả về ID mới hoặc object mới
+            // Giả sử API trả về { success: true, message: "...", data: { id: 123, ... } } hoặc data là ID
+            const newId = response.data?.id || response.id;
+            
+            const newPreset = response.data && typeof response.data === 'object' && response.data.ten_set ? response.data : {
+                id: newId,
+                ten_set,
+                ca_id: sourcePreset ? sourcePreset.ca_id : null,
+                ma_ca: sourcePreset ? sourcePreset.ma_ca : '',
+                ten_ca: sourcePreset ? sourcePreset.ten_ca : '',
+                is_default: 0, // Copy thường không set default ngay
+                is_active: 1
+            };
+            
+            if (!newPreset.ma_ca && sourcePreset) newPreset.ma_ca = sourcePreset.ma_ca;
+            if (!newPreset.ten_ca && sourcePreset) newPreset.ten_ca = sourcePreset.ten_ca;
+            
+            presetsData.push(newPreset);
+            renderPresetsTable();
+        } else {
+            showToast(response.message, 'error');
+        }
+    } catch (error) {
+        showToast('Lỗi copy preset', 'error');
+    } finally {
+        hideLoading();
+    }
+}
+
+function bindPresetEvents() {
+    const presetForm = document.getElementById('presetForm');
+    if (presetForm) {
+        presetForm.addEventListener('submit', handlePresetSubmit);
+    }
+    
+    const addPresetBtn = document.getElementById('addPresetBtn');
+    if (addPresetBtn) {
+        addPresetBtn.addEventListener('click', () => showPresetModal());
+    }
+    
+    const assignLinesForm = document.getElementById('assignLinesForm');
+    if (assignLinesForm) {
+        assignLinesForm.addEventListener('submit', handleAssignLines);
+    }
+    
+    const copyPresetForm = document.getElementById('copyPresetForm');
+    if (copyPresetForm) {
+        copyPresetForm.addEventListener('submit', handleCopyPreset);
+    }
+
+    const assignLinesSearch = document.getElementById('assignLinesSearch');
+    if (assignLinesSearch) {
+        assignLinesSearch.addEventListener('input', (e) => {
+            const term = e.target.value.toLowerCase().trim();
+            const items = document.querySelectorAll('#unassignedLinesContainer .checkbox-item');
+            items.forEach(item => {
+                const text = item.textContent.toLowerCase();
+                if (text.includes(term)) {
+                    item.classList.remove('hidden');
+                    item.style.display = 'flex';
+                } else {
+                    item.classList.add('hidden');
+                    item.style.display = 'none';
+                }
+            });
+        });
+    }
+}
+
+document.addEventListener('DOMContentLoaded', bindPresetEvents);
+
+window.viewPresetDetail = viewPresetDetail;
+window.editPreset = editPreset;
+window.deletePreset = deletePreset;
+window.showCopyPresetModal = showCopyPresetModal;
+window.showAssignLinesModal = showAssignLinesModal;
+window.unassignLine = unassignLine;
