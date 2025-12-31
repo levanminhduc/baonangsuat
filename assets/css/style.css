@@ -1091,3 +1091,69 @@ select.custom-select {
         width: 100%;
     }
 }
+
+/* =========================================
+   Navbar Styles (from includes/navbar.php)
+   ========================================= */
+.navbar-desktop-table {
+    display: table;
+    width: 100%;
+    margin-bottom: 0;
+}
+.navbar-mobile-container {
+    display: none;
+}
+.nav-clock-user {
+    font-size: 1.1em;
+    font-weight: bold;
+    color: white;
+    text-align: right;
+    padding-right: 15px;
+    white-space: nowrap;
+}
+.navbar-sub-bar {
+    text-align: right;
+    background: transparent;
+    padding: 5px 15px;
+    font-size: 0.85em;
+    color: #666;
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+}
+.sub-bar-clock {
+    font-weight: bold;
+    margin-right: 5px;
+    color: #333;
+}
+.sub-bar-item {
+    font-weight: 500;
+}
+.sub-bar-separator {
+    margin: 0 5px;
+}
+.sub-bar-link {
+    color: #666;
+    text-decoration: none;
+}
+@media (max-width: 768px) {
+    .navbar-desktop-table {
+        display: none;
+    }
+    .navbar-mobile-container {
+        display: block;
+    }
+}
+
+/* =======================================================
+   Confirm Modal Styles (from includes/components/confirm-modal.php)
+   ======================================================= */
+.bg-navbar-theme {
+    background-color: #143583 !important;
+}
+.bg-navbar-theme:hover {
+    background-color: #0e255c !important;
+}
+.border-navbar-theme {
+    border-color: #143583 !important;
+}

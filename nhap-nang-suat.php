@@ -53,11 +53,7 @@ $session = Auth::getSession();
     include __DIR__ . '/includes/navbar.php';
     ?>
     <div class="app-container">
-        <div style="text-align: right; background: transparent; padding: 5px 15px; font-size: 0.85em; color: #666;">
-            <span class="user-info" style="font-weight: 500;"><?php echo htmlspecialchars($session['ho_ten']); ?> (<?php echo htmlspecialchars($session['line_ten']); ?>)</span>
-            <span style="margin: 0 5px;">|</span>
-            <a href="#" id="logoutBtn" style="color: #666; text-decoration: none;">Đăng xuất</a>
-        </div>
+
         
         <div id="reportListContainer" class="report-list">
             <div class="report-list-header">

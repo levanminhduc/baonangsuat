@@ -47,13 +47,7 @@ $session = Auth::getSession();
     include __DIR__ . '/includes/navbar.php';
     ?>
     <div class="app-container">
-        <div class="user-info-bar">
-            <span class="user-name"><?php echo htmlspecialchars($session['ho_ten']); ?> (Admin)</span>
-            <span class="separator">|</span>
-            <a href="nhap-nang-suat.php">Về trang chính</a>
-            <span class="separator">|</span>
-            <a href="#" id="logoutBtn">Đăng xuất</a>
-        </div>
+
         
         <div class="admin-content">
             <div class="admin-tabs">

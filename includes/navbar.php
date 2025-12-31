@@ -1,30 +1,40 @@
 <?php
 require_once __DIR__ . '/../classes/Auth.php';
+
+// Set timezone to Asia/Bangkok
+date_default_timezone_set('Asia/Bangkok');
+
 $navTitle = $navTitle ?? 'HỆ THỐNG NHẬP NĂNG SUẤT';
 $showAddBtn = $showAddBtn ?? false;
 $addBtnUrl = $addBtnUrl ?? '#';
 $addBtnId = $addBtnId ?? '';
 $showHomeBtn = $showHomeBtn ?? true;
 $homeUrl = Auth::isLoggedIn() ? Auth::getDefaultPage() : 'index.php';
+
+// Get user info and server time if logged in
+$isLoggedIn = Auth::isLoggedIn();
+$userDisplayName = '';
+$userInfo = '';
+$serverH = date('H');
+$serverM = date('i');
+$serverS = date('s');
+$serverTimeStr = date('H:i:s');
+
+if ($isLoggedIn) {
+    $session = Auth::getSession();
+    $userDisplayName = $session['ho_ten'] ?? ($session['username'] ?? '');
+    
+    // Construct extra info (Role or Line)
+    $extraInfo = '';
+    if (Auth::checkRole(['admin'])) {
+        $extraInfo = ' (Admin)';
+    } elseif (isset($session['line_ten'])) {
+        $extraInfo = ' (' . $session['line_ten'] . ')';
+    }
+    
+    $userInfo = $userDisplayName . $extraInfo;
+}
 ?>
-<style>
-.navbar-desktop-table {
-    display: table;
-    width: 100%;
-    margin-bottom: 0;
-}
-.navbar-mobile-container {
-    display: none;
-}
-@media (max-width: 768px) {
-    .navbar-desktop-table {
-        display: none;
-    }
-    .navbar-mobile-container {
-        display: block;
-    }
-}
-</style>
 
 <table width="100%" class="navbar-desktop-table">
     <tr style="text-align:center;color:white;">
@@ -35,9 +45,10 @@ $homeUrl = Auth::isLoggedIn() ? Auth::getDefaultPage() : 'index.php';
             <img width="45px" src="img/logoht.svg"/>
             <?php endif; ?>
         </td>
-        <td colspan="6" bgcolor="143583" style="font-size:2em;font-weight:bold;text-align:center;line-height: 1.0em;padding:10px 5px;">
+        <td bgcolor="143583" style="font-size:2em;font-weight:bold;text-align:center;line-height: 1.0em;padding:10px 5px;">
             <?php echo htmlspecialchars($navTitle); ?>
         </td>
+
         <td bgcolor="143583" style="width:60px;">
             <?php if ($showAddBtn): ?>
             <a href="<?php echo htmlspecialchars($addBtnUrl); ?>"<?php echo $addBtnId ? ' id="' . htmlspecialchars($addBtnId) . '"' : ''; ?>><img style="border-radius:5px;" src="img/add.svg" width="55px"/></a>
@@ -63,5 +74,51 @@ $homeUrl = Auth::isLoggedIn() ? Auth::getDefaultPage() : 'index.php';
                 <?php endif; ?>
             </div>
         </div>
+
     </div>
 </div>
+
+<?php if ($isLoggedIn): ?>
+<div class="navbar-sub-bar">
+    <span id="server-clock" class="sub-bar-clock">[<?php echo $serverTimeStr; ?>]</span>
+    <span class="sub-bar-item"><?php echo htmlspecialchars($userInfo); ?></span>
+    
+    
+    <span class="sub-bar-separator">|</span>
+    <a href="#" id="logoutBtn" class="sub-bar-link">Đăng xuất</a>
+</div>
+
+<script>
+(function() {
+    let h = <?php echo intval($serverH); ?>;
+    let m = <?php echo intval($serverM); ?>;
+    let s = <?php echo intval($serverS); ?>;
+    
+    function pad(num) {
+        return num.toString().padStart(2, '0');
+    }
+    
+    function updateClock() {
+        s++;
+        if (s >= 60) {
+            s = 0;
+            m++;
+            if (m >= 60) {
+                m = 0;
+                h++;
+                if (h >= 24) {
+                    h = 0;
+                }
+            }
+        }
+        
+        const timeStr = `${pad(h)}:${pad(m)}:${pad(s)}`;
+        
+        const clockEl = document.getElementById('server-clock');
+        if (clockEl) clockEl.textContent = `[${timeStr}]`;
+    }
+    
+    setInterval(updateClock, 1000);
+})();
+</script>
+<?php endif; ?>

@@ -1,14 +1,3 @@
-<style>
-    .bg-navbar-theme {
-        background-color: #143583 !important;
-    }
-    .bg-navbar-theme:hover {
-        background-color: #0e255c !important;
-    }
-    .border-navbar-theme {
-        border-color: #143583 !important;
-    }
-</style>
 <div id="confirmModal" class="modal hidden fixed inset-0 z-[60] flex items-center justify-center bg-gray-900/50 backdrop-blur-sm" onclick="closeModal('confirmModal')">
     <div class="modal-content bg-white rounded-xl shadow-2xl w-full max-w-sm p-0 overflow-hidden" onclick="event.stopPropagation()">
         <div class="px-6 py-4 border-b border-navbar-theme bg-navbar-theme flex justify-between items-center">
