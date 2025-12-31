@@ -37,3 +37,11 @@
 .hidden {
     display: none;
 }
+
+/* Fix modal content styles being overridden by style.css resets */
+#assignLinesModal .modal-content,
+#presetDetailModal .modal-content {
+    background: white !important;
+    border-radius: 0.75rem !important;
+    overflow: hidden !important;
+}

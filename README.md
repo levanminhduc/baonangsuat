@@ -59,6 +59,9 @@ Truy cập hệ thống qua địa chỉ: `http://localhost/baonangsuat/`
 | [`api/index.php`](api/index.php) | Single-file API router |
 | [`classes/NangSuatService.php`](classes/NangSuatService.php) | Logic nghiệp vụ chính |
 | [`classes/AdminService.php`](classes/AdminService.php) | Logic quản trị hệ thống |
+| [`classes/services/MocGioSetService.php`](classes/services/MocGioSetService.php) | Quản lý preset mốc giờ |
+| [`csrf.php`](csrf.php) | CSRF token management |
+| [`includes/security-headers.php`](includes/security-headers.php) | Security headers |
 
 ### 4.2. Các hành vi đặc biệt
 
@@ -69,10 +72,15 @@ Truy cập hệ thống qua địa chỉ: `http://localhost/baonangsuat/`
 | Base path cố định | `/baonangsuat/` được hardcode trong PHP redirects và JS fetch calls |
 | Pre-generated entries | Tạo báo cáo sẽ tự động tạo TẤT CẢ entries với `so_luong = 0` |
 | Cờ `la_cong_doan_tinh_luy_ke` | Chỉ các công đoạn có flag=1 mới được tính lũy kế |
-| CSRF chỉ cho login | Các API endpoints sử dụng session-based auth, không có CSRF tokens |
+| CSRF protection | Tất cả POST/PUT/DELETE endpoints (trừ login) yêu cầu X-CSRF-Token header. Token lấy qua GET /api/csrf-token |
+| Security Headers | X-Content-Type-Options: nosniff, X-Frame-Options: DENY, X-XSS-Protection, CSP |
+| Session regeneration | Regenerate session ID on login để prevent session fixation |
+| Rate limiting | 5 failed login attempts per IP trong 15 phút → HTTP 429 |
+| CORS restricted | API chỉ cho phép localhost origins (127.0.0.1, localhost với bất kỳ port) |
+| Remember username only | Chỉ nhớ username trong localStorage, không lưu password |
 
 ## 5. Cấu trúc Database
-Database `nang_suat` bao gồm 11 bảng chính:
+Database `nang_suat` bao gồm 13 bảng chính:
 
 1.  **line**: Danh sách các chuyền sản xuất.
 2.  **phong_ban_line**: Liên kết phòng ban và chuyền.
@@ -81,10 +89,12 @@ Database `nang_suat` bao gồm 11 bảng chính:
 5.  **cong_doan**: Danh mục các công đoạn sản xuất (Cắt, May, Là, ...).
 6.  **ma_hang_cong_doan**: Định nghĩa quy trình (routing) cho từng mã hàng.
 7.  **ca_lam**: Định nghĩa các ca làm việc (Sáng, Chiều, HC).
-8.  **moc_gio**: Các mốc giờ nhập liệu trong từng ca.
+8.  **moc_gio**: Các mốc giờ nhập liệu trong từng ca (có thêm cột `set_id` FK → moc_gio_set).
 9.  **bao_cao_nang_suat**: Bảng header lưu thông tin chung của báo cáo ngày.
 10. **nhap_lieu_nang_suat**: Bảng lưu chi tiết sản lượng từng công đoạn theo mốc giờ.
 11. **nhap_lieu_nang_suat_audit**: Lưu lịch sử thay đổi dữ liệu nhập liệu.
+12. **moc_gio_set**: Preset mốc giờ theo ca.
+13. **line_moc_gio_set**: Mapping LINE → Preset theo ca.
 
 ## 6. API Endpoints
 Các API chính được cung cấp tại `/baonangsuat/api/`:
@@ -94,6 +104,9 @@ Các API chính được cung cấp tại `/baonangsuat/api/`:
 *   `POST /auth/select-line`: Chọn chuyền làm việc.
 *   `GET /auth/logout`: Đăng xuất.
 *   `GET /auth/session`: Lấy thông tin session hiện tại.
+
+### CSRF Token
+*   `GET /csrf-token`: Lấy CSRF token cho các request POST/PUT/DELETE.
 
 ### Context
 *   `GET /context`: Lấy thông tin ngữ cảnh (session, ca làm việc, mốc giờ).
@@ -137,6 +150,28 @@ Các API chính được cung cấp tại `/baonangsuat/api/`:
 *   `POST /admin/routing`: Tạo routing mới.
 *   `PUT /admin/routing/{id}`: Cập nhật routing.
 *   `DELETE /admin/routing/{id}`: Xóa routing.
+
+#### Admin - Mốc Giờ
+*   `GET /admin/moc-gio/ca-list`: Danh sách ca cho mốc giờ.
+*   `GET /admin/moc-gio`: Danh sách mốc giờ (filter ca_id, line_id).
+*   `GET /admin/moc-gio/{id}`: Chi tiết mốc giờ.
+*   `POST /admin/moc-gio`: Tạo mốc giờ mới.
+*   `POST /admin/moc-gio/copy-default`: Copy mốc giờ mặc định cho LINE.
+*   `PUT /admin/moc-gio/{id}`: Cập nhật mốc giờ.
+*   `DELETE /admin/moc-gio/{id}`: Xóa mốc giờ.
+
+### Preset Mốc Giờ
+*   `GET /moc-gio-sets`: Danh sách preset theo ca.
+*   `GET /moc-gio-sets/{id}`: Chi tiết preset (kèm mốc giờ).
+*   `POST /moc-gio-sets`: Tạo preset mới.
+*   `PUT /moc-gio-sets/{id}`: Cập nhật preset.
+*   `DELETE /moc-gio-sets/{id}`: Xóa preset.
+*   `POST /moc-gio-sets/copy`: Copy preset.
+*   `GET /moc-gio-sets/{id}/lines`: Danh sách LINE đã gán.
+*   `POST /moc-gio-sets/{id}/lines`: Gán LINE vào preset.
+*   `DELETE /moc-gio-sets/{id}/lines`: Bỏ gán LINE.
+*   `GET /moc-gio-sets/unassigned-lines`: LINE chưa gán preset.
+*   `GET /moc-gio-sets/resolve`: Resolve preset cho LINE cụ thể.
 
 ## 7. Hướng dẫn sử dụng
 
