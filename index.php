@@ -91,6 +91,8 @@ if (Auth::isLoggedIn()) {
         </div>
     </div>
 
+    <?php include __DIR__ . '/includes/components/toast.php'; ?>
+
     <!-- Scripts -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
     <script src="assets/js/login.js"></script>

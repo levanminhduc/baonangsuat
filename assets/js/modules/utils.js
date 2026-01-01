@@ -34,6 +34,11 @@ export function hideLoading() {
 }
 
 export function showToast(message, type = 'success') {
+    if (window.toast && typeof window.toast.show === 'function') {
+        window.toast.show(message, type);
+        return;
+    }
+    
     const existing = document.querySelectorAll('.toast');
     existing.forEach(t => t.remove());
     

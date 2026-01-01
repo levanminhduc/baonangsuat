@@ -1,6 +1,8 @@
 import { fetchCsrfToken, api } from './modules/api.js';
 import { showLoading, hideLoading, showToast, updateStatusBar, getStatusText } from './modules/utils.js';
 import { GridManager } from './modules/grid.js';
+import { HistoryModule } from './modules/history.js';
+import { Router } from './modules/router.js';
 
 class NangSuatApp {
     constructor() {
@@ -11,6 +13,8 @@ class NangSuatApp {
         this.isSaving = false;
         
         this.gridManager = new GridManager(this);
+        this.historyModule = null; // Will be initialized if permission granted
+        this.router = new Router(this);
         
         this.init();
     }
@@ -18,52 +22,120 @@ class NangSuatApp {
     async init() {
         await fetchCsrfToken();
         this.bindEvents();
+        
+        // Define routes
+        this.router
+            .add('/nhap-bao-cao', () => {
+                this.switchMainTab('input');
+            })
+            .add('/lich-su', () => {
+                this.checkHistoryPermission(() => {
+                    this.switchMainTab('history');
+                    this.historyModule.hideDetail();
+                    
+                    // Show loading if first time
+                    if (!this.historyModule.isLoaded) {
+                        this.historyModule.loadHistoryList();
+                    }
+                });
+            })
+            .add('/lich-su/:id', (params) => {
+                this.checkHistoryPermission(() => {
+                    this.switchMainTab('history');
+                    this.historyModule.showDetail(params.id);
+                });
+            });
+
         this.loadContext().then(() => {
-            this.handleInitialRoute();
+            // Check initial route via query params first (for backward compatibility)
+            // If query params exist, they take precedence and we stay on input tab (but maybe URL changes)
+            // But per requirements, query params opening a report should map to input tab
+            const hasQueryParams = this.handleInitialRouteQueryParams();
+            
+            this.router.start(false); // Start listening to hash changes but don't handle yet
+            
+            if (!hasQueryParams) {
+                // If no query params, respect the hash
+                this.router.handleHashChange();
+            } else {
+                // If query params were handled, ensure hash is synced to /nhap-bao-cao if empty
+                if (!window.location.hash) {
+                    this.router.navigate('/nhap-bao-cao');
+                }
+            }
         });
         
         window.addEventListener('popstate', (e) => {
             if (e.state && e.state.reportId) {
                 this.loadReport(e.state.reportId, false);
             } else if (e.state === null) {
-                this.showReportList(false);
+                // Handle popstate for query param navigation if needed, 
+                // but hash router handles hash changes separately.
+                // This block is mainly for the "pushState" done in loadReport with query params.
+                
+                // If we are in hash mode, popstate might also trigger on hash change, 
+                // but hashchange event handles that.
+                // We only care about query param report detail state here.
+                if (window.location.search.includes('line=')) {
+                     // It's a query param state
+                     // Do nothing or reload list?
+                } else {
+                     this.showReportList(false);
+                }
             }
         });
     }
 
-    async handleInitialRoute() {
+    checkHistoryPermission(callback) {
+        if (window.appContext && window.appContext.can_view_history) {
+            callback();
+        } else {
+            showToast('Bạn không có quyền xem lịch sử', 'error');
+            this.router.navigate('/nhap-bao-cao');
+        }
+    }
+
+    handleInitialRouteQueryParams() {
         const params = new URLSearchParams(window.location.search);
         const line = params.get('line');
         const ma_hang = params.get('ma_hang');
         const ngay = params.get('ngay');
 
         if (line && ma_hang && ngay) {
-            try {
-                showLoading();
-                const response = await api('GET', `/bao-cao?ngay_tu=${ngay}&ngay_den=${ngay}`);
+            this.loadReportFromParams(line, ma_hang, ngay);
+            return true;
+        }
+        return false;
+    }
+
+    async loadReportFromParams(line, ma_hang, ngay) {
+        try {
+            showLoading();
+            const response = await api('GET', `/bao-cao?ngay_tu=${ngay}&ngay_den=${ngay}`);
+            
+            if (response.success && Array.isArray(response.data)) {
+                // Tìm báo cáo khớp với mã hàng và ngày (line được filter bởi session backend)
+                const report = response.data.find(r => 
+                    r.ma_hang === ma_hang && 
+                    r.ngay_bao_cao === ngay
+                );
                 
-                if (response.success && Array.isArray(response.data)) {
-                    // Tìm báo cáo khớp với mã hàng và ngày (line được filter bởi session backend)
-                    const report = response.data.find(r => 
-                        r.ma_hang === ma_hang && 
-                        r.ngay_bao_cao === ngay
-                    );
-                    
-                    if (report) {
-                        this.loadReport(report.id, false);
-                    } else {
-                        showToast('Không tìm thấy báo cáo', 'error');
-                        window.history.replaceState(null, '', window.location.pathname);
-                    }
+                if (report) {
+                    this.loadReport(report.id, false);
+                    // Ensure tab is input
+                    this.switchMainTab('input');
                 } else {
-                    showToast('Không tìm thấy dữ liệu', 'error');
+                    showToast('Không tìm thấy báo cáo', 'error');
+                    window.history.replaceState(null, '', window.location.pathname + window.location.hash);
                 }
-            } catch (error) {
-                console.error(error);
-                showToast('Lỗi tải báo cáo từ URL', 'error');
-            } finally {
-                hideLoading();
+            } else {
+                showToast('Không tìm thấy dữ liệu', 'error');
             }
+        } catch (error) {
+            console.error(error);
+            showToast('Lỗi tải báo cáo từ URL', 'error');
+        } finally {
+            hideLoading();
         }
     }
     
@@ -95,6 +167,23 @@ class NangSuatApp {
         if (backBtn) {
             backBtn.addEventListener('click', () => this.showReportList());
         }
+
+        // Tab events - Use Router Navigate
+        const tabInput = document.getElementById('tabInput');
+        const tabHistory = document.getElementById('tabHistory');
+
+        if (tabInput) {
+            tabInput.addEventListener('click', (e) => {
+                e.preventDefault();
+                this.router.navigate('/nhap-bao-cao');
+            });
+        }
+        if (tabHistory) {
+            tabHistory.addEventListener('click', (e) => {
+                e.preventDefault();
+                this.router.navigate('/lich-su');
+            });
+        }
         
         document.addEventListener('keydown', (e) => this.handleGlobalKeyDown(e));
     }
@@ -106,12 +195,52 @@ class NangSuatApp {
             if (response.success) {
                 window.appContext = response.data;
                 this.renderHeader(response.data);
+                
+                // Permission check for history tab
+                if (window.appContext.can_view_history) {
+                    const tabHistory = document.getElementById('tabHistory');
+                    const mainTabs = document.getElementById('mainTabs');
+                    if (tabHistory) tabHistory.classList.remove('hidden');
+                    if (mainTabs) mainTabs.classList.remove('hidden');
+                    
+                    // Init history module if needed
+                    if (!this.historyModule) {
+                        this.historyModule = new HistoryModule(this);
+                        window.historyModule = this.historyModule; // Expose for onclick handlers
+                    }
+                }
+
                 await this.loadReportList();
             }
         } catch (error) {
             showToast('Lỗi tải dữ liệu: ' + error.message, 'error');
         } finally {
             hideLoading();
+        }
+    }
+
+    switchMainTab(tabName) {
+        const tabInput = document.getElementById('tabInput');
+        const tabHistory = document.getElementById('tabHistory');
+        const contentInput = document.getElementById('tabContentInput');
+        const contentHistory = document.getElementById('tabContentHistory');
+
+        if (tabName === 'input') {
+            tabInput.classList.add('active', 'border-primary', 'text-primary');
+            tabInput.classList.remove('border-transparent', 'text-gray-500');
+            tabHistory.classList.remove('active', 'border-primary', 'text-primary');
+            tabHistory.classList.add('border-transparent', 'text-gray-500');
+            
+            contentInput.classList.remove('hidden');
+            contentHistory.classList.add('hidden');
+        } else if (tabName === 'history') {
+            tabHistory.classList.add('active', 'border-primary', 'text-primary');
+            tabHistory.classList.remove('border-transparent', 'text-gray-500');
+            tabInput.classList.remove('active', 'border-primary', 'text-primary');
+            tabInput.classList.add('border-transparent', 'text-gray-500');
+            
+            contentHistory.classList.remove('hidden');
+            contentInput.classList.add('hidden');
         }
     }
     

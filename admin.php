@@ -53,6 +53,7 @@ $session = Auth::getSession();
             <div class="admin-tabs">
                 <button class="admin-tab active" data-tab="lines">Quản lý LINE</button>
                 <button class="admin-tab" data-tab="user-lines">Quản lý User-LINE</button>
+                <button class="admin-tab" data-tab="permissions">Quản lý Quyền</button>
                 <button class="admin-tab" data-tab="ma-hang">Quản lý Mã hàng</button>
                 <button class="admin-tab" data-tab="cong-doan">Quản lý Công đoạn</button>
                 <button class="admin-tab" data-tab="routing">Quản lý Routing</button>
@@ -101,6 +102,28 @@ $session = Auth::getSession();
                                 <th>Mã LINE</th>
                                 <th>Tên LINE</th>
                                 <th>Thao tác</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div id="permissionsTab" class="admin-tab-content">
+                <div class="admin-panel">
+                    <div class="panel-header">
+                        <h2>Quản lý quyền Users</h2>
+                    </div>
+                    <div class="form-group filter-group">
+                        <input type="text" id="permissionsSearch" placeholder="Tìm kiếm user..." class="w-full max-w-md px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary outline-none">
+                    </div>
+                    <table class="admin-table" id="permissionsTable">
+                        <thead>
+                            <tr>
+                                <th>Mã NV</th>
+                                <th>Họ tên</th>
+                                <th>Vai trò</th>
+                                <th>Quyền xem Lịch sử</th>
                             </tr>
                         </thead>
                         <tbody></tbody>
@@ -664,6 +687,6 @@ $session = Auth::getSession();
         </div>
     </div>
 
-    <script src="assets/js/admin.js"></script>
+    <script type="module" src="assets/js/admin.js"></script>
 </body>
 </html>

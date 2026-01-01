@@ -130,6 +130,8 @@ class LoginApp {
             alertBox.textContent = message;
             alertBox.classList.remove('d-none');
             alertBox.classList.add('d-block');
+        } else if (window.toast && typeof window.toast.show === 'function') {
+            window.toast.error(message);
         } else {
             alert(message);
         }
@@ -165,10 +167,18 @@ class LoginApp {
                     if (result.success) {
                         window.location.href = result.redirect_url || 'nhap-nang-suat.php';
                     } else {
-                        alert(result.message);
+                        if (window.toast && typeof window.toast.error === 'function') {
+                            window.toast.error(result.message);
+                        } else {
+                            alert(result.message);
+                        }
                     }
                 } catch (error) {
-                    alert('Lỗi chọn LINE');
+                    if (window.toast && typeof window.toast.error === 'function') {
+                        window.toast.error('Lỗi chọn LINE');
+                    } else {
+                        alert('Lỗi chọn LINE');
+                    }
                 }
             });
         });

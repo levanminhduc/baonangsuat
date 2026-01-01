@@ -7,12 +7,7 @@ if (!Auth::isLoggedIn()) {
     exit;
 }
 
-if (Auth::checkRole(['admin'])) {
-    header('Location: admin.php');
-    exit;
-}
-
-if (!Auth::hasLine()) {
+if (!Auth::checkRole(['admin']) && !Auth::hasLine()) {
     header('Location: no-line.php');
     exit;
 }
@@ -53,31 +48,118 @@ $session = Auth::getSession();
     include __DIR__ . '/includes/navbar.php';
     ?>
     <div class="app-container">
-
         
-        <div id="reportListContainer" class="report-list">
-            <div class="report-list-header">
-                <h2>Danh sách báo cáo hôm nay</h2>
-                <button id="createReportBtn" class="btn btn-primary">+ Tạo báo cáo mới</button>
-            </div>
-            <table class="report-table">
-                <thead>
-                    <tr>
-                        <th>Ngày</th>
-                        <th>Mã hàng</th>
-                        <th>Lao động</th>
-                        <th>CTNS</th>
-                        <th>CT/Giờ</th>
-                        <th>Trạng thái</th>
-                    </tr>
-                </thead>
-                <tbody></tbody>
-            </table>
+        <!-- Main Tabs -->
+        <div class="main-tabs-container px-4 sm:px-6 pt-4 hidden" id="mainTabs">
+            <nav class="flex space-x-4 border-b border-gray-200" aria-label="Tabs">
+                <button
+                    type="button"
+                    id="tabInput"
+                    class="tab-btn active border-primary text-primary whitespace-nowrap py-3 px-1 border-b-2 font-medium text-sm transition-colors focus:outline-none"
+                    aria-current="page"
+                >
+                    Nhập báo cáo
+                </button>
+                <button
+                    type="button"
+                    id="tabHistory"
+                    class="tab-btn border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 whitespace-nowrap py-3 px-1 border-b-2 font-medium text-sm transition-colors focus:outline-none hidden"
+                >
+                    Lịch sử
+                </button>
+            </nav>
         </div>
-        
-        <div id="editorContainer" class="hidden">
-            <div class="report-header"></div>
-            <div id="gridContainer" class="grid-container"></div>
+
+        <!-- Tab Content: Input -->
+        <div id="tabContentInput" class="tab-content block">
+            <div id="reportListContainer" class="report-list">
+                <div class="report-list-header">
+                    <h2>Danh sách báo cáo hôm nay</h2>
+                    <button id="createReportBtn" class="btn btn-primary">+ Tạo báo cáo mới</button>
+                </div>
+                <table class="report-table">
+                    <thead>
+                        <tr>
+                            <th>Ngày</th>
+                            <th>Mã hàng</th>
+                            <th>Lao động</th>
+                            <th>CTNS</th>
+                            <th>CT/Giờ</th>
+                            <th>Trạng thái</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+            
+            <div id="editorContainer" class="hidden">
+                <div class="report-header"></div>
+                <div id="gridContainer" class="grid-container"></div>
+            </div>
+        </div>
+
+        <!-- Tab Content: History -->
+        <div id="tabContentHistory" class="tab-content hidden p-4">
+            <!-- History Filter -->
+            <div class="bg-white p-4 rounded-lg shadow-sm mb-4">
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Từ ngày</label>
+                        <input type="date" id="historyDateFrom" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-primary focus:border-primary">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Đến ngày</label>
+                        <input type="date" id="historyDateTo" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-primary focus:border-primary">
+                    </div>
+                    <div>
+                        <button id="historyFilterBtn" class="btn btn-primary w-full md:w-auto">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 inline-block mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                            </svg>
+                            Tìm kiếm
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- History List -->
+            <div id="historyListContainer" class="bg-white rounded-lg shadow-sm overflow-hidden">
+                <div class="overflow-x-auto">
+                    <table class="min-w-full divide-y divide-gray-200" id="historyTable">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Ngày</th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Ca</th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Mã hàng</th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">SL LĐ</th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">CTNS</th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Thực tế</th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Hiệu suất</th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Trạng thái</th>
+                            </tr>
+                        </thead>
+                        <tbody class="bg-white divide-y divide-gray-200">
+                            <!-- Data will be populated here -->
+                        </tbody>
+                    </table>
+                </div>
+                <!-- Pagination -->
+                <div class="bg-white px-4 py-3 border-t border-gray-200 flex items-center justify-between sm:px-6" id="historyPagination">
+                    <!-- Pagination controls -->
+                </div>
+            </div>
+            
+            <!-- History Detail (Drill-down) -->
+            <div id="historyDetailContainer" class="hidden mt-4">
+                 <div class="flex justify-between items-center mb-4">
+                    <h3 class="text-lg font-medium text-gray-900">Chi tiết báo cáo</h3>
+                    <button id="closeHistoryDetailBtn" class="text-gray-500 hover:text-gray-700">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                    </button>
+                 </div>
+                 <div class="report-header history-report-header mb-4"></div>
+                 <div id="historyGridContainer" class="grid-container history-grid-container" style="max-height: 60vh;"></div>
+            </div>
         </div>
         
         <footer class="status-bar">

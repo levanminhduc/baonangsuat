@@ -1,0 +1,129 @@
+import { api } from '../admin-api.js';
+import { escapeHtml, showToast } from '../admin-utils.js';
+import { getState, setUsers, setAllUsersOptions, setUsersPermissions } from './state.js';
+
+export async function loadUsers() {
+    try {
+        const response = await api('GET', '/admin/users');
+        if (response.success) {
+            setUsers(response.data);
+            buildUserOptions();
+            await loadUsersPermissions();
+        }
+    } catch (error) {
+        showToast('Lỗi tải danh sách users', 'error');
+    }
+}
+
+export async function loadUsersPermissions() {
+    const state = getState();
+    const promises = state.users.map(u => api('GET', `/user-permissions/${u.id}`));
+    try {
+        const results = await Promise.all(promises);
+        const permissionsData = results.map((r, index) => ({
+            userId: state.users[index].id,
+            permissions: r.success ? r.data.permissions : []
+        }));
+        setUsersPermissions(permissionsData);
+        renderPermissionsTable();
+    } catch (e) {
+        console.error('Error loading permissions', e);
+    }
+}
+
+export function renderPermissionsTable() {
+    const state = getState();
+    const tbody = document.querySelector('#permissionsTable tbody');
+    if (!tbody) return;
+    
+    let filteredUsers = state.users;
+    const searchTerm = document.getElementById('permissionsSearch').value.toLowerCase().trim();
+    
+    if (searchTerm) {
+        filteredUsers = state.users.filter(u => 
+            u.name.toLowerCase().includes(searchTerm) || 
+            (u.ho_ten && u.ho_ten.toLowerCase().includes(searchTerm))
+        );
+    }
+    
+    tbody.innerHTML = filteredUsers.map(u => {
+        const userPerms = state.usersPermissions.find(up => up.userId == u.id);
+        const hasHistoryPerm = userPerms ? userPerms.permissions.includes('can_view_history') : false;
+        const isAdmin = u.role === 'admin';
+        
+        return `
+        <tr>
+            <td>${escapeHtml(u.name)}</td>
+            <td>${escapeHtml(u.ho_ten || '-')}</td>
+            <td><span class="status-badge ${u.role === 'admin' ? 'status-approved' : 'status-draft'}">${u.role}</span></td>
+            <td>
+                <label class="switch">
+                    <input type="checkbox" 
+                        ${hasHistoryPerm || isAdmin ? 'checked' : ''} 
+                        ${isAdmin ? 'disabled' : ''}
+                        onchange="window.toggleHistoryPermission(${u.id}, this.checked)">
+                    <span class="slider round ${isAdmin ? 'disabled' : ''}"></span>
+                </label>
+            </td>
+        </tr>
+    `}).join('');
+}
+
+export function handlePermissionsSearch() {
+    renderPermissionsTable();
+}
+
+export async function toggleHistoryPermission(userId, checked) {
+    const state = getState();
+    if (!userId) return;
+    
+    try {
+        let response;
+        if (checked) {
+            response = await api('POST', '/user-permissions', { 
+                nguoi_dung_id: userId, 
+                quyen: 'can_view_history' 
+            });
+        } else {
+            response = await api('DELETE', `/user-permissions/${userId}/can_view_history`);
+        }
+        
+        if (response.success) {
+            showToast(response.message, 'success');
+            const userPerms = state.usersPermissions.find(up => up.userId == userId);
+            if (userPerms) {
+                if (checked) {
+                    if (!userPerms.permissions.includes('can_view_history')) {
+                        userPerms.permissions.push('can_view_history');
+                    }
+                } else {
+                    userPerms.permissions = userPerms.permissions.filter(p => p !== 'can_view_history');
+                }
+            }
+        } else {
+            showToast(response.message, 'error');
+            renderPermissionsTable();
+        }
+    } catch (error) {
+        showToast('Lỗi cập nhật quyền', 'error');
+        renderPermissionsTable();
+    }
+}
+
+export function buildUserOptions() {
+    const state = getState();
+    const options = state.users.map(u => ({
+        value: u.name,
+        label: u.ho_ten ? `${u.name} - ${u.ho_ten}` : u.name,
+        searchText: `${u.name} ${u.ho_ten || ''}`.toLowerCase()
+    }));
+    setAllUsersOptions(options);
+}
+
+export function bindEvents() {
+    document.getElementById('permissionsSearch').addEventListener('input', handlePermissionsSearch);
+}
+
+export function init() {
+    bindEvents();
+}

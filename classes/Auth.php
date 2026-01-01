@@ -203,4 +203,70 @@ class Auth {
         
         return 'no-line.php';
     }
+    
+    public static function hasPermission($userId, $permissionKey) {
+        if (self::checkRole(['admin'])) {
+            return true;
+        }
+        
+        try {
+            $mysqli = Database::getMysqli();
+            $stmt = mysqli_prepare($mysqli,
+                "SELECT id FROM user_permissions WHERE nguoi_dung_id = ? AND quyen = ?"
+            );
+            if (!$stmt) {
+                return false;
+            }
+            mysqli_stmt_bind_param($stmt, "is", $userId, $permissionKey);
+            mysqli_stmt_execute($stmt);
+            $result = mysqli_stmt_get_result($stmt);
+            $row = mysqli_fetch_assoc($result);
+            mysqli_stmt_close($stmt);
+            
+            return $row !== null;
+        } catch (Exception $e) {
+            return false;
+        }
+    }
+    
+    public static function getUserPermissions($userId) {
+        try {
+            $mysqli = Database::getMysqli();
+            $stmt = mysqli_prepare($mysqli,
+                "SELECT quyen FROM user_permissions WHERE nguoi_dung_id = ?"
+            );
+            if (!$stmt) {
+                return [];
+            }
+            mysqli_stmt_bind_param($stmt, "i", $userId);
+            mysqli_stmt_execute($stmt);
+            $result = mysqli_stmt_get_result($stmt);
+            
+            $permissions = [];
+            while ($row = mysqli_fetch_assoc($result)) {
+                $permissions[] = $row['quyen'];
+            }
+            mysqli_stmt_close($stmt);
+            
+            return $permissions;
+        } catch (Exception $e) {
+            return [];
+        }
+    }
+    
+    public static function canViewHistory($userId = null) {
+        if (self::checkRole(['admin'])) {
+            return true;
+        }
+        
+        if ($userId === null) {
+            $userId = $_SESSION['user_id'] ?? null;
+        }
+        
+        if ($userId === null) {
+            return false;
+        }
+        
+        return self::hasPermission($userId, 'can_view_history');
+    }
 }

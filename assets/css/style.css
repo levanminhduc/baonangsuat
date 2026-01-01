@@ -1135,6 +1135,18 @@ select.custom-select {
 .sub-bar-link {
     color: #666;
     text-decoration: none;
+    transition: color 0.2s, font-weight 0.2s;
+    padding: 0 4px;
+}
+
+.sub-bar-link:hover {
+    color: var(--primary-color);
+    text-decoration: underline;
+}
+
+.sub-bar-link.active {
+    color: var(--primary-color);
+    font-weight: bold;
 }
 @media (max-width: 768px) {
     .navbar-desktop-table {
@@ -1154,6 +1166,79 @@ select.custom-select {
 .bg-navbar-theme:hover {
     background-color: #0e255c !important;
 }
-.border-navbar-theme {
-    border-color: #143583 !important;
+
+/* History & Tabs */
+.main-tabs-container {
+    background: #fff;
+    border-bottom: 1px solid var(--border-color);
 }
+
+.tab-btn {
+    position: relative;
+    border-bottom-width: 2px;
+}
+
+.tab-btn.active::after {
+    content: '';
+    position: absolute;
+    bottom: -2px;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background-color: var(--primary-color);
+}
+
+/* History Table specifics */
+.history-report-header {
+    background: #f8f9fa;
+    border: 1px solid #e5e7eb;
+    border-radius: 0.5rem;
+    padding: 1rem;
+    margin-bottom: 1rem;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+    justify-content: space-between;
+}
+
+.history-report-header .header-field {
+    background: white;
+    padding: 0.5rem 1rem;
+    border-radius: 0.375rem;
+    border: 1px solid #e5e7eb;
+    min-width: 120px;
+    display: flex;
+    flex-direction: column;
+}
+
+.history-report-header .header-field label {
+    font-size: 0.75rem;
+    color: #6b7280;
+    margin-bottom: 0.125rem;
+}
+
+.history-report-header .header-field .value {
+    font-size: 1rem;
+    font-weight: 600;
+    color: #111827;
+}
+
+.history-grid-container .excel-grid th {
+    background-color: #f3f4f6;
+    color: #374151;
+}
+
+.history-grid-container .excel-grid td.cell-readonly {
+    background-color: #f9fafb;
+}
+
+.history-grid-container .excel-grid td.cell-luyke {
+    background-color: #fffbeb;
+    color: #92400e;
+}
+
+/* Pagination Styles Override (if needed) */
+#historyPagination nav button {
+    cursor: pointer;
+}
+

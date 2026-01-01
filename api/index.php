@@ -27,6 +27,7 @@ require_once __DIR__ . '/../classes/Auth.php';
 require_once __DIR__ . '/../classes/NangSuatService.php';
 require_once __DIR__ . '/../classes/AdminService.php';
 require_once __DIR__ . '/../classes/services/MocGioSetService.php';
+require_once __DIR__ . '/../classes/services/HistoryService.php';
 require_once __DIR__ . '/../csrf.php';
 
 $requestUri = $_SERVER['REQUEST_URI'];
@@ -140,6 +141,12 @@ try {
         case 'moc-gio-sets':
             handleMocGioSets($segments, $method, $input);
             break;
+        case 'bao-cao-history':
+            handleBaoCaoHistory($segments, $method);
+            break;
+        case 'user-permissions':
+            handleUserPermissions($segments, $method, $input);
+            break;
         default:
             response(['success' => false, 'message' => 'API không tồn tại'], 404);
     }
@@ -198,7 +205,9 @@ function handleAuth($segments, $method, $input) {
             
         case 'session':
             requireLogin();
-            response(['success' => true, 'data' => Auth::getSession()]);
+            $sessionData = Auth::getSession();
+            $sessionData['can_view_history'] = Auth::canViewHistory();
+            response(['success' => true, 'data' => $sessionData]);
             break;
             
         default:
@@ -210,20 +219,38 @@ function handleContext($segments, $method) {
     if ($method !== 'GET') {
         response(['success' => false, 'message' => 'Method not allowed'], 405);
     }
-    requireLine();
+    
+    $isAdmin = Auth::checkRole(['admin']);
+    if ($isAdmin) {
+        requireLogin();
+    } else {
+        requireLine();
+    }
     
     $session = Auth::getSession();
     $service = new NangSuatService();
     
     $ca_id = isset($_GET['ca_id']) ? intval($_GET['ca_id']) : null;
-    $context = $service->getContext($session['line_id'], $ca_id);
+    
+    if ($session['line_id']) {
+        $context = $service->getContext($session['line_id'], $ca_id);
+    } else {
+        $context = [];
+    }
+    
     $context['session'] = $session;
+    $context['can_view_history'] = Auth::canViewHistory();
     
     response(['success' => true, 'data' => $context]);
 }
 
 function handleBaoCao($segments, $method, $input) {
-    requireLine();
+    $isAdmin = Auth::checkRole(['admin']);
+    if ($isAdmin) {
+        requireLogin();
+    } else {
+        requireLine();
+    }
     $session = Auth::getSession();
     $service = new NangSuatService();
     
@@ -656,6 +683,142 @@ function handleMocGioSets($segments, $method, $input) {
         $ca_id = isset($_GET['ca_id']) ? intval($_GET['ca_id']) : 0;
         $line_id = isset($_GET['line_id']) ? intval($_GET['line_id']) : 0;
         response(['success' => true, 'data' => $service->getMocGioForLine($ca_id, $line_id)]);
+    }
+    
+    response(['success' => false, 'message' => 'Endpoint không hợp lệ'], 404);
+}
+
+function handleBaoCaoHistory($segments, $method) {
+    requireLogin();
+    
+    $session = Auth::getSession();
+    $isAdmin = Auth::checkRole(['admin']);
+    
+    if (!$isAdmin && !Auth::canViewHistory()) {
+        response(['success' => false, 'message' => 'Không có quyền xem lịch sử'], 403);
+    }
+    
+    $historyService = new HistoryService();
+    
+    $reportId = isset($segments[1]) && is_numeric($segments[1]) ? intval($segments[1]) : null;
+    
+    if ($method === 'GET' && !$reportId) {
+        $filters = [
+            'ngay_tu' => $_GET['ngay_tu'] ?? null,
+            'ngay_den' => $_GET['ngay_den'] ?? null,
+            'ca_id' => isset($_GET['ca_id']) ? intval($_GET['ca_id']) : null,
+            'ma_hang_id' => isset($_GET['ma_hang_id']) ? intval($_GET['ma_hang_id']) : null,
+            'trang_thai' => $_GET['trang_thai'] ?? null,
+            'page' => isset($_GET['page']) ? intval($_GET['page']) : 1,
+            'page_size' => isset($_GET['page_size']) ? intval($_GET['page_size']) : 20
+        ];
+        
+        if ($isAdmin) {
+            $filters['line_id'] = isset($_GET['line_id']) ? intval($_GET['line_id']) : null;
+        } else {
+            $filters['line_id'] = $session['line_id'];
+        }
+        
+        $result = $historyService->getReportList($filters);
+        response(['success' => true, 'data' => $result['data'], 'pagination' => $result['pagination']]);
+    }
+    
+    if ($method === 'GET' && $reportId) {
+        $reportLineId = $historyService->getReportLineId($reportId);
+        
+        if ($reportLineId === null) {
+            response(['success' => false, 'message' => 'Báo cáo không tồn tại'], 404);
+        }
+        
+        if (!$isAdmin && $reportLineId !== $session['line_id']) {
+            response(['success' => false, 'message' => 'Không có quyền xem báo cáo này'], 403);
+        }
+        
+        $detail = $historyService->getReportDetail($reportId);
+        if (!$detail) {
+            response(['success' => false, 'message' => 'Báo cáo không tồn tại'], 404);
+        }
+        
+        response(['success' => true, 'data' => $detail]);
+    }
+    
+    response(['success' => false, 'message' => 'Method not allowed'], 405);
+}
+
+function handleUserPermissions($segments, $method, $input) {
+    requireRole(['admin']);
+    
+    $mysqli = Database::getMysqli();
+    
+    $userId = isset($segments[1]) && is_numeric($segments[1]) ? intval($segments[1]) : null;
+    $permissionKey = $segments[2] ?? null;
+    
+    if ($method === 'GET' && $userId) {
+        $permissions = Auth::getUserPermissions($userId);
+        response(['success' => true, 'data' => ['nguoi_dung_id' => $userId, 'permissions' => $permissions]]);
+    }
+    
+    if ($method === 'POST') {
+        requireCsrf();
+        
+        $userId = intval($input['nguoi_dung_id'] ?? 0);
+        $permissionKey = $input['quyen'] ?? '';
+        
+        if ($userId <= 0 || empty($permissionKey)) {
+            response(['success' => false, 'message' => 'Thiếu thông tin nguoi_dung_id hoặc quyen'], 400);
+        }
+        
+        $stmt = mysqli_prepare($mysqli, "SELECT id FROM user WHERE id = ?");
+        mysqli_stmt_bind_param($stmt, "i", $userId);
+        mysqli_stmt_execute($stmt);
+        $result = mysqli_stmt_get_result($stmt);
+        if (!mysqli_fetch_assoc($result)) {
+            mysqli_stmt_close($stmt);
+            response(['success' => false, 'message' => 'User không tồn tại'], 404);
+        }
+        mysqli_stmt_close($stmt);
+        
+        $stmt = mysqli_prepare($mysqli, "SELECT id FROM user_permissions WHERE nguoi_dung_id = ? AND quyen = ?");
+        mysqli_stmt_bind_param($stmt, "is", $userId, $permissionKey);
+        mysqli_stmt_execute($stmt);
+        $result = mysqli_stmt_get_result($stmt);
+        if (mysqli_fetch_assoc($result)) {
+            mysqli_stmt_close($stmt);
+            response(['success' => true, 'message' => 'Permission đã tồn tại']);
+        }
+        mysqli_stmt_close($stmt);
+        
+        $nguoiTao = $_SESSION['ma_nv'] ?? null;
+        $stmt = mysqli_prepare($mysqli, "INSERT INTO user_permissions (nguoi_dung_id, quyen, nguoi_tao) VALUES (?, ?, ?)");
+        mysqli_stmt_bind_param($stmt, "iss", $userId, $permissionKey, $nguoiTao);
+        
+        if (mysqli_stmt_execute($stmt)) {
+            mysqli_stmt_close($stmt);
+            response(['success' => true, 'message' => 'Đã cấp quyền thành công']);
+        } else {
+            mysqli_stmt_close($stmt);
+            response(['success' => false, 'message' => 'Không thể cấp quyền'], 500);
+        }
+    }
+    
+    if ($method === 'DELETE' && $userId && $permissionKey) {
+        requireCsrf();
+        
+        $stmt = mysqli_prepare($mysqli, "DELETE FROM user_permissions WHERE nguoi_dung_id = ? AND quyen = ?");
+        mysqli_stmt_bind_param($stmt, "is", $userId, $permissionKey);
+        
+        if (mysqli_stmt_execute($stmt)) {
+            $affected = mysqli_stmt_affected_rows($stmt);
+            mysqli_stmt_close($stmt);
+            if ($affected > 0) {
+                response(['success' => true, 'message' => 'Đã thu hồi quyền thành công']);
+            } else {
+                response(['success' => true, 'message' => 'Permission không tồn tại']);
+            }
+        } else {
+            mysqli_stmt_close($stmt);
+            response(['success' => false, 'message' => 'Không thể thu hồi quyền'], 500);
+        }
     }
     
     response(['success' => false, 'message' => 'Endpoint không hợp lệ'], 404);
