@@ -20,17 +20,6 @@ const FEATURE_FLAGS = {
     LUY_KE_STATUS_ENABLED: true
 };
 
-const CONFIG = {
-    statusTypes: STATUS_TYPES,
-    statusLabels: STATUS_LABELS,
-    statusClasses: STATUS_CLASSES,
-    featureFlags: FEATURE_FLAGS
-};
-
-export function getLuyKeConfig() {
-    return { ...CONFIG };
-}
-
 export function isLuyKeStatusEnabled() {
     return FEATURE_FLAGS.LUY_KE_STATUS_ENABLED;
 }

@@ -1,6 +1,5 @@
 import { formatGio } from './utils.js';
 import {
-    getLuyKeConfig,
     isLuyKeStatusEnabled,
     formatLuyKeStatusLabel,
     getStatusClass,
@@ -209,7 +208,6 @@ export class GridManager {
         const luyKeCell = row.querySelector('.cell-luyke');
         if (luyKeCell) {
             const isStatusEnabled = isLuyKeStatusEnabled();
-            const cd = this.lastBaoCao?.routing?.find(r => r.cong_doan_id == cdId);
 
             if (isStatusEnabled) {
                 const targetMocId = getLastInputMocId(inputValuesByMoc, this.lastBaoCao.moc_gio_list);
@@ -245,21 +243,6 @@ export class GridManager {
                 luyKeCell.textContent = total;
             }
         }
-    }
-    
-    getLastActiveMocId(inputValuesByMoc, mocGioList) {
-        if (!mocGioList || mocGioList.length === 0) return null;
-        
-        const sorted = [...mocGioList].sort((a, b) => Number(a.thu_tu) - Number(b.thu_tu));
-        let lastActiveId = sorted[0].id;
-        
-        for (const moc of sorted) {
-            const val = inputValuesByMoc[moc.id];
-            if (val > 0) {
-                lastActiveId = moc.id;
-            }
-        }
-        return lastActiveId;
     }
 
     handleCellKeyDown(e) {

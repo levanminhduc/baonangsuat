@@ -60,45 +60,6 @@ export function computeLuyKeStatus({ mocGioList, chiTieuLuyKeMap, luyKeThucTeMap
     return { statusByMocId, detailByMocId, targetMocId };
 }
 
-export function computeLuyKeFromInputs({ mocGioList, inputValuesByMoc, targetMocId }) {
-    if (!inputValuesByMoc || !Array.isArray(mocGioList)) {
-        return null;
-    }
-    
-    const sortedMocList = sortMocGioList(mocGioList);
-    const targetThuTu = findThuTuByMocId(sortedMocList, targetMocId);
-    
-    if (targetThuTu === null) {
-        return null;
-    }
-    
-    let total = 0;
-    
-    for (const moc of sortedMocList) {
-        if (Number(moc.thu_tu) > targetThuTu) {
-            break;
-        }
-        
-        const mocId = Number(moc.id);
-        const value = getNumericValue(inputValuesByMoc, mocId);
-        
-        if (value !== null) {
-            total += value;
-        }
-    }
-    
-    return total;
-}
-
-export function computeLuyKeFromPayload({ luyKeThucTeMap, mocId }) {
-    if (!luyKeThucTeMap) {
-        return null;
-    }
-    
-    const value = getNumericValue(luyKeThucTeMap, mocId);
-    return value;
-}
-
 function calculateSingleStatus(chiTieu, thucTe) {
     if (chiTieu === null || chiTieu === 0) {
         return STATUS_TYPES.NA;
@@ -139,25 +100,4 @@ function getNumericValue(map, key) {
     
     const numValue = Number(value);
     return isNaN(numValue) ? null : numValue;
-}
-
-function findThuTuByMocId(mocGioList, mocId) {
-    const targetId = Number(mocId);
-    
-    for (const moc of mocGioList) {
-        if (Number(moc.id) === targetId) {
-            return Number(moc.thu_tu);
-        }
-    }
-    
-    return null;
-}
-
-function hasInputValue(inputValuesByMoc, mocId) {
-    if (!inputValuesByMoc) {
-        return false;
-    }
-    
-    const value = getNumericValue(inputValuesByMoc, mocId);
-    return value !== null;
 }
