@@ -1,0 +1,22 @@
+@import "tailwindcss";
+
+@source "../../../*.php";
+@source "../../../includes/**/*.php";
+@source "../../../assets/js/**/*.js";
+
+@theme {
+  --color-primary: #143583;
+  --color-primary-dark: #0f2a66;
+  --color-success: #4CAF50;
+  --color-warning: #ff9800;
+  --color-danger: #f44336;
+}
+
+/* 
+  Fix Bootstrap 5 conflict:
+  Bootstrap applies unlayered `button { border-radius: 0 }` which overrides layered Tailwind utilities.
+  We use an unlayered selector with higher specificity to restore rounded corners.
+*/
+button.rounded-lg {
+  border-radius: 0.5rem;
+}

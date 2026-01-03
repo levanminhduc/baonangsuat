@@ -23,7 +23,7 @@ $finalClass = "{$baseClasses} {$variantClasses} {$class}";
 
 <div class="<?= $finalClass ?>" <?= implode(' ', $attributes) ?>>
     <?php if ($header): ?>
-        <div class="px-6 py-4 border-b border-gray-200 bg-gray-50">
+        <div class="px-5 py-4 border-b border-gray-200 bg-gray-50">
             <?php if (strip_tags($header) === $header): ?>
                 <h3 class="text-lg font-medium text-gray-900"><?= $header ?></h3>
             <?php else: ?>
@@ -32,12 +32,12 @@ $finalClass = "{$baseClasses} {$variantClasses} {$class}";
         </div>
     <?php endif; ?>
 
-    <div class="<?= $noPadding ? '' : 'p-6' ?>">
+    <div class="<?= $noPadding ? '' : 'p-5' ?>">
         <?= $body ?>
     </div>
 
     <?php if ($footer): ?>
-        <div class="px-6 py-4 border-t border-gray-200 bg-gray-50">
+        <div class="px-5 py-4 border-t border-gray-200 bg-gray-50">
             <?= $footer ?>
         </div>
     <?php endif; ?>

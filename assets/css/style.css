@@ -350,6 +350,7 @@ select.custom-select {
 .excel-grid .row-hieuSuat {
     background: #f5f5f5;
     font-weight: 600;
+    display: none;
 }
 
 .excel-grid .row-hieuSuat td {

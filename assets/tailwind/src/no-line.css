@@ -1,0 +1,12 @@
+@import "tailwindcss";
+
+@source "../../../no-line.php";
+@source "../../../includes/**/*.php";
+
+@theme {
+  --color-primary: #2196F3;
+  --color-primary-dark: #1976D2;
+  --color-success: #4CAF50;
+  --color-warning: #ff9800;
+  --color-danger: #f44336;
+}

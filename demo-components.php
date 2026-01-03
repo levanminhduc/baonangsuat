@@ -21,19 +21,8 @@ $showHomeBtn = true;
     <!-- Project Styles -->
     <link rel="stylesheet" href="assets/css/style.css">
     
-    <!-- Tailwind CSS (Detected from component classes) - Using CDN for demo purposes if not local -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    colors: {
-                        primary: '#143583',
-                    }
-                }
-            }
-        }
-    </script>
+    <!-- Tailwind CSS Offline -->
+    <link rel="stylesheet" href="assets/tailwind/dist/main.css">
 
     <style>
         .component-section {
@@ -349,11 +338,16 @@ $showHomeBtn = true;
 
                 <!-- Modal Demo -->
                 <div class="example-block">
-                    <h3 class="font-medium mb-3">Confirm Modal</h3>
-                    <button onclick="showDemoModal()" class="w-full bg-indigo-600 text-white px-4 py-2 rounded hover:bg-indigo-700">
-                        Open Modal
-                    </button>
-                    <p class="text-xs text-gray-500 mt-2">Click để mở modal xác nhận</p>
+                    <h3 class="font-medium mb-3">Modal Component</h3>
+                    <div class="space-y-3">
+                        <button onclick="Modal.open('demoModal')" class="w-full bg-indigo-600 text-white px-4 py-2 rounded hover:bg-indigo-700">
+                            Open Base Modal
+                        </button>
+                        <button onclick="showDemoModal()" class="w-full bg-gray-600 text-white px-4 py-2 rounded hover:bg-gray-700">
+                            Open Custom Confirm Modal
+                        </button>
+                    </div>
+                    <p class="text-xs text-gray-500 mt-2">Base Modal uses modal-base.php + JS Module</p>
                 </div>
 
                 <!-- Loading Overlay Demo -->
@@ -373,6 +367,20 @@ $showHomeBtn = true;
     <?php include 'includes/components/toast.php'; ?>
     <?php include 'includes/components/confirm-modal.php'; ?>
     <?php include 'includes/components/loading-overlay.php'; ?>
+    <?php include 'includes/components/demo-modal.php'; ?>
+
+    <!-- JS Modules -->
+    <script type="module">
+        import Modal from './assets/js/modules/modal.js';
+        
+        // Expose to window for inline onclick handlers
+        window.Modal = Modal;
+        
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            Modal.init();
+        });
+    </script>
 
     <!-- Demo Scripts -->
     <script>
