@@ -1,16 +1,27 @@
 import { formatGio } from './utils.js';
+import {
+    getLuyKeConfig,
+    isLuyKeStatusEnabled,
+    formatLuyKeStatusLabel,
+    getStatusClass,
+    buildLuyKeTooltip
+} from './luy-ke-config.js';
+import { computeLuyKeStatus, getLastInputMocId } from './luy-ke-calculator.js';
 
 export class GridManager {
     constructor(app) {
         this.app = app;
         this.currentCell = null;
+        this.lastBaoCao = null;
     }
 
     renderGrid(baoCao) {
+        this.lastBaoCao = baoCao;
         const container = document.getElementById('gridContainer');
         if (!container || !baoCao) return;
         
         const isEditable = baoCao.trang_thai === 'draft';
+        const isStatusEnabled = isLuyKeStatusEnabled();
         
         let headerHtml = `
             <tr>
@@ -30,6 +41,8 @@ export class GridManager {
         let bodyHtml = '';
         baoCao.routing.forEach((cd, idx) => {
             let luyKe = 0;
+            const inputValuesByMoc = {};
+
             bodyHtml += `<tr data-cd="${cd.cong_doan_id}">`;
             bodyHtml += `<td class="cell-readonly">${idx + 1}</td>`;
             bodyHtml += `<td class="cell-name" title="${cd.ten_cong_doan}">${cd.ten_cong_doan}</td>`;
@@ -39,6 +52,7 @@ export class GridManager {
                 const entry = baoCao.entries[key];
                 const value = entry ? parseInt(entry.so_luong) : 0;
                 luyKe += value;
+                inputValuesByMoc[moc.id] = value;
                 
                 if (isEditable) {
                     bodyHtml += `<td>
@@ -54,7 +68,40 @@ export class GridManager {
                 }
             });
             
-            bodyHtml += `<td class="cell-luyke" data-cd="${cd.cong_doan_id}">${luyKe}</td>`;
+            let luyKeContent = luyKe;
+            let luyKeClass = 'cell-luyke';
+
+            if (isStatusEnabled) {
+                const targetMocId = getLastInputMocId(inputValuesByMoc, baoCao.moc_gio_list);
+                
+                const { statusByMocId, detailByMocId } = computeLuyKeStatus({
+                    mocGioList: baoCao.moc_gio_list,
+                    chiTieuLuyKeMap: baoCao.chi_tieu_luy_ke,
+                    luyKeThucTeMap: null,
+                    inputValuesByMoc,
+                    isEditable: true
+                });
+                
+                const status = targetMocId ? statusByMocId[targetMocId] : null;
+                const detail = targetMocId ? detailByMocId[targetMocId] : null;
+                
+                if (status) {
+                     const statusLabel = formatLuyKeStatusLabel(status);
+                     const statusClass = getStatusClass(status);
+                     const tooltip = buildLuyKeTooltip(detail?.chiTieu, detail?.thucTe, status);
+                     
+                     luyKeContent = `
+                        <div class="luy-ke-status-container">
+                            <span class="luy-ke-status-cell ${statusClass}">
+                                ${statusLabel}
+                                <span class="luy-ke-tooltip">${tooltip}</span>
+                            </span>
+                        </div>
+                     `;
+                }
+            }
+
+            bodyHtml += `<td class="${luyKeClass}" data-cd="${cd.cong_doan_id}">${luyKeContent}</td>`;
             bodyHtml += '</tr>';
         });
         
@@ -149,15 +196,70 @@ export class GridManager {
         if (!row) return;
         
         const inputs = row.querySelectorAll('.cell-input');
+        const inputValuesByMoc = {};
         let total = 0;
+
         inputs.forEach(inp => {
-            total += parseInt(inp.value) || 0;
+            const val = parseInt(inp.value) || 0;
+            total += val;
+            const mocId = inp.dataset.moc;
+            if (mocId) inputValuesByMoc[mocId] = val;
         });
         
         const luyKeCell = row.querySelector('.cell-luyke');
         if (luyKeCell) {
-            luyKeCell.textContent = total;
+            const isStatusEnabled = isLuyKeStatusEnabled();
+            const cd = this.lastBaoCao?.routing?.find(r => r.cong_doan_id == cdId);
+
+            if (isStatusEnabled) {
+                const targetMocId = getLastInputMocId(inputValuesByMoc, this.lastBaoCao.moc_gio_list);
+                
+                const { statusByMocId, detailByMocId } = computeLuyKeStatus({
+                    mocGioList: this.lastBaoCao.moc_gio_list,
+                    chiTieuLuyKeMap: this.lastBaoCao.chi_tieu_luy_ke,
+                    luyKeThucTeMap: null,
+                    inputValuesByMoc,
+                    isEditable: true
+                });
+
+                const status = targetMocId ? statusByMocId[targetMocId] : null;
+                const detail = targetMocId ? detailByMocId[targetMocId] : null;
+
+                if (status) {
+                    const statusLabel = formatLuyKeStatusLabel(status);
+                    const statusClass = getStatusClass(status);
+                    const tooltip = buildLuyKeTooltip(detail?.chiTieu, detail?.thucTe, status);
+
+                    luyKeCell.innerHTML = `
+                        <div class="luy-ke-status-container">
+                            <span class="luy-ke-status-cell ${statusClass}">
+                                ${statusLabel}
+                                <span class="luy-ke-tooltip">${tooltip}</span>
+                            </span>
+                        </div>
+                    `;
+                } else {
+                    luyKeCell.textContent = total;
+                }
+            } else {
+                luyKeCell.textContent = total;
+            }
         }
+    }
+    
+    getLastActiveMocId(inputValuesByMoc, mocGioList) {
+        if (!mocGioList || mocGioList.length === 0) return null;
+        
+        const sorted = [...mocGioList].sort((a, b) => Number(a.thu_tu) - Number(b.thu_tu));
+        let lastActiveId = sorted[0].id;
+        
+        for (const moc of sorted) {
+            const val = inputValuesByMoc[moc.id];
+            if (val > 0) {
+                lastActiveId = moc.id;
+            }
+        }
+        return lastActiveId;
     }
 
     handleCellKeyDown(e) {

@@ -21,6 +21,7 @@ $session = Auth::getSession();
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Nhập Năng Suất - <?php echo htmlspecialchars($session['line_ten']); ?></title>
     <link rel="stylesheet" href="assets/css/style.css">
+    <link rel="stylesheet" href="assets/css/luy-ke-status.css">
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
       tailwind.config = {
