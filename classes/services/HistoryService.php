@@ -180,6 +180,15 @@ class HistoryService {
         $baoCao['entries'] = $this->getEntries($reportId);
         $baoCao['chi_tieu_luy_ke'] = $this->calculateChiTieuLuyKe($baoCao);
         
+        if (!empty($baoCao['ket_qua_luy_ke'])) {
+            $baoCao['ket_qua_luy_ke'] = json_decode($baoCao['ket_qua_luy_ke'], true);
+            $baoCao['ket_qua_luy_ke_is_fallback'] = 0;
+        } else {
+            $baoCao['ket_qua_luy_ke'] = $this->calculateKetQuaLuyKeFallback($baoCao);
+            $baoCao['ket_qua_luy_ke_is_fallback'] = 1;
+            error_log("HistoryService fallback: bao_cao_id=$reportId, reason=missing_ket_qua_luy_ke");
+        }
+        
         return $baoCao;
     }
     
@@ -194,6 +203,87 @@ class HistoryService {
         }
         
         return $chiTieuLuyKe;
+    }
+    
+    private function calculateKetQuaLuyKeFallback($baoCao) {
+        $ctns = intval($baoCao['ctns']);
+        $tongPhut = intval($baoCao['tong_phut_hieu_dung']);
+        $ctGio = floatval($baoCao['ct_gio']);
+        
+        $mocGioList = $baoCao['moc_gio_list'];
+        $lastMoc = count($mocGioList) > 0 ? $mocGioList[count($mocGioList) - 1] : null;
+        $soPhutHieuDungLuyKeCuoi = $lastMoc ? intval($lastMoc['so_phut_hieu_dung_luy_ke']) : 0;
+        
+        $chiTieuLuyKeTong = 0;
+        if ($tongPhut > 0 && $ctns > 0) {
+            $chiTieuLuyKeTong = round($ctns * $soPhutHieuDungLuyKeCuoi / $tongPhut);
+        }
+        
+        $luyKeThucTeTong = 0;
+        $congDoanDetails = [];
+        
+        foreach ($baoCao['routing'] as $cd) {
+            $congDoanId = $cd['cong_doan_id'];
+            $laCongDoanTinhLuyKe = intval($cd['la_cong_doan_tinh_luy_ke']);
+            
+            $luyKeCongDoan = 0;
+            if ($lastMoc) {
+                $key = $congDoanId . '_' . $lastMoc['id'];
+                $entry = $baoCao['entries'][$key] ?? null;
+                if ($entry) {
+                    $luyKeCongDoan = intval($entry['so_luong']);
+                }
+            }
+            
+            $chiTieuCongDoan = $chiTieuLuyKeTong;
+            
+            $trangThai = 'na';
+            if ($chiTieuCongDoan > 0) {
+                $trangThai = $luyKeCongDoan >= $chiTieuCongDoan ? 'dat' : 'chua_dat';
+            }
+            
+            if ($laCongDoanTinhLuyKe === 1) {
+                $luyKeThucTeTong = $luyKeCongDoan;
+            }
+            
+            $congDoanDetails[] = [
+                'cong_doan_id' => $congDoanId,
+                'cong_doan_ten' => $cd['ten_cong_doan'],
+                'la_cong_doan_tinh_luy_ke' => $laCongDoanTinhLuyKe,
+                'luy_ke_thuc_te' => $luyKeCongDoan,
+                'chi_tieu_luy_ke' => $chiTieuCongDoan,
+                'trang_thai' => $trangThai
+            ];
+        }
+        
+        $trangThaiTong = 'na';
+        if ($chiTieuLuyKeTong > 0) {
+            $trangThaiTong = $luyKeThucTeTong >= $chiTieuLuyKeTong ? 'dat' : 'chua_dat';
+        }
+        
+        return [
+            'version' => 1,
+            'generated_at' => date('c'),
+            'source' => [
+                'bao_cao_id' => intval($baoCao['id']),
+                'ngay' => $baoCao['ngay_bao_cao'],
+                'line_id' => intval($baoCao['line_id']),
+                'ca_id' => intval($baoCao['ca_id']),
+                'ma_hang_id' => intval($baoCao['ma_hang_id'])
+            ],
+            'inputs' => [
+                'so_lao_dong' => intval($baoCao['so_lao_dong']),
+                'ctns' => $ctns,
+                'tong_phut_hieu_dung' => $tongPhut
+            ],
+            'tong_hop' => [
+                'ct_gio' => $ctGio,
+                'luy_ke_thuc_te' => $luyKeThucTeTong,
+                'chi_tieu_luy_ke' => $chiTieuLuyKeTong,
+                'trang_thai' => $trangThaiTong
+            ],
+            'cong_doan' => $congDoanDetails
+        ];
     }
     
     private function getRouting($ma_hang_id, $line_id = null) {

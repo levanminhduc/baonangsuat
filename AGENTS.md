@@ -13,17 +13,24 @@ This file provides guidance to agents when working with code in this repository.
 ## Non-Obvious Behaviors
 
 - **`ma_nv` MUST be UPPERCASE**: All code uses `strtoupper(trim($ma_nv))` before queries
+- **Username case-insensitive login**: Query uses `UPPER(name) = ?` for login
 - **Configurable plaintext password fallback**: `ALLOW_PLAINTEXT_PASSWORD` constant (default: `true`) controls whether plaintext password comparison is allowed after bcrypt fails
 - **Session regeneration on login**: Prevents session fixation attacks
 - **Hardcoded base path**: `/baonangsuat/` is hardcoded in PHP redirects and JS fetch calls
 - **Pre-generated entries**: Creating a report auto-generates ALL entries with `so_luong = 0`
+- **Entry key format**: `{cong_doan_id}_{moc_gio_id}` - composite key for entry lookup
 - **`la_cong_doan_tinh_luy_ke` flag**: Only stages with this flag=1 are cumulative-calculated
 - **CSRF protection for API**: All POST/PUT/DELETE endpoints (except login) require X-CSRF-Token header. Token fetched via GET /api/csrf-token
+- **CSRF token persistence**: Token created once per session, reused until session expires
+- **Security headers**: `X-Content-Type-Options: nosniff`, `X-Frame-Options: DENY` applied globally
 - **CORS restricted**: API only allows localhost origins (127.0.0.1, localhost with any port)
 - **Remember username only**: Login remembers username in localStorage, never password
 - **Login rate limiting**: 5 failed attempts per IP within 15 minutes triggers lockout. Returns HTTP 429. Counter resets on successful login.
 - **Permission-based history access**: `can_view_history` permission required for non-admin users to view report history
 - **Moc Gio Set fallback**: LINE-specific preset → default preset (is_default=1) for same ca_id
+- **`moc_gio_is_fallback` flag**: Context response indicates if using fallback preset
+- **Admin bypass**: Admins don't need LINE selection for `handleContext()` and `handleBaoCao()`
+- **Transaction wraps bulk updates**: Multiple entry updates wrapped in single transaction
 
 ## Key Files
 

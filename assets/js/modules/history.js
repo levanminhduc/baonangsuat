@@ -220,6 +220,27 @@ export class HistoryModule {
         // Render Header
         const header = document.querySelector('.history-report-header');
         if (header) {
+            const isFallback = baoCao.ket_qua_luy_ke_is_fallback == 1;
+            const fallbackBadge = isFallback 
+                ? `<span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-yellow-100 text-yellow-800 ml-2 border border-yellow-200">Tính lại</span>` 
+                : '';
+
+            // Check unlock permission
+            const session = window.appContext?.session || {};
+            const isAdmin = session.vai_tro === 'admin';
+            const canUnlock = isAdmin && ['submitted', 'approved', 'locked'].includes(baoCao.trang_thai);
+            
+            const unlockBtn = canUnlock ? `
+                <button onclick="window.historyModule.unlockReport(${baoCao.id})" 
+                    class="ml-auto bg-red-600 hover:bg-red-700 text-white text-sm font-medium py-1 px-3 rounded focus:outline-none focus:shadow-outline flex items-center shadow-sm transition-colors duration-200"
+                    title="Mở khóa báo cáo để chỉnh sửa">
+                    <svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 11V7a4 4 0 118 0m-4 8v2m-6 4h12a1 1 0 001-1v-6a1 1 0 00-1-1H9a1 1 0 00-1 1v6a1 1 0 001 1z"></path>
+                    </svg>
+                    Mở khóa
+                </button>
+            ` : '';
+
             header.innerHTML = `
                 <div class="header-field">
                     <label>LINE:</label>
@@ -243,8 +264,9 @@ export class HistoryModule {
                 </div>
                 <div class="header-field">
                     <label>Ngày:</label>
-                    <span class="value">${baoCao.ngay_bao_cao}</span>
+                    <span class="value">${baoCao.ngay_bao_cao}${fallbackBadge}</span>
                 </div>
+                ${unlockBtn}
             `;
         }
 
@@ -283,7 +305,46 @@ export class HistoryModule {
                 bodyHtml += `<td class="cell-readonly text-center">${value || ''}</td>`;
             });
             
-            bodyHtml += `<td class="cell-luyke text-center">${luyKe}</td>`;
+            // Xử lý hiển thị lũy kế và trạng thái từ ket_qua_luy_ke
+            let luyKeDisplay = luyKe;
+            let statusHtml = '';
+
+            if (baoCao.ket_qua_luy_ke && baoCao.ket_qua_luy_ke.cong_doan) {
+                const result = baoCao.ket_qua_luy_ke.cong_doan.find(c => c.cong_doan_id == cd.cong_doan_id);
+                if (result) {
+                    luyKeDisplay = result.luy_ke_thuc_te;
+                    
+                    if (result.trang_thai) {
+                        const statusMap = {
+                            'dat': { text: 'Đạt', class: 'luy-ke-status-pass' },
+                            'chua_dat': { text: 'Chưa đạt', class: 'luy-ke-status-fail' },
+                            'na': { text: 'N/A', class: 'luy-ke-status-na' }
+                        };
+                        const s = statusMap[result.trang_thai] || statusMap['na'];
+                        
+                        // Chỉ hiện badge nếu có trạng thái ý nghĩa hoặc là công đoạn tính lũy kế
+                        if (result.trang_thai !== 'na' || cd.la_cong_doan_tinh_luy_ke == 1 || cd.la_cong_doan_tinh_luy_ke == '1') {
+                            statusHtml = `
+                                <div class="mt-1 flex justify-center">
+                                    <div class="luy-ke-status-cell ${s.class}">
+                                        ${s.text}
+                                        <span class="luy-ke-tooltip">
+                                            Thực tế: ${result.luy_ke_thuc_te} / Mục tiêu: ${result.chi_tieu_luy_ke}
+                                        </span>
+                                    </div>
+                                </div>
+                            `;
+                        }
+                    }
+                }
+            }
+
+            bodyHtml += `<td class="cell-luyke text-center">
+                <div class="flex flex-col items-center justify-center">
+                    <span class="font-bold">${luyKeDisplay}</span>
+                    ${statusHtml}
+                </div>
+            </td>`;
             bodyHtml += '</tr>';
         });
 
@@ -335,6 +396,33 @@ export class HistoryModule {
                 }
             }
         });
+    }
+
+    async unlockReport(reportId) {
+        if (!confirm('Bạn có chắc chắn muốn mở khóa báo cáo này? Báo cáo sẽ được chuyển về trạng thái nháp (draft) và người dùng sẽ phải gửi lại.')) {
+            return;
+        }
+
+        try {
+            showLoading();
+            const response = await api('POST', `/bao-cao/${reportId}/unlock`);
+            
+            if (response.success) {
+                showToast('Mở khóa báo cáo thành công', 'success');
+                // Reload detail to update status and buttons
+                this.showDetail(reportId);
+                // Invalidate cache since data changed
+                this.historyCache = null;
+                this.isLoaded = false;
+            } else {
+                showToast(response.message || 'Lỗi mở khóa báo cáo', 'error');
+            }
+        } catch (error) {
+            console.error('Unlock report error:', error);
+            showToast('Lỗi kết nối khi mở khóa báo cáo', 'error');
+        } finally {
+            hideLoading();
+        }
     }
 
     hideDetail() {

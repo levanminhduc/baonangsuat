@@ -306,6 +306,92 @@ class NangSuatService {
         return $luyKeThucTe;
     }
     
+    public function calculateKetQuaLuyKe($bao_cao_id) {
+        $baoCao = $this->getBaoCao($bao_cao_id);
+        if (!$baoCao) {
+            return null;
+        }
+        
+        $ctns = intval($baoCao['ctns']);
+        $tongPhut = intval($baoCao['tong_phut_hieu_dung']);
+        $ctGio = floatval($baoCao['ct_gio']);
+        
+        $mocGioList = $baoCao['moc_gio_list'];
+        $lastMoc = count($mocGioList) > 0 ? $mocGioList[count($mocGioList) - 1] : null;
+        $soPhutHieuDungLuyKeCuoi = $lastMoc ? intval($lastMoc['so_phut_hieu_dung_luy_ke']) : 0;
+        
+        $chiTieuLuyKeTong = 0;
+        if ($tongPhut > 0 && $ctns > 0) {
+            $chiTieuLuyKeTong = round($ctns * $soPhutHieuDungLuyKeCuoi / $tongPhut);
+        }
+        
+        $luyKeThucTeTong = 0;
+        $congDoanDetails = [];
+        
+        foreach ($baoCao['routing'] as $cd) {
+            $congDoanId = $cd['cong_doan_id'];
+            $laCongDoanTinhLuyKe = intval($cd['la_cong_doan_tinh_luy_ke']);
+            
+            $luyKeCongDoan = 0;
+            if ($lastMoc) {
+                $key = $congDoanId . '_' . $lastMoc['id'];
+                $entry = $baoCao['entries'][$key] ?? null;
+                if ($entry) {
+                    $luyKeCongDoan = intval($entry['so_luong']);
+                }
+            }
+            
+            $chiTieuCongDoan = $chiTieuLuyKeTong;
+            
+            $trangThai = 'na';
+            if ($chiTieuCongDoan > 0) {
+                $trangThai = $luyKeCongDoan >= $chiTieuCongDoan ? 'dat' : 'chua_dat';
+            }
+            
+            if ($laCongDoanTinhLuyKe === 1) {
+                $luyKeThucTeTong = $luyKeCongDoan;
+            }
+            
+            $congDoanDetails[] = [
+                'cong_doan_id' => $congDoanId,
+                'cong_doan_ten' => $cd['ten_cong_doan'],
+                'la_cong_doan_tinh_luy_ke' => $laCongDoanTinhLuyKe,
+                'luy_ke_thuc_te' => $luyKeCongDoan,
+                'chi_tieu_luy_ke' => $chiTieuCongDoan,
+                'trang_thai' => $trangThai
+            ];
+        }
+        
+        $trangThaiTong = 'na';
+        if ($chiTieuLuyKeTong > 0) {
+            $trangThaiTong = $luyKeThucTeTong >= $chiTieuLuyKeTong ? 'dat' : 'chua_dat';
+        }
+        
+        return [
+            'version' => 1,
+            'generated_at' => date('c'),
+            'source' => [
+                'bao_cao_id' => intval($bao_cao_id),
+                'ngay' => $baoCao['ngay_bao_cao'],
+                'line_id' => intval($baoCao['line_id']),
+                'ca_id' => intval($baoCao['ca_id']),
+                'ma_hang_id' => intval($baoCao['ma_hang_id'])
+            ],
+            'inputs' => [
+                'so_lao_dong' => intval($baoCao['so_lao_dong']),
+                'ctns' => $ctns,
+                'tong_phut_hieu_dung' => $tongPhut
+            ],
+            'tong_hop' => [
+                'ct_gio' => $ctGio,
+                'luy_ke_thuc_te' => $luyKeThucTeTong,
+                'chi_tieu_luy_ke' => $chiTieuLuyKeTong,
+                'trang_thai' => $trangThaiTong
+            ],
+            'cong_doan' => $congDoanDetails
+        ];
+    }
+    
     public function updateEntries($bao_cao_id, $entries, $version, $ma_nv) {
         $stmt = mysqli_prepare($this->db, 
             "SELECT version, trang_thai, line_id FROM bao_cao_nang_suat WHERE id = ?"
@@ -434,7 +520,8 @@ class NangSuatService {
     }
     
     public function submitBaoCao($bao_cao_id, $ma_nv) {
-        return $this->changeTrangThai($bao_cao_id, 'submitted', ['draft'], $ma_nv);
+        $ketQuaLuyKe = $this->calculateKetQuaLuyKe($bao_cao_id);
+        return $this->changeTrangThai($bao_cao_id, 'submitted', ['draft'], $ma_nv, $ketQuaLuyKe);
     }
     
     public function approveBaoCao($bao_cao_id, $ma_nv) {
@@ -445,7 +532,7 @@ class NangSuatService {
         return $this->changeTrangThai($bao_cao_id, 'draft', ['submitted', 'approved', 'locked'], $ma_nv);
     }
     
-    private function changeTrangThai($bao_cao_id, $newStatus, $allowedStatuses, $ma_nv) {
+    private function changeTrangThai($bao_cao_id, $newStatus, $allowedStatuses, $ma_nv, $ketQuaLuyKe = null) {
         $stmt = mysqli_prepare($this->db, "SELECT trang_thai FROM bao_cao_nang_suat WHERE id = ?");
         mysqli_stmt_bind_param($stmt, "i", $bao_cao_id);
         mysqli_stmt_execute($stmt);
@@ -461,10 +548,18 @@ class NangSuatService {
             return ['success' => false, 'message' => 'Trạng thái hiện tại không cho phép thao tác này'];
         }
         
-        $updateStmt = mysqli_prepare($this->db, 
-            "UPDATE bao_cao_nang_suat SET trang_thai = ? WHERE id = ?"
-        );
-        mysqli_stmt_bind_param($updateStmt, "si", $newStatus, $bao_cao_id);
+        if ($ketQuaLuyKe !== null) {
+            $ketQuaLuyKeJson = json_encode($ketQuaLuyKe, JSON_UNESCAPED_UNICODE);
+            $updateStmt = mysqli_prepare($this->db,
+                "UPDATE bao_cao_nang_suat SET trang_thai = ?, ket_qua_luy_ke = ? WHERE id = ?"
+            );
+            mysqli_stmt_bind_param($updateStmt, "ssi", $newStatus, $ketQuaLuyKeJson, $bao_cao_id);
+        } else {
+            $updateStmt = mysqli_prepare($this->db,
+                "UPDATE bao_cao_nang_suat SET trang_thai = ? WHERE id = ?"
+            );
+            mysqli_stmt_bind_param($updateStmt, "si", $newStatus, $bao_cao_id);
+        }
         
         if (mysqli_stmt_execute($updateStmt)) {
             mysqli_stmt_close($updateStmt);
