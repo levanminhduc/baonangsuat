@@ -409,6 +409,17 @@ select.custom-select {
     color: var(--danger-color);
 }
 
+.cell-pass {
+    background-color: #e8f5e9 !important;
+    color: #2e7d32 !important;
+}
+.cell-fail {
+    background-color: #ffebee !important;
+    color: #c62828 !important;
+}
+.cell-pass:focus { background-color: #c8e6c9 !important; }
+.cell-fail:focus { background-color: #ffcdd2 !important; }
+
 .cell-input:disabled {
     background: #f5f5f5;
     color: #999;

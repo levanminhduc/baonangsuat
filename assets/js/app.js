@@ -483,6 +483,7 @@ class NangSuatApp {
         });
         
         input.classList.add('modified');
+        this.gridManager.updateCellColor(input, this.baoCao);
         this.gridManager.updateRowLuyKe(cdId);
         this.gridManager.updateHieuSuat(this.baoCao);
         this.scheduleSave();

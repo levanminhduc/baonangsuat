@@ -14,6 +14,23 @@ export class GridManager {
         this.lastBaoCao = null;
     }
 
+    getCellColorClass(soLuong, mocGioId, baoCao) {
+        const chiTieu = baoCao?.chi_tieu_luy_ke?.[mocGioId] || 0;
+        if (chiTieu === 0) return '';
+        return soLuong >= chiTieu ? 'cell-pass' : 'cell-fail';
+    }
+
+    updateCellColor(input, baoCao) {
+        if (!input || !baoCao) return;
+        const mocId = parseInt(input.dataset.moc);
+        const soLuong = parseInt(input.value) || 0;
+        const chiTieu = baoCao.chi_tieu_luy_ke?.[mocId] || 0;
+        input.classList.remove('cell-pass', 'cell-fail');
+        if (chiTieu > 0) {
+            input.classList.add(soLuong >= chiTieu ? 'cell-pass' : 'cell-fail');
+        }
+    }
+
     renderGrid(baoCao) {
         this.lastBaoCao = baoCao;
         const container = document.getElementById('gridContainer');
@@ -54,9 +71,10 @@ export class GridManager {
                 inputValuesByMoc[moc.id] = value;
                 
                 if (isEditable) {
+                    const colorClass = this.getCellColorClass(value, moc.id, baoCao);
                     bodyHtml += `<td>
                         <input type="number" 
-                            class="cell-input" 
+                            class="cell-input ${colorClass}" 
                             data-cd="${cd.cong_doan_id}" 
                             data-moc="${moc.id}"
                             value="${value || ''}"

@@ -302,7 +302,15 @@ export class HistoryModule {
                 const value = entry ? parseInt(entry.so_luong) : 0;
                 luyKe += value;
                 
-                bodyHtml += `<td class="cell-readonly text-center">${value || ''}</td>`;
+                const chiTieu = (baoCao.chi_tieu_luy_ke && baoCao.chi_tieu_luy_ke[moc.id]) || 0;
+                let cellClass = 'cell-readonly text-center';
+                
+                // Add color class based on comparison with target
+                if (chiTieu > 0) {
+                    cellClass += (value >= chiTieu ? ' cell-pass' : ' cell-fail');
+                }
+                
+                bodyHtml += `<td class="${cellClass}">${value || ''}</td>`;
             });
             
             // Xử lý hiển thị lũy kế và trạng thái từ ket_qua_luy_ke
