@@ -105,30 +105,24 @@ if ($isLoggedIn) {
 
 <script>
 (function() {
-    // Highlight active link
     function highlightActiveLink() {
         const currentPath = window.location.pathname.split('/').pop();
         const currentHash = window.location.hash;
-        const fullUrl = currentPath + currentHash;
         
         document.querySelectorAll('.sub-bar-link').forEach(link => {
             link.classList.remove('active');
             const href = link.getAttribute('data-href');
-            if (!href) return; // Skip logout btn
+            if (!href) return;
             
-            // Simple match: if href matches current path (and hash if present in href)
-            // For admin.php
             if (href === 'admin.php' && currentPath === 'admin.php') {
                 link.classList.add('active');
-            } 
-            // For nhap-nang-suat.php paths
+            }
             else if (currentPath === 'nhap-nang-suat.php') {
                 if (href.includes('#')) {
                     const hrefHash = href.split('#')[1];
                     const currentHashVal = currentHash.replace('#', '');
                     
-                    // Exact hash match or default to nhap-bao-cao if empty hash and href is nhap-bao-cao
-                    if ((currentHashVal === hrefHash) || 
+                    if ((currentHashVal === hrefHash) ||
                         (currentHashVal === '' && hrefHash === '/nhap-bao-cao') ||
                         (currentHashVal.startsWith('/lich-su') && hrefHash === '/lich-su')) {
                         link.classList.add('active');
@@ -138,41 +132,14 @@ if ($isLoggedIn) {
         });
     }
 
-    // Run on load and hash change
     highlightActiveLink();
     window.addEventListener('hashchange', highlightActiveLink);
-    
-    // Clock script
-    let h = <?php echo intval($serverH); ?>;
-    let m = <?php echo intval($serverM); ?>;
-    let s = <?php echo intval($serverS); ?>;
-    
-    function pad(num) {
-        return num.toString().padStart(2, '0');
-    }
-    
-    function updateClock() {
-        s++;
-        if (s >= 60) {
-            s = 0;
-            m++;
-            if (m >= 60) {
-                m = 0;
-                h++;
-                if (h >= 24) {
-                    h = 0;
-                }
-            }
-        }
-        
-        const timeStr = `${pad(h)}:${pad(m)}:${pad(s)}`;
-        
-        const clockEl = document.getElementById('server-clock');
-        if (clockEl) clockEl.textContent = `[${timeStr}]`;
-    }
-    
-    setInterval(updateClock, 1000);
 })();
+</script>
+<script type="module">
+import realtimeService from '/baonangsuat/assets/js/modules/realtime-service.js';
+realtimeService.init(<?php echo time(); ?>);
+realtimeService.startClock('server-clock');
 </script>
 <?php endif; ?>
 
