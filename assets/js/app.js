@@ -196,6 +196,9 @@ class NangSuatApp {
                 window.appContext = response.data;
                 this.renderHeader(response.data);
                 
+                // Permission check for create buttons
+                this.updateCreateButtonVisibility();
+                
                 // Permission check for history tab
                 if (window.appContext.can_view_history) {
                     const tabHistory = document.getElementById('tabHistory');
@@ -263,6 +266,28 @@ class NangSuatApp {
         }
     }
     
+    updateCreateButtonVisibility() {
+        if (!window.appContext) return;
+        
+        // Admin always has permission, otherwise check can_create_report
+        const isAdmin = window.appContext.session && window.appContext.session.role === 'admin';
+        const canCreate = isAdmin || window.appContext.can_create_report;
+        
+        const createBtn = document.getElementById('createReportBtn');
+        const navCreateBtn = document.getElementById('navCreateReportBtn');
+        const navCreateBtnMobile = document.querySelector('.navCreateReportBtn-mobile');
+        
+        if (!canCreate) {
+            if (createBtn) createBtn.classList.add('hidden');
+            if (navCreateBtn) navCreateBtn.classList.add('hidden');
+            if (navCreateBtnMobile) navCreateBtnMobile.classList.add('hidden');
+        } else {
+            if (createBtn) createBtn.classList.remove('hidden');
+            if (navCreateBtn) navCreateBtn.classList.remove('hidden');
+            if (navCreateBtnMobile) navCreateBtnMobile.classList.remove('hidden');
+        }
+    }
+
     renderReportList(reports) {
         const container = document.getElementById('reportListContainer');
         const editorContainer = document.getElementById('editorContainer');
@@ -276,7 +301,18 @@ class NangSuatApp {
         if (!tbody) return;
         
         if (reports.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:30px;">Chưa có báo cáo nào hôm nay</td></tr>';
+            let message = 'Chưa có báo cáo nào hôm nay';
+            
+            // Check permission for message
+            if (window.appContext) {
+                const isAdmin = window.appContext.session && window.appContext.session.role === 'admin';
+                const canCreate = isAdmin || window.appContext.can_create_report;
+                if (!canCreate) {
+                    message = 'Chưa có báo cáo. Vui lòng liên hệ quản trị viên.';
+                }
+            }
+            
+            tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;padding:30px;">${message}</td></tr>`;
             return;
         }
         

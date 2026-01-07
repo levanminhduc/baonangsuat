@@ -65,6 +65,15 @@ export function renderPermissionsTable() {
                     <span class="slider round ${isAdmin ? 'disabled' : ''}"></span>
                 </label>
             </td>
+            <td>
+                <label class="switch">
+                    <input type="checkbox" 
+                        ${userPerms && userPerms.permissions.includes('tao_bao_cao') || isAdmin ? 'checked' : ''} 
+                        ${isAdmin ? 'disabled' : ''}
+                        onchange="window.toggleCreateReportPermission(${u.id}, this.checked)">
+                    <span class="slider round ${isAdmin ? 'disabled' : ''}"></span>
+                </label>
+            </td>
         </tr>
     `}).join('');
 }
@@ -98,6 +107,43 @@ export async function toggleHistoryPermission(userId, checked) {
                     }
                 } else {
                     userPerms.permissions = userPerms.permissions.filter(p => p !== 'can_view_history');
+                }
+            }
+        } else {
+            showToast(response.message, 'error');
+            renderPermissionsTable();
+        }
+    } catch (error) {
+        showToast('Lỗi cập nhật quyền', 'error');
+        renderPermissionsTable();
+    }
+}
+
+export async function toggleCreateReportPermission(userId, checked) {
+    const state = getState();
+    if (!userId) return;
+    
+    try {
+        let response;
+        if (checked) {
+            response = await api('POST', '/user-permissions', { 
+                nguoi_dung_id: userId, 
+                quyen: 'tao_bao_cao' 
+            });
+        } else {
+            response = await api('DELETE', `/user-permissions/${userId}/tao_bao_cao`);
+        }
+        
+        if (response.success) {
+            showToast(response.message, 'success');
+            const userPerms = state.usersPermissions.find(up => up.userId == userId);
+            if (userPerms) {
+                if (checked) {
+                    if (!userPerms.permissions.includes('tao_bao_cao')) {
+                        userPerms.permissions.push('tao_bao_cao');
+                    }
+                } else {
+                    userPerms.permissions = userPerms.permissions.filter(p => p !== 'tao_bao_cao');
                 }
             }
         } else {

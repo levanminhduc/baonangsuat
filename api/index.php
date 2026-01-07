@@ -240,6 +240,7 @@ function handleContext($segments, $method) {
     
     $context['session'] = $session;
     $context['can_view_history'] = Auth::canViewHistory();
+    $context['can_create_report'] = Auth::canCreateReport();
     
     response(['success' => true, 'data' => $context]);
 }
@@ -270,6 +271,9 @@ function handleBaoCao($segments, $method, $input) {
     
     if ($method === 'POST' && !$baoCaoId) {
         requireCsrf();
+        if (!Auth::canCreateReport()) {
+            response(['success' => false, 'message' => 'Không có quyền tạo báo cáo'], 403);
+        }
         $input['line_id'] = $session['line_id'];
         $result = $service->createBaoCao($input, $session['ma_nv']);
         response($result);
@@ -600,6 +604,34 @@ function handleAdmin($segments, $method, $input) {
             if ($method === 'DELETE' && $id) {
                 requireCsrf();
                 response($service->deleteMocGio($id));
+            }
+            break;
+            
+        case 'bao-cao':
+            $action = $segments[2] ?? '';
+            
+            if ($method === 'POST' && $action === 'bulk-create') {
+                requireCsrf();
+                $nangSuatService = new NangSuatService();
+                $session = Auth::getSession();
+                $items = $input['items'] ?? [];
+                $skipExisting = isset($input['skip_existing']) ? (bool)$input['skip_existing'] : true;
+                
+                if (empty($items)) {
+                    response(['success' => false, 'message' => 'Danh sách items không được rỗng'], 400);
+                }
+                
+                foreach ($items as $index => $item) {
+                    if (empty($item['line_id']) || empty($item['ma_hang_id']) || empty($item['ngay']) || empty($item['ca_id'])) {
+                        response(['success' => false, 'message' => "Item $index thiếu thông tin bắt buộc (line_id, ma_hang_id, ngay, ca_id)"], 400);
+                    }
+                    if (!preg_match('/^\d{4}-\d{2}-\d{2}$/', $item['ngay'])) {
+                        response(['success' => false, 'message' => "Item $index có định dạng ngày không hợp lệ (yêu cầu YYYY-MM-DD)"], 400);
+                    }
+                }
+                
+                $result = $nangSuatService->bulkCreateBaoCao($items, $session['ma_nv'], $skipExisting);
+                response($result);
             }
             break;
             

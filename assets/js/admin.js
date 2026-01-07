@@ -40,7 +40,18 @@ const modules = {
         init: async (m) => {
             m.init();
             window.toggleHistoryPermission = m.toggleHistoryPermission;
+            window.toggleCreateReportPermission = m.toggleCreateReportPermission;
             await m.loadUsers();
+        }
+    },
+    'bulk-create': {
+        path: './modules/admin/bulk-create.js',
+        deps: ['lines', 'ma-hang', 'moc-gio'],
+        instance: null,
+        loaded: false,
+        init: async (m) => {
+            m.init();
+            m.renderFormOptions();
         }
     },
     'ma-hang': {
@@ -153,7 +164,8 @@ function initRouter() {
         'cong-doan': '/cong-doan',
         'routing': '/routing',
         'presets': '/presets',
-        'moc-gio': '/moc-gio'
+        'moc-gio': '/moc-gio',
+        'bulk-create': '/bulk-create'
     };
     
     const adminRouter = new Router(null, {

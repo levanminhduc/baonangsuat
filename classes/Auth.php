@@ -269,4 +269,28 @@ class Auth {
         
         return self::hasPermission($userId, 'can_view_history');
     }
+    
+    public static function canCreateReport($userId = null) {
+        if (self::checkRole(['admin'])) {
+            return true;
+        }
+        
+        if (!self::isLoggedIn()) {
+            return false;
+        }
+        
+        if (!self::hasLine()) {
+            return false;
+        }
+        
+        if ($userId === null) {
+            $userId = $_SESSION['user_id'] ?? null;
+        }
+        
+        if ($userId === null) {
+            return false;
+        }
+        
+        return self::hasPermission($userId, 'tao_bao_cao');
+    }
 }

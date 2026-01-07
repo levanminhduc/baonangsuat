@@ -621,4 +621,110 @@ class NangSuatService {
         
         return $list;
     }
+    
+    public function bulkCreateBaoCao($items, $ma_nv, $skipExisting = true) {
+        $created = [];
+        $skipped = [];
+        
+        mysqli_begin_transaction($this->db);
+        
+        try {
+            foreach ($items as $item) {
+                $line_id = intval($item['line_id']);
+                $ma_hang_id = intval($item['ma_hang_id']);
+                $ngay_bao_cao = $item['ngay'];
+                $ca_id = intval($item['ca_id']);
+                
+                $checkStmt = mysqli_prepare($this->db,
+                    "SELECT id FROM bao_cao_nang_suat WHERE ngay_bao_cao = ? AND line_id = ? AND ca_id = ? AND ma_hang_id = ?"
+                );
+                mysqli_stmt_bind_param($checkStmt, "siii", $ngay_bao_cao, $line_id, $ca_id, $ma_hang_id);
+                mysqli_stmt_execute($checkStmt);
+                $checkResult = mysqli_stmt_get_result($checkStmt);
+                $existing = mysqli_fetch_assoc($checkResult);
+                mysqli_stmt_close($checkStmt);
+                
+                if ($existing) {
+                    if ($skipExisting) {
+                        $skipped[] = [
+                            'line_id' => $line_id,
+                            'ma_hang_id' => $ma_hang_id,
+                            'ngay' => $ngay_bao_cao,
+                            'ca_id' => $ca_id,
+                            'reason' => 'exists',
+                            'bao_cao_id' => intval($existing['id'])
+                        ];
+                        continue;
+                    } else {
+                        mysqli_rollback($this->db);
+                        return [
+                            'success' => false,
+                            'message' => "Báo cáo đã tồn tại cho line_id=$line_id, ma_hang_id=$ma_hang_id, ngay=$ngay_bao_cao, ca_id=$ca_id"
+                        ];
+                    }
+                }
+                
+                $mocGioResult = $this->getMocGioList($ca_id, $line_id);
+                $mocGioList = $mocGioResult['data'];
+                $tong_phut_hieu_dung = 0;
+                if (count($mocGioList) > 0) {
+                    $lastMoc = $mocGioList[count($mocGioList) - 1];
+                    $tong_phut_hieu_dung = intval($lastMoc['so_phut_hieu_dung_luy_ke']);
+                }
+                
+                $so_lao_dong = intval($item['so_lao_dong'] ?? 0);
+                $ctns = intval($item['ctns'] ?? 0);
+                $ghi_chu = $item['ghi_chu'] ?? '';
+
+                $ct_gio = 0;
+                if ($tong_phut_hieu_dung > 0 && $ctns > 0) {
+                    $ct_gio = round($ctns / ($tong_phut_hieu_dung / 60), 2);
+                }
+                
+                $stmt = mysqli_prepare($this->db,
+                    "INSERT INTO bao_cao_nang_suat
+                     (ngay_bao_cao, line_id, ca_id, ma_hang_id, so_lao_dong, ctns, ct_gio, tong_phut_hieu_dung, ghi_chu, tao_boi)
+                     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
+                );
+                mysqli_stmt_bind_param($stmt, "siiiiidiss",
+                    $ngay_bao_cao, $line_id, $ca_id, $ma_hang_id,
+                    $so_lao_dong, $ctns, $ct_gio, $tong_phut_hieu_dung, $ghi_chu, $ma_nv
+                );
+                
+                if (!mysqli_stmt_execute($stmt)) {
+                    mysqli_stmt_close($stmt);
+                    mysqli_rollback($this->db);
+                    return ['success' => false, 'message' => 'Lỗi tạo báo cáo: ' . mysqli_error($this->db)];
+                }
+                
+                $bao_cao_id = mysqli_insert_id($this->db);
+                mysqli_stmt_close($stmt);
+                
+                $routing = $this->getRouting($ma_hang_id, $line_id);
+                $this->preGenerateEntries($bao_cao_id, $routing, $mocGioList, $ma_nv);
+                
+                $created[] = [
+                    'line_id' => $line_id,
+                    'ma_hang_id' => $ma_hang_id,
+                    'ngay' => $ngay_bao_cao,
+                    'ca_id' => $ca_id,
+                    'bao_cao_id' => $bao_cao_id
+                ];
+            }
+            
+            mysqli_commit($this->db);
+            
+            return [
+                'success' => true,
+                'message' => 'Đã tạo báo cáo hàng loạt',
+                'data' => [
+                    'created' => $created,
+                    'skipped' => $skipped
+                ]
+            ];
+        } catch (Exception $e) {
+            mysqli_rollback($this->db);
+            return ['success' => false, 'message' => 'Lỗi tạo báo cáo hàng loạt: ' . $e->getMessage()];
+        }
+    }
 }
