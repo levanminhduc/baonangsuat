@@ -126,6 +126,7 @@ $session = Auth::getSession();
                                 <th>Vai trò</th>
                                 <th>Quyền xem Lịch sử</th>
                                 <th>Quyền tạo báo cáo</th>
+                                <th>Quyền tạo báo cáo (chọn LINE)</th>
                             </tr>
                         </thead>
                         <tbody></tbody>

@@ -344,21 +344,40 @@ class NangSuatApp {
         }
     }
     
-    populateModalSelects() {
+    async populateModalSelects() {
         const caSelect = document.getElementById('modalCa');
         const maHangSelect = document.getElementById('modalMaHang');
+        const lineGroup = document.getElementById('modalLineGroup');
+        const lineSelect = document.getElementById('modalLine');
         
         if (caSelect && window.appContext?.ca_list) {
-            caSelect.innerHTML = window.appContext.ca_list.map(ca => 
+            caSelect.innerHTML = window.appContext.ca_list.map(ca =>
                 `<option value="${ca.id}">${ca.ma_ca} - ${ca.ten_ca}</option>`
             ).join('');
         }
         
         if (maHangSelect && window.appContext?.ma_hang_list) {
             maHangSelect.innerHTML = '<option value="">-- Chọn mã hàng --</option>' +
-                window.appContext.ma_hang_list.map(mh => 
+                window.appContext.ma_hang_list.map(mh =>
                     `<option value="${mh.id}">${mh.ma_hang} - ${mh.ten_hang}</option>`
                 ).join('');
+        }
+        
+        if (window.appContext?.can_create_report_any_line && lineGroup && lineSelect) {
+            lineGroup.style.display = 'block';
+            try {
+                const response = await api('GET', '/admin/lines');
+                if (response.success) {
+                    lineSelect.innerHTML = '<option value="">-- Chọn LINE --</option>' +
+                        response.data.filter(l => l.is_active).map(l =>
+                            `<option value="${l.id}">${l.ma_line} - ${l.ten_line}</option>`
+                        ).join('');
+                }
+            } catch (e) {
+                console.error('Error loading lines', e);
+            }
+        } else if (lineGroup) {
+            lineGroup.style.display = 'none';
         }
     }
     
@@ -368,21 +387,33 @@ class NangSuatApp {
         const ma_hang_id = document.getElementById('modalMaHang')?.value;
         const so_lao_dong = document.getElementById('modalLaoDong')?.value || 0;
         const ctns = document.getElementById('modalCtns')?.value || 0;
+        const line_id = document.getElementById('modalLine')?.value;
         
         if (!ngay || !ca_id || !ma_hang_id) {
             showToast('Vui lòng điền đầy đủ thông tin', 'error');
             return;
         }
         
+        if (window.appContext?.can_create_report_any_line && !line_id) {
+            showToast('Vui lòng chọn LINE', 'error');
+            return;
+        }
+        
         try {
             showLoading();
-            const response = await api('POST', '/bao-cao', {
+            const payload = {
                 ngay_bao_cao: ngay,
                 ca_id: parseInt(ca_id),
                 ma_hang_id: parseInt(ma_hang_id),
                 so_lao_dong: parseInt(so_lao_dong),
                 ctns: parseInt(ctns)
-            });
+            };
+            
+            if (window.appContext?.can_create_report_any_line && line_id) {
+                payload.line_id = parseInt(line_id);
+            }
+            
+            const response = await api('POST', '/bao-cao', payload);
             
             if (response.success) {
                 this.closeModal();

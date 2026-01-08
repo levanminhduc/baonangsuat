@@ -7,7 +7,7 @@ if (!Auth::isLoggedIn()) {
     exit;
 }
 
-if (!Auth::checkRole(['admin']) && !Auth::hasLine()) {
+if (!Auth::checkRole(['admin']) && !Auth::canCreateReportForAnyLine() && !Auth::hasLine()) {
     header('Location: no-line.php');
     exit;
 }
@@ -183,6 +183,10 @@ $session = Auth::getSession();
                 </button>
             </div>
             <form id="createForm" onsubmit="event.preventDefault(); window.app.createReport();" class="p-6 space-y-4">
+                <div class="form-group space-y-1" id="modalLineGroup" style="display: none;">
+                    <label for="modalLine" class="block text-sm font-medium text-gray-700">Chọn LINE</label>
+                    <select id="modalLine" required class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary transition-colors outline-none bg-white"></select>
+                </div>
                 <div class="form-group space-y-1">
                     <label for="modalNgay" class="block text-sm font-medium text-gray-700">Ngày báo cáo</label>
                     <input type="date" id="modalNgay" value="<?php echo date('Y-m-d'); ?>" required class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary transition-colors outline-none">
@@ -213,7 +217,10 @@ $session = Auth::getSession();
         </div>
     </div>
     
+    <?php include __DIR__ . '/includes/components/confirm-modal.php'; ?>
+    
     <script>
+        function closeModal(id) { document.getElementById(id).classList.add('hidden'); }
         window.initialParams = {
             line: "<?php echo isset($_GET['line']) ? htmlspecialchars($_GET['line']) : ''; ?>",
             ma_hang: "<?php echo isset($_GET['ma_hang']) ? htmlspecialchars($_GET['ma_hang']) : ''; ?>",

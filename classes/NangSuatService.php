@@ -727,4 +727,63 @@ class NangSuatService {
             return ['success' => false, 'message' => 'Lỗi tạo báo cáo hàng loạt: ' . $e->getMessage()];
         }
     }
+
+    public function deleteBaoCao($bao_cao_id) {
+        $bao_cao_id = intval($bao_cao_id);
+        
+        $stmt = mysqli_prepare($this->db, "SELECT id FROM bao_cao_nang_suat WHERE id = ?");
+        mysqli_stmt_bind_param($stmt, "i", $bao_cao_id);
+        mysqli_stmt_execute($stmt);
+        $result = mysqli_stmt_get_result($stmt);
+        $baoCao = mysqli_fetch_assoc($result);
+        mysqli_stmt_close($stmt);
+        
+        if (!$baoCao) {
+            return ['success' => false, 'message' => 'Báo cáo không tồn tại'];
+        }
+        
+        mysqli_begin_transaction($this->db);
+        
+        try {
+            $entryStmt = mysqli_prepare($this->db, "SELECT id FROM nhap_lieu_nang_suat WHERE bao_cao_id = ?");
+            mysqli_stmt_bind_param($entryStmt, "i", $bao_cao_id);
+            mysqli_stmt_execute($entryStmt);
+            $entryResult = mysqli_stmt_get_result($entryStmt);
+            $entryIds = [];
+            while ($row = mysqli_fetch_assoc($entryResult)) {
+                $entryIds[] = $row['id'];
+            }
+            mysqli_stmt_close($entryStmt);
+            
+            if (!empty($entryIds)) {
+                $placeholders = implode(',', array_fill(0, count($entryIds), '?'));
+                $types = str_repeat('i', count($entryIds));
+                $auditStmt = mysqli_prepare($this->db, "DELETE FROM nhap_lieu_nang_suat_audit WHERE entry_id IN ($placeholders)");
+                mysqli_stmt_bind_param($auditStmt, $types, ...$entryIds);
+                mysqli_stmt_execute($auditStmt);
+                mysqli_stmt_close($auditStmt);
+            }
+            
+            $deleteStmt = mysqli_prepare($this->db, "DELETE FROM bao_cao_nang_suat WHERE id = ?");
+            mysqli_stmt_bind_param($deleteStmt, "i", $bao_cao_id);
+            
+            if (!mysqli_stmt_execute($deleteStmt)) {
+                throw new Exception(mysqli_error($this->db));
+            }
+            
+            $affected = mysqli_stmt_affected_rows($deleteStmt);
+            mysqli_stmt_close($deleteStmt);
+            
+            if ($affected === 0) {
+                throw new Exception('Không tìm thấy báo cáo');
+            }
+            
+            mysqli_commit($this->db);
+            return ['success' => true, 'message' => 'Xóa báo cáo thành công'];
+            
+        } catch (Exception $e) {
+            mysqli_rollback($this->db);
+            return ['success' => false, 'message' => 'Lỗi xóa báo cáo: ' . $e->getMessage()];
+        }
+    }
 }

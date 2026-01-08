@@ -221,7 +221,8 @@ function handleContext($segments, $method) {
     }
     
     $isAdmin = Auth::checkRole(['admin']);
-    if ($isAdmin) {
+    $canCreateAnyLine = Auth::canCreateReportForAnyLine();
+    if ($isAdmin || $canCreateAnyLine) {
         requireLogin();
     } else {
         requireLine();
@@ -241,13 +242,15 @@ function handleContext($segments, $method) {
     $context['session'] = $session;
     $context['can_view_history'] = Auth::canViewHistory();
     $context['can_create_report'] = Auth::canCreateReport();
+    $context['can_create_report_any_line'] = $canCreateAnyLine;
     
     response(['success' => true, 'data' => $context]);
 }
 
 function handleBaoCao($segments, $method, $input) {
     $isAdmin = Auth::checkRole(['admin']);
-    if ($isAdmin) {
+    $canCreateAnyLine = Auth::canCreateReportForAnyLine();
+    if ($isAdmin || $canCreateAnyLine) {
         requireLogin();
     } else {
         requireLine();
@@ -274,7 +277,11 @@ function handleBaoCao($segments, $method, $input) {
         if (!Auth::canCreateReport()) {
             response(['success' => false, 'message' => 'Không có quyền tạo báo cáo'], 403);
         }
-        $input['line_id'] = $session['line_id'];
+        if ($canCreateAnyLine && isset($input['line_id']) && intval($input['line_id']) > 0) {
+            $input['line_id'] = intval($input['line_id']);
+        } else {
+            $input['line_id'] = $session['line_id'];
+        }
         $result = $service->createBaoCao($input, $session['ma_nv']);
         response($result);
     }
@@ -328,6 +335,12 @@ function handleBaoCao($segments, $method, $input) {
         requireRole(['admin']);
         requireCsrf();
         response($service->unlockBaoCao($baoCaoId, $session['ma_nv']));
+    }
+    
+    if ($method === 'DELETE' && $baoCaoId && !$action) {
+        requireRole(['admin']);
+        requireCsrf();
+        response($service->deleteBaoCao($baoCaoId));
     }
     
     response(['success' => false, 'message' => 'Endpoint không hợp lệ'], 404);

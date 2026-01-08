@@ -49,6 +49,8 @@ export function renderPermissionsTable() {
     tbody.innerHTML = filteredUsers.map(u => {
         const userPerms = state.usersPermissions.find(up => up.userId == u.id);
         const hasHistoryPerm = userPerms ? userPerms.permissions.includes('can_view_history') : false;
+        const hasCreateReportPerm = userPerms ? userPerms.permissions.includes('tao_bao_cao') : false;
+        const hasCreateReportAnyLinePerm = userPerms ? userPerms.permissions.includes('tao_bao_cao_cho_line') : false;
         const isAdmin = u.role === 'admin';
         
         return `
@@ -58,8 +60,8 @@ export function renderPermissionsTable() {
             <td><span class="status-badge ${u.role === 'admin' ? 'status-approved' : 'status-draft'}">${u.role}</span></td>
             <td>
                 <label class="switch">
-                    <input type="checkbox" 
-                        ${hasHistoryPerm || isAdmin ? 'checked' : ''} 
+                    <input type="checkbox"
+                        ${hasHistoryPerm || isAdmin ? 'checked' : ''}
                         ${isAdmin ? 'disabled' : ''}
                         onchange="window.toggleHistoryPermission(${u.id}, this.checked)">
                     <span class="slider round ${isAdmin ? 'disabled' : ''}"></span>
@@ -67,10 +69,19 @@ export function renderPermissionsTable() {
             </td>
             <td>
                 <label class="switch">
-                    <input type="checkbox" 
-                        ${userPerms && userPerms.permissions.includes('tao_bao_cao') || isAdmin ? 'checked' : ''} 
+                    <input type="checkbox"
+                        ${hasCreateReportPerm || isAdmin ? 'checked' : ''}
                         ${isAdmin ? 'disabled' : ''}
                         onchange="window.toggleCreateReportPermission(${u.id}, this.checked)">
+                    <span class="slider round ${isAdmin ? 'disabled' : ''}"></span>
+                </label>
+            </td>
+            <td>
+                <label class="switch">
+                    <input type="checkbox"
+                        ${hasCreateReportAnyLinePerm || isAdmin ? 'checked' : ''}
+                        ${isAdmin ? 'disabled' : ''}
+                        onchange="window.toggleCreateReportAnyLinePermission(${u.id}, this.checked)">
                     <span class="slider round ${isAdmin ? 'disabled' : ''}"></span>
                 </label>
             </td>
@@ -144,6 +155,43 @@ export async function toggleCreateReportPermission(userId, checked) {
                     }
                 } else {
                     userPerms.permissions = userPerms.permissions.filter(p => p !== 'tao_bao_cao');
+                }
+            }
+        } else {
+            showToast(response.message, 'error');
+            renderPermissionsTable();
+        }
+    } catch (error) {
+        showToast('Lỗi cập nhật quyền', 'error');
+        renderPermissionsTable();
+    }
+}
+
+export async function toggleCreateReportAnyLinePermission(userId, checked) {
+    const state = getState();
+    if (!userId) return;
+    
+    try {
+        let response;
+        if (checked) {
+            response = await api('POST', '/user-permissions', {
+                nguoi_dung_id: userId,
+                quyen: 'tao_bao_cao_cho_line'
+            });
+        } else {
+            response = await api('DELETE', `/user-permissions/${userId}/tao_bao_cao_cho_line`);
+        }
+        
+        if (response.success) {
+            showToast(response.message, 'success');
+            const userPerms = state.usersPermissions.find(up => up.userId == userId);
+            if (userPerms) {
+                if (checked) {
+                    if (!userPerms.permissions.includes('tao_bao_cao_cho_line')) {
+                        userPerms.permissions.push('tao_bao_cao_cho_line');
+                    }
+                } else {
+                    userPerms.permissions = userPerms.permissions.filter(p => p !== 'tao_bao_cao_cho_line');
                 }
             }
         } else {

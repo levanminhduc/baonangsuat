@@ -12,7 +12,7 @@ if (Auth::checkRole(['admin'])) {
     exit;
 }
 
-if (Auth::hasLine()) {
+if (Auth::hasLine() || Auth::canCreateReportForAnyLine()) {
     header('Location: nhap-nang-suat.php');
     exit;
 }

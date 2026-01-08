@@ -279,6 +279,10 @@ class Auth {
             return false;
         }
         
+        if (self::canCreateReportForAnyLine($userId)) {
+            return true;
+        }
+        
         if (!self::hasLine()) {
             return false;
         }
@@ -292,5 +296,25 @@ class Auth {
         }
         
         return self::hasPermission($userId, 'tao_bao_cao');
+    }
+    
+    public static function canCreateReportForAnyLine($userId = null) {
+        if (self::checkRole(['admin'])) {
+            return true;
+        }
+        
+        if (!self::isLoggedIn()) {
+            return false;
+        }
+        
+        if ($userId === null) {
+            $userId = $_SESSION['user_id'] ?? null;
+        }
+        
+        if ($userId === null) {
+            return false;
+        }
+        
+        return self::hasPermission($userId, 'tao_bao_cao_cho_line');
     }
 }

@@ -98,12 +98,23 @@ export class HistoryModule {
             return;
         }
 
+        const isAdmin = window.appContext?.session?.vai_tro === 'admin';
+        
         tbody.innerHTML = data.map(item => {
             const hieuSuat = item.chi_tieu > 0 ? ((item.thuc_te / item.chi_tieu) * 100).toFixed(1) : 0;
             let hieuSuatClass = '';
             if (hieuSuat >= 100) hieuSuatClass = 'text-green-600 font-bold';
             else if (hieuSuat >= 90) hieuSuatClass = 'text-yellow-600 font-bold';
             else hieuSuatClass = 'text-red-600 font-bold';
+
+            const deleteBtn = isAdmin ? `
+                <button onclick="event.stopPropagation(); window.historyModule.deleteReport(${item.id})"
+                    class="ml-2 text-red-600 hover:text-red-800 p-1" title="Xóa báo cáo">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                    </svg>
+                </button>
+            ` : '';
 
             return `
                 <tr class="hover:bg-gray-50 cursor-pointer transition-colors" onclick="if(window.app && window.app.router) { window.app.router.navigate('/lich-su/' + ${item.id}) } else { window.historyModule.showDetail(${item.id}) }">
@@ -116,6 +127,7 @@ export class HistoryModule {
                     <td class="px-6 py-4 whitespace-nowrap text-sm text-center ${hieuSuatClass}">${hieuSuat}%</td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm text-center">
                         <span class="status-badge status-${item.trang_thai}">${getStatusText(item.trang_thai)}</span>
+                        ${deleteBtn}
                     </td>
                 </tr>
             `;
@@ -433,9 +445,54 @@ export class HistoryModule {
         }
     }
 
+    deleteReport(reportId) {
+        const message = 'Bạn có chắc chắn muốn xóa báo cáo này? Hành động này không thể hoàn tác.';
+        this.showConfirmModal(message, 'Xác nhận xóa', async () => {
+            this.closeConfirmModal();
+            try {
+                showLoading();
+                const response = await api('DELETE', `/bao-cao/${reportId}`);
+                
+                if (response.success) {
+                    showToast('Xóa báo cáo thành công', 'success');
+                    this.historyCache = null;
+                    this.isLoaded = false;
+                    this.loadHistoryList(true);
+                } else {
+                    showToast(response.message || 'Lỗi xóa báo cáo', 'error');
+                }
+            } catch (error) {
+                console.error('Delete report error:', error);
+                showToast('Lỗi kết nối khi xóa báo cáo', 'error');
+            } finally {
+                hideLoading();
+            }
+        });
+    }
+
+    showConfirmModal(message, title, callback) {
+        const modal = document.getElementById('confirmModal');
+        if (!modal) {
+            if (confirm(message)) callback();
+            return;
+        }
+        
+        const titleEl = document.getElementById('confirmModalTitle');
+        if (titleEl) titleEl.textContent = title;
+        
+        document.getElementById('confirmMessage').textContent = message;
+        document.getElementById('confirmBtn').onclick = callback;
+        modal.classList.remove('hidden');
+    }
+
+    closeConfirmModal() {
+        const modal = document.getElementById('confirmModal');
+        if (modal) modal.classList.add('hidden');
+    }
+
     hideDetail() {
         document.getElementById('historyDetailContainer').classList.add('hidden');
         document.getElementById('historyListContainer').classList.remove('hidden');
-        document.querySelector('.bg-white.p-4.rounded-lg.shadow-sm.mb-4').classList.remove('hidden'); // Show filter
+        document.querySelector('.bg-white.p-4.rounded-lg.shadow-sm.mb-4').classList.remove('hidden');
     }
 }
