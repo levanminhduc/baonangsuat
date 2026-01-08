@@ -28,3 +28,6 @@ logs/
 *.log
 tailwindcss-windows-x64.exe
 tailwindcss-windows-x64.exe
+
+# Kilo Code agent worktrees
+.kilocode/worktrees/
