@@ -122,7 +122,7 @@ export function deleteMaHang(maHangId) {
             showToast('Lỗi xóa mã hàng', 'error');
         }
         closeModal('confirmModal');
-    });
+    }, 'Xác nhận xóa', 'danger');
 }
 
 export function bindEvents() {

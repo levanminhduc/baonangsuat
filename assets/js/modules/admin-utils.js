@@ -75,7 +75,7 @@ export function closeModal(modalId) {
     document.getElementById(modalId).classList.add('hidden');
 }
 
-export function showConfirmModal(message, callback, title = 'Xác nhận') {
+export function showConfirmModal(message, callback, title = 'Xác nhận', variant = 'primary') {
     const modal = document.getElementById('confirmModal');
     
     const titleEl = document.getElementById('confirmModalTitle');
@@ -83,7 +83,27 @@ export function showConfirmModal(message, callback, title = 'Xác nhận') {
         titleEl.textContent = title;
     }
     
+    const header = document.getElementById('confirmModalHeader');
+    if (header) {
+        header.classList.remove('bg-navbar-theme', 'border-navbar-theme', 'bg-danger', 'border-danger');
+        if (variant === 'danger') {
+            header.classList.add('bg-danger', 'border-danger');
+        } else {
+            header.classList.add('bg-navbar-theme', 'border-navbar-theme');
+        }
+    }
+    
+    const confirmBtn = document.getElementById('confirmBtn');
+    if (confirmBtn) {
+        confirmBtn.classList.remove('bg-primary', 'hover:bg-primary-dark', 'bg-danger', 'hover:bg-red-700');
+        if (variant === 'danger') {
+            confirmBtn.classList.add('bg-danger', 'hover:bg-red-700');
+        } else {
+            confirmBtn.classList.add('bg-primary', 'hover:bg-primary-dark');
+        }
+    }
+    
     document.getElementById('confirmMessage').textContent = message;
-    document.getElementById('confirmBtn').onclick = callback;
+    confirmBtn.onclick = callback;
     modal.classList.remove('hidden');
 }

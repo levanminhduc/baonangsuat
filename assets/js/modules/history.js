@@ -447,7 +447,7 @@ export class HistoryModule {
 
     deleteReport(reportId) {
         const message = 'Bạn có chắc chắn muốn xóa báo cáo này? Hành động này không thể hoàn tác.';
-        this.showConfirmModal(message, 'Xác nhận xóa', async () => {
+        this.showConfirmModal(message, async () => {
             this.closeConfirmModal();
             try {
                 showLoading();
@@ -467,10 +467,10 @@ export class HistoryModule {
             } finally {
                 hideLoading();
             }
-        });
+        }, 'Xác nhận xóa', 'danger');
     }
 
-    showConfirmModal(message, title, callback) {
+    showConfirmModal(message, callback, title = 'Xác nhận', variant = 'primary') {
         const modal = document.getElementById('confirmModal');
         if (!modal) {
             if (confirm(message)) callback();
@@ -480,8 +480,28 @@ export class HistoryModule {
         const titleEl = document.getElementById('confirmModalTitle');
         if (titleEl) titleEl.textContent = title;
         
+        const header = document.getElementById('confirmModalHeader');
+        if (header) {
+            header.classList.remove('bg-navbar-theme', 'border-navbar-theme', 'bg-danger', 'border-danger');
+            if (variant === 'danger') {
+                header.classList.add('bg-danger', 'border-danger');
+            } else {
+                header.classList.add('bg-navbar-theme', 'border-navbar-theme');
+            }
+        }
+        
+        const confirmBtn = document.getElementById('confirmBtn');
+        if (confirmBtn) {
+            confirmBtn.classList.remove('bg-primary', 'hover:bg-primary-dark', 'bg-danger', 'hover:bg-red-700');
+            if (variant === 'danger') {
+                confirmBtn.classList.add('bg-danger', 'hover:bg-red-700');
+            } else {
+                confirmBtn.classList.add('bg-primary', 'hover:bg-primary-dark');
+            }
+        }
+        
         document.getElementById('confirmMessage').textContent = message;
-        document.getElementById('confirmBtn').onclick = callback;
+        confirmBtn.onclick = callback;
         modal.classList.remove('hidden');
     }
 

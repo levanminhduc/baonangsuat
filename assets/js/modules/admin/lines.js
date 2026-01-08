@@ -110,7 +110,7 @@ export function deleteLine(lineId) {
             showToast('Lỗi xóa LINE', 'error');
         }
         closeModal('confirmModal');
-    });
+    }, 'Xác nhận xóa', 'danger');
 }
 
 export function bindEvents() {

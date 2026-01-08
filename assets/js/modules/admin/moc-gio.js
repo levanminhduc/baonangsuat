@@ -219,7 +219,7 @@ export function deleteMocGio(mocGioId) {
             showToast('Lỗi xóa mốc giờ', 'error');
         }
         closeModal('confirmModal');
-    });
+    }, 'Xác nhận xóa', 'danger');
 }
 
 export async function handleCopyDefault() {

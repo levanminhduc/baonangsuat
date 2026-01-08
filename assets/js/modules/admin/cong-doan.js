@@ -113,7 +113,7 @@ export function deleteCongDoan(congDoanId) {
             showToast('Lỗi xóa công đoạn', 'error');
         }
         closeModal('confirmModal');
-    });
+    }, 'Xác nhận xóa', 'danger');
 }
 
 export function bindEvents() {
