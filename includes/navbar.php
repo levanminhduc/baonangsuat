@@ -36,6 +36,7 @@ if ($isLoggedIn) {
 }
 ?>
 
+<div id="navbar-sticky-wrapper" style="position: sticky; top: 0; z-index: 900; width: 100%; background: #fff; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
 <table width="100%" class="navbar-desktop-table">
     <tr style="text-align:center;color:white;">
         <td bgcolor="143583" style="text-align:center;border-right-color:#143583;width:60px;">
@@ -88,7 +89,8 @@ if ($isLoggedIn) {
     $navLinks = [
         ['label' => 'Nhập năng suất', 'url' => 'nhap-nang-suat.php#/nhap-bao-cao', 'show' => true],
         ['label' => 'Lịch sử', 'url' => 'nhap-nang-suat.php#/lich-su', 'show' => Auth::canViewHistory()],
-        ['label' => 'Quản trị', 'url' => 'admin.php', 'show' => Auth::checkRole(['admin'])]
+        ['label' => 'Quản trị', 'url' => 'admin.php', 'show' => Auth::checkRole(['admin'])],
+        // ['label' => 'Hướng dẫn', 'url' => 'huong-dan.php', 'show' => true]
     ];
 
     foreach ($navLinks as $navLink) {
@@ -117,6 +119,9 @@ if ($isLoggedIn) {
             if (href === 'admin.php' && currentPath === 'admin.php') {
                 link.classList.add('active');
             }
+            else if (href === 'huong-dan.php' && currentPath === 'huong-dan.php') {
+                link.classList.add('active');
+            }
             else if (currentPath === 'nhap-nang-suat.php') {
                 if (href.includes('#')) {
                     const hrefHash = href.split('#')[1];
@@ -142,5 +147,6 @@ realtimeService.init(<?php echo time(); ?>);
 realtimeService.startClock('server-clock');
 </script>
 <?php endif; ?>
+</div>
 
 <?php include __DIR__ . '/components/toast.php'; ?>

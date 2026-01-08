@@ -50,7 +50,41 @@ $session = Auth::getSession();
 
         
         <div class="admin-content">
-            <div class="admin-tabs">
+            <style>
+                .menu-responsive {
+                    display: flex;
+                    gap: 5px;
+                    margin-bottom: 20px;
+                    border-bottom: 2px solid var(--border-color);
+                    padding-bottom: 0;
+                }
+
+                /* Mobile: Horizontal scroll */
+                @media (max-width: 767px) {
+                    .menu-responsive {
+                        overflow-x: auto;
+                        white-space: nowrap;
+                        flex-wrap: nowrap;
+                        -webkit-overflow-scrolling: touch;
+                        
+                        /* Hide scrollbar */
+                        -ms-overflow-style: none;
+                        scrollbar-width: none;
+                    }
+                    .menu-responsive::-webkit-scrollbar {
+                        display: none;
+                    }
+                }
+
+                /* Desktop: Wrap */
+                @media (min-width: 768px) {
+                    .menu-responsive {
+                        flex-wrap: wrap;
+                        overflow-x: visible;
+                    }
+                }
+            </style>
+            <div class="menu-responsive">
                 <button class="admin-tab active" data-tab="lines">Quản lý LINE</button>
                 <button class="admin-tab" data-tab="user-lines">Quản lý User-LINE</button>
                 <button class="admin-tab" data-tab="permissions">Quản lý Quyền</button>
