@@ -57,10 +57,19 @@ class ImportService {
             $existingMaHang = $this->findMaHangByCode($maHang);
             $isNewMaHang = ($existingMaHang === null);
             
+            $reportStats = null;
+            $hasWarning = false;
+            $warningMessage = '';
+            
             if ($isNewMaHang) {
                 $stats['total_ma_hang_new']++;
             } else {
                 $stats['total_ma_hang_existing']++;
+                $reportStats = $this->checkExistingReports(intval($existingMaHang['id']));
+                if ($reportStats['locked_reports'] > 0) {
+                    $hasWarning = true;
+                    $warningMessage = "Mã hàng {$maHang} có {$reportStats['locked_reports']} báo cáo đã chốt. Import routing mới có thể ảnh hưởng hiển thị báo cáo cũ nếu không có routing snapshot.";
+                }
             }
             
             $congDoanList = [];
@@ -111,6 +120,9 @@ class ImportService {
                 'ten_hang' => 'Mã hàng ' . $maHang,
                 'is_new' => $isNewMaHang,
                 'existing_id' => $isNewMaHang ? null : intval($existingMaHang['id']),
+                'report_stats' => $reportStats,
+                'has_warning' => $hasWarning,
+                'warning_message' => $warningMessage,
                 'cong_doan_list' => $congDoanList
             ];
         }
@@ -404,5 +416,28 @@ class ImportService {
         mysqli_stmt_close($stmt);
         
         return $maHangData;
+    }
+    
+    public function checkExistingReports($maHangId) {
+        $stmt = mysqli_prepare($this->db,
+            "SELECT
+                COUNT(*) as total,
+                SUM(CASE WHEN trang_thai IN ('submitted','approved','locked') THEN 1 ELSE 0 END) as locked,
+                SUM(CASE WHEN trang_thai = 'draft' THEN 1 ELSE 0 END) as draft
+             FROM bao_cao_nang_suat
+             WHERE ma_hang_id = ?"
+        );
+        mysqli_stmt_bind_param($stmt, "i", $maHangId);
+        mysqli_stmt_execute($stmt);
+        $result = mysqli_stmt_get_result($stmt);
+        $row = mysqli_fetch_assoc($result);
+        mysqli_stmt_close($stmt);
+        
+        return [
+            'has_reports' => intval($row['total']) > 0,
+            'total_reports' => intval($row['total']),
+            'locked_reports' => intval($row['locked']),
+            'draft_reports' => intval($row['draft'])
+        ];
     }
 }

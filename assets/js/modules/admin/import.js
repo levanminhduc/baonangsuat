@@ -160,8 +160,12 @@ function renderPreview(response) {
         document.getElementById('importConfirmBtn').disabled = false;
         previewListContainer.innerHTML = data.map(item => {
             const isNew = item.is_new;
-            const badgeClass = isNew 
-                ? 'bg-success text-white' 
+            const hasWarning = item.has_warning || false;
+            const warningMessage = item.warning_message || '';
+            const reportStats = item.report_stats || null;
+            
+            const badgeClass = isNew
+                ? 'bg-success text-white'
                 : 'bg-gray-200 text-gray-700';
             const badgeText = isNew ? 'Mới' : 'Cập nhật';
             
@@ -169,18 +173,42 @@ function renderPreview(response) {
             const newCount = congDoanList.filter(cd => cd.is_new).length;
             const existingCount = congDoanList.length - newCount;
             
+            const warningHtml = hasWarning ? `
+                <div class="mt-3 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+                    <div class="flex items-start gap-2">
+                        <svg class="w-5 h-5 text-yellow-600 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+                        </svg>
+                        <div class="flex-1">
+                            <p class="text-sm font-medium text-yellow-800">Cảnh báo</p>
+                            <p class="text-xs text-yellow-700 mt-1">${escapeHtml(warningMessage)}</p>
+                            ${reportStats ? `
+                                <div class="mt-2 flex gap-3 text-xs">
+                                    <span class="text-yellow-700">Tổng: ${reportStats.total_reports} báo cáo</span>
+                                    <span class="text-red-600 font-medium">Đã chốt: ${reportStats.locked_reports}</span>
+                                    <span class="text-gray-600">Nháp: ${reportStats.draft_reports}</span>
+                                </div>
+                            ` : ''}
+                        </div>
+                    </div>
+                </div>
+            ` : '';
+            
             return `
-                <div class="bg-white border border-gray-200 rounded-lg p-4 hover:border-primary transition-colors">
+                <div class="bg-white border ${hasWarning ? 'border-yellow-300' : 'border-gray-200'} rounded-lg p-4 hover:border-primary transition-colors ${hasWarning ? 'ring-1 ring-yellow-200' : ''}">
                     <div class="flex items-start justify-between mb-2">
                         <div>
                             <div class="flex items-center gap-2">
                                 <span class="font-bold text-gray-800 text-lg">${escapeHtml(item.ma_hang)}</span>
                                 <span class="text-xs px-2 py-0.5 rounded font-medium ${badgeClass}">${badgeText}</span>
+                                ${hasWarning ? '<span class="text-yellow-600" title="Có báo cáo đã chốt">⚠️</span>' : ''}
                             </div>
                             <p class="text-sm text-gray-600 mt-1">${escapeHtml(item.ten_hang || '')}</p>
                         </div>
                         <span class="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded">Sheet: ${escapeHtml(item.sheet_name)}</span>
                     </div>
+                    
+                    ${warningHtml}
                     
                     <div class="mt-3 text-sm border-t border-gray-100 pt-3 flex items-center gap-4">
                         <span class="font-medium text-gray-700">${congDoanList.length} công đoạn</span>

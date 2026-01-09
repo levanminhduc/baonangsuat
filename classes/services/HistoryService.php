@@ -175,7 +175,14 @@ class HistoryService {
             return null;
         }
         
-        $baoCao['routing'] = $this->getRouting($baoCao['ma_hang_id'], $baoCao['line_id']);
+        if (!empty($baoCao['routing_snapshot'])) {
+            $snapshot = json_decode($baoCao['routing_snapshot'], true);
+            $baoCao['routing'] = $snapshot['routing'] ?? [];
+            $baoCao['routing_is_snapshot'] = true;
+        } else {
+            $baoCao['routing'] = $this->getRouting($baoCao['ma_hang_id'], $baoCao['line_id']);
+            $baoCao['routing_is_snapshot'] = false;
+        }
         $baoCao['moc_gio_list'] = $this->getMocGioList($baoCao['ca_id'], $baoCao['line_id']);
         $baoCao['entries'] = $this->getEntries($reportId);
         $baoCao['chi_tieu_luy_ke'] = $this->calculateChiTieuLuyKe($baoCao);

@@ -153,14 +153,21 @@ class NangSuatService {
             $ct_gio = round($ctns / ($tong_phut_hieu_dung / 60), 2);
         }
         
+        $routing = $this->getRouting($ma_hang_id, $line_id);
+        $routingSnapshot = json_encode([
+            'version' => 1,
+            'created_at' => date('c'),
+            'routing' => $routing
+        ], JSON_UNESCAPED_UNICODE);
+        
         $stmt = mysqli_prepare($this->db,
             "INSERT INTO bao_cao_nang_suat
-             (ngay_bao_cao, line_id, ca_id, ma_hang_id, so_lao_dong, ctns, ct_gio, tong_phut_hieu_dung, ghi_chu, tao_boi)
-             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
+             (ngay_bao_cao, line_id, ca_id, ma_hang_id, so_lao_dong, ctns, ct_gio, tong_phut_hieu_dung, ghi_chu, tao_boi, routing_snapshot)
+             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
         );
-        mysqli_stmt_bind_param($stmt, "siiiiidiss",
+        mysqli_stmt_bind_param($stmt, "siiiiidisss",
             $ngay_bao_cao, $line_id, $ca_id, $ma_hang_id,
-            $so_lao_dong, $ctns, $ct_gio, $tong_phut_hieu_dung, $ghi_chu, $ma_nv
+            $so_lao_dong, $ctns, $ct_gio, $tong_phut_hieu_dung, $ghi_chu, $ma_nv, $routingSnapshot
         );
         
         if (!mysqli_stmt_execute($stmt)) {
@@ -171,7 +178,6 @@ class NangSuatService {
         $bao_cao_id = mysqli_insert_id($this->db);
         mysqli_stmt_close($stmt);
         
-        $routing = $this->getRouting($ma_hang_id, $line_id);
         $this->preGenerateEntries($bao_cao_id, $routing, $mocGioList, $ma_nv);
         
         return [
@@ -215,7 +221,14 @@ class NangSuatService {
             return null;
         }
         
-        $baoCao['routing'] = $this->getRouting($baoCao['ma_hang_id'], $baoCao['line_id']);
+        if (!empty($baoCao['routing_snapshot'])) {
+            $snapshot = json_decode($baoCao['routing_snapshot'], true);
+            $baoCao['routing'] = $snapshot['routing'] ?? [];
+            $baoCao['routing_is_snapshot'] = true;
+        } else {
+            $baoCao['routing'] = $this->getRouting($baoCao['ma_hang_id'], $baoCao['line_id']);
+            $baoCao['routing_is_snapshot'] = false;
+        }
         $mocGioResult = $this->getMocGioList($baoCao['ca_id'], $baoCao['line_id']);
         $baoCao['moc_gio_list'] = $mocGioResult['data'];
         $baoCao['moc_gio_is_fallback'] = $mocGioResult['is_fallback'];
@@ -681,14 +694,21 @@ class NangSuatService {
                     $ct_gio = round($ctns / ($tong_phut_hieu_dung / 60), 2);
                 }
                 
+                $routing = $this->getRouting($ma_hang_id, $line_id);
+                $routingSnapshot = json_encode([
+                    'version' => 1,
+                    'created_at' => date('c'),
+                    'routing' => $routing
+                ], JSON_UNESCAPED_UNICODE);
+                
                 $stmt = mysqli_prepare($this->db,
                     "INSERT INTO bao_cao_nang_suat
-                     (ngay_bao_cao, line_id, ca_id, ma_hang_id, so_lao_dong, ctns, ct_gio, tong_phut_hieu_dung, ghi_chu, tao_boi)
-                     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
+                     (ngay_bao_cao, line_id, ca_id, ma_hang_id, so_lao_dong, ctns, ct_gio, tong_phut_hieu_dung, ghi_chu, tao_boi, routing_snapshot)
+                     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
                 );
-                mysqli_stmt_bind_param($stmt, "siiiiidiss",
+                mysqli_stmt_bind_param($stmt, "siiiiidisss",
                     $ngay_bao_cao, $line_id, $ca_id, $ma_hang_id,
-                    $so_lao_dong, $ctns, $ct_gio, $tong_phut_hieu_dung, $ghi_chu, $ma_nv
+                    $so_lao_dong, $ctns, $ct_gio, $tong_phut_hieu_dung, $ghi_chu, $ma_nv, $routingSnapshot
                 );
                 
                 if (!mysqli_stmt_execute($stmt)) {
@@ -700,7 +720,6 @@ class NangSuatService {
                 $bao_cao_id = mysqli_insert_id($this->db);
                 mysqli_stmt_close($stmt);
                 
-                $routing = $this->getRouting($ma_hang_id, $line_id);
                 $this->preGenerateEntries($bao_cao_id, $routing, $mocGioList, $ma_nv);
                 
                 $created[] = [
