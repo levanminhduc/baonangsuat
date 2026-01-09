@@ -135,7 +135,8 @@ class ImportService {
             'ma_hang_created' => 0,
             'ma_hang_updated' => 0,
             'cong_doan_created' => 0,
-            'routing_created' => 0
+            'routing_created' => 0,
+            'routing_deleted' => 0
         ];
         
         mysqli_begin_transaction($this->db);
@@ -153,8 +154,9 @@ class ImportService {
                 }
                 
                 $existingMaHang = $this->findMaHangByCode($maHang);
+                $isExistingMaHang = ($existingMaHang !== null);
                 
-                if ($existingMaHang === null) {
+                if (!$isExistingMaHang) {
                     $stmt = mysqli_prepare($this->db, "INSERT INTO ma_hang (ma_hang, ten_hang, is_active) VALUES (?, ?, 1)");
                     mysqli_stmt_bind_param($stmt, "ss", $maHang, $tenHang);
                     if (!mysqli_stmt_execute($stmt)) {
@@ -169,6 +171,8 @@ class ImportService {
                 }
                 
                 $hieuLucTu = date('Y-m-d');
+                
+                $routingDataList = [];
                 
                 foreach ($congDoanList as $congDoanData) {
                     $thuTu = intval($congDoanData['thu_tu'] ?? 1);
@@ -212,7 +216,28 @@ class ImportService {
                         }
                     }
                     
-                    $checkRoutingStmt = mysqli_prepare($this->db, "SELECT id FROM ma_hang_cong_doan WHERE ma_hang_id = ? AND cong_doan_id = ? AND line_id IS NULL");
+                    $routingDataList[] = [
+                        'cong_doan_id' => $congDoanId,
+                        'thu_tu' => $thuTu
+                    ];
+                }
+                
+                if ($isExistingMaHang && !empty($routingDataList)) {
+                    $newCongDoanIds = array_column($routingDataList, 'cong_doan_id');
+                    $idsString = implode(',', array_map('intval', $newCongDoanIds));
+                    $deleteQuery = "DELETE FROM ma_hang_cong_doan
+                                    WHERE ma_hang_id = " . intval($maHangId) . "
+                                    AND line_id IS NULL
+                                    AND cong_doan_id NOT IN ($idsString)";
+                    mysqli_query($this->db, $deleteQuery);
+                    $stats['routing_deleted'] += mysqli_affected_rows($this->db);
+                }
+                
+                foreach ($routingDataList as $routingData) {
+                    $congDoanId = $routingData['cong_doan_id'];
+                    $thuTu = $routingData['thu_tu'];
+                    
+                    $checkRoutingStmt = mysqli_prepare($this->db, "SELECT id, thu_tu FROM ma_hang_cong_doan WHERE ma_hang_id = ? AND cong_doan_id = ? AND line_id IS NULL");
                     mysqli_stmt_bind_param($checkRoutingStmt, "ii", $maHangId, $congDoanId);
                     mysqli_stmt_execute($checkRoutingStmt);
                     $checkResult = mysqli_stmt_get_result($checkRoutingStmt);
@@ -227,6 +252,14 @@ class ImportService {
                         }
                         mysqli_stmt_close($stmt);
                         $stats['routing_created']++;
+                    } else {
+                        if (intval($existingRouting['thu_tu']) !== $thuTu) {
+                            $updateStmt = mysqli_prepare($this->db, "UPDATE ma_hang_cong_doan SET thu_tu = ? WHERE id = ?");
+                            $routingId = intval($existingRouting['id']);
+                            mysqli_stmt_bind_param($updateStmt, "ii", $thuTu, $routingId);
+                            mysqli_stmt_execute($updateStmt);
+                            mysqli_stmt_close($updateStmt);
+                        }
                     }
                 }
             }

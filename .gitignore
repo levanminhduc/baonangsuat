@@ -23,6 +23,7 @@ tools/
 .idea/
 .roo/
 vendor/
+.kilocode/
 
 # Logs
 logs/
