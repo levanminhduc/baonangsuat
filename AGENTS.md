@@ -31,6 +31,11 @@ This file provides guidance to agents when working with code in this repository.
 - **`moc_gio_is_fallback` flag**: Context response indicates if using fallback preset
 - **Admin bypass**: Admins don't need LINE selection for `handleContext()` and `handleBaoCao()`
 - **Transaction wraps bulk updates**: Multiple entry updates wrapped in single transaction
+- **Routing Snapshot**: Reports store routing snapshot at creation time (JSON in `routing_snapshot` column) to preserve historical data when routing changes
+- **Kết Quả Lũy Kế**: Calculated at submit time and stored in `ket_qua_luy_ke` JSON column. History viewer uses stored result; fallback calculation if null
+- **Version Control (Optimistic Locking)**: Reports have `version` column, incremented on each update for conflict detection
+- **Excel Import**: PhpSpreadsheet library for importing ma_hang and routing from Excel. Expected format: MH code in C2, công đoạn list from C5 down. Max 10MB
+- **Bulk Create Reports**: Admin can create reports in bulk via POST /admin/bao-cao/bulk-create with `skip_existing` option
 
 ## Key Files
 
@@ -40,17 +45,32 @@ This file provides guidance to agents when working with code in this repository.
 - [`classes/NangSuatService.php`](classes/NangSuatService.php) - Core business logic
 - [`classes/services/MocGioSetService.php`](classes/services/MocGioSetService.php) - Moc gio preset management
 - [`classes/services/HistoryService.php`](classes/services/HistoryService.php) - Report history with pagination
+- [`classes/services/ImportService.php`](classes/services/ImportService.php) - Excel import with PhpSpreadsheet
+- [`assets/js/app.js`](assets/js/app.js) - Main frontend app (NangSuatApp class)
+- [`assets/js/admin.js`](assets/js/admin.js) - Admin SPA with lazy-loaded modules
+- [`assets/js/modules/router.js`](assets/js/modules/router.js) - Hash-based router
+
+## Frontend Architecture
+
+- **ES6 Modules**: Frontend uses ES6 modules with dynamic imports
+- **Hash-based Routing**: Router class in `assets/js/modules/router.js` handles hash-based navigation
+- **Admin Lazy Loading**: Admin modules in `assets/js/modules/admin/` are lazy-loaded with declared dependencies
+- **Auto-save**: Grid inputs auto-save with debounce
+- **Realtime Clock**: Web Worker (`assets/js/workers/realtime-worker.js`) for server-time-synced clock display
+- **CSRF Auto-refresh**: API client auto-fetches new CSRF token when `csrf_error: true` in response
 
 ## API Routes
 
-| Route | Handler | Purpose |
-|-------|---------|---------|
-| `csrf-token` | inline | Get CSRF token |
-| `auth/*` | `handleAuth()` | Login, logout, select-line, session |
-| `context` | `handleContext()` | Get app context for current line |
-| `bao-cao/*` | `handleBaoCao()` | Report CRUD + submit/approve/unlock |
-| `danh-muc/*` | `handleDanhMuc()` | Catalog: ca, ma-hang, moc-gio, routing |
-| `admin/*` | `handleAdmin()` | Admin CRUD for lines, users, ma-hang, cong-doan, routing, moc-gio |
-| `moc-gio-sets/*` | `handleMocGioSets()` | Moc gio preset management |
-| `bao-cao-history/*` | `handleBaoCaoHistory()` | Report history with pagination |
-| `user-permissions/*` | `handleUserPermissions()` | User permission management |
+| Route                       | Handler                   | Purpose                                                           |
+| --------------------------- | ------------------------- | ----------------------------------------------------------------- |
+| `csrf-token`                | inline                    | Get CSRF token                                                    |
+| `auth/*`                    | `handleAuth()`            | Login, logout, select-line, session                               |
+| `context`                   | `handleContext()`         | Get app context for current line                                  |
+| `bao-cao/*`                 | `handleBaoCao()`          | Report CRUD + submit/approve/unlock                               |
+| `danh-muc/*`                | `handleDanhMuc()`         | Catalog: ca, ma-hang, moc-gio, routing                            |
+| `admin/*`                   | `handleAdmin()`           | Admin CRUD for lines, users, ma-hang, cong-doan, routing, moc-gio |
+| `moc-gio-sets/*`            | `handleMocGioSets()`      | Moc gio preset management                                         |
+| `bao-cao-history/*`         | `handleBaoCaoHistory()`   | Report history with pagination                                    |
+| `user-permissions/*`        | `handleUserPermissions()` | User permission management                                        |
+| `admin/bao-cao/bulk-create` | `handleAdmin()`           | Bulk create reports                                               |
+| `admin/import/*`            | `handleAdmin()`           | Excel import preview/confirm                                      |

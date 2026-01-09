@@ -110,28 +110,28 @@ function renderPreview(response) {
     
     const stats = response.stats || {};
     statsContainer.innerHTML = `
-        <div class="bg-white p-3 rounded-lg border border-gray-200 text-center">
-            <div class="text-xs text-gray-500 uppercase tracking-wide font-medium">Sheets</div>
+        <div class="bg-white p-3 rounded-lg border border-gray-200 text-center shadow-sm">
+            <div class="text-xs text-gray-500 uppercase tracking-wide font-medium mb-1">Sheets</div>
             <div class="text-2xl font-bold text-primary">${stats.total_sheets || 0}</div>
         </div>
-        <div class="bg-white p-3 rounded-lg border border-gray-200 text-center">
-            <div class="text-xs text-gray-500 uppercase tracking-wide font-medium">Mã hàng mới</div>
+        <div class="bg-white p-3 rounded-lg border border-gray-200 text-center shadow-sm">
+            <div class="text-xs text-gray-500 uppercase tracking-wide font-medium mb-1">Mã hàng mới</div>
             <div class="text-2xl font-bold text-success">${stats.total_ma_hang_new || 0}</div>
         </div>
-        <div class="bg-white p-3 rounded-lg border border-gray-200 text-center">
-            <div class="text-xs text-gray-500 uppercase tracking-wide font-medium">Mã hàng cũ</div>
+        <div class="bg-white p-3 rounded-lg border border-gray-200 text-center shadow-sm">
+            <div class="text-xs text-gray-500 uppercase tracking-wide font-medium mb-1">Mã hàng cũ</div>
             <div class="text-2xl font-bold text-gray-600">${stats.total_ma_hang_existing || 0}</div>
         </div>
-        <div class="bg-white p-3 rounded-lg border border-gray-200 text-center">
-            <div class="text-xs text-gray-500 uppercase tracking-wide font-medium">Công đoạn mới</div>
+        <div class="bg-white p-3 rounded-lg border border-gray-200 text-center shadow-sm">
+            <div class="text-xs text-gray-500 uppercase tracking-wide font-medium mb-1">Công đoạn mới</div>
             <div class="text-2xl font-bold text-success">${stats.total_cong_doan_new || 0}</div>
         </div>
-        <div class="bg-white p-3 rounded-lg border border-gray-200 text-center">
-            <div class="text-xs text-gray-500 uppercase tracking-wide font-medium">Công đoạn cũ</div>
+        <div class="bg-white p-3 rounded-lg border border-gray-200 text-center shadow-sm">
+            <div class="text-xs text-gray-500 uppercase tracking-wide font-medium mb-1">Công đoạn cũ</div>
             <div class="text-2xl font-bold text-gray-600">${stats.total_cong_doan_existing || 0}</div>
         </div>
-        <div class="bg-white p-3 rounded-lg border border-gray-200 text-center">
-            <div class="text-xs text-gray-500 uppercase tracking-wide font-medium">Routing mới</div>
+        <div class="bg-white p-3 rounded-lg border border-gray-200 text-center shadow-sm">
+            <div class="text-xs text-gray-500 uppercase tracking-wide font-medium mb-1">Routing mới</div>
             <div class="text-2xl font-bold text-primary">${stats.total_routing_new || 0}</div>
         </div>
     `;
@@ -140,12 +140,12 @@ function renderPreview(response) {
     if (errors.length > 0) {
         errorsContainer.classList.remove('hidden');
         errorsListContainer.innerHTML = errors.map(err => `
-            <div class="border-l-4 border-danger bg-red-50 p-3 rounded-r">
-                <p class="text-sm text-danger">
-                    <span class="font-bold">${escapeHtml(err.sheet_name)}</span>
-                    <span class="mx-1">(${escapeHtml(err.cell || '')}):</span>
-                    ${escapeHtml(err.message)}
-                </p>
+            <div class="border-l-4 border-danger bg-red-50 p-3 rounded-r shadow-sm">
+                <div class="flex flex-col sm:flex-row sm:items-baseline gap-1">
+                    <span class="font-bold text-danger text-sm whitespace-nowrap">${escapeHtml(err.sheet_name)}</span>
+                    <span class="text-xs text-red-400 font-mono bg-white px-1.5 py-0.5 rounded border border-red-100 self-start sm:self-auto">${escapeHtml(err.cell || 'N/A')}</span>
+                    <span class="text-sm text-red-700 mt-1 sm:mt-0">${escapeHtml(err.message)}</span>
+                </div>
             </div>
         `).join('');
     } else {
@@ -195,43 +195,48 @@ function renderPreview(response) {
             ` : '';
             
             return `
-                <div class="bg-white border ${hasWarning ? 'border-yellow-300' : 'border-gray-200'} rounded-lg p-4 hover:border-primary transition-colors ${hasWarning ? 'ring-1 ring-yellow-200' : ''}">
-                    <div class="flex items-start justify-between mb-2">
-                        <div>
-                            <div class="flex items-center gap-2">
-                                <span class="font-bold text-gray-800 text-lg">${escapeHtml(item.ma_hang)}</span>
-                                <span class="text-xs px-2 py-0.5 rounded font-medium ${badgeClass}">${badgeText}</span>
+                <div class="bg-white border ${hasWarning ? 'border-yellow-300' : 'border-gray-200'} rounded-lg p-4 hover:border-primary transition-colors ${hasWarning ? 'ring-1 ring-yellow-200' : ''} shadow-sm">
+                    <div class="flex flex-col sm:flex-row sm:items-start justify-between gap-2 mb-3">
+                        <div class="flex-1 min-w-0">
+                            <div class="flex items-center flex-wrap gap-2">
+                                <span class="font-bold text-gray-800 text-lg truncate" title="${escapeHtml(item.ma_hang)}">${escapeHtml(item.ma_hang)}</span>
+                                <span class="text-xs px-2 py-0.5 rounded font-medium whitespace-nowrap ${badgeClass}">${badgeText}</span>
                                 ${hasWarning ? '<span class="text-yellow-600" title="Có báo cáo đã chốt">⚠️</span>' : ''}
                             </div>
-                            <p class="text-sm text-gray-600 mt-1">${escapeHtml(item.ten_hang || '')}</p>
+                            <p class="text-sm text-gray-600 mt-1 truncate" title="${escapeHtml(item.ten_hang || '')}">${escapeHtml(item.ten_hang || '')}</p>
                         </div>
-                        <span class="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded">Sheet: ${escapeHtml(item.sheet_name)}</span>
+                        <div class="flex-shrink-0 self-start">
+                            <span class="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded inline-block max-w-[150px] truncate" title="Sheet: ${escapeHtml(item.sheet_name)}">Sheet: ${escapeHtml(item.sheet_name)}</span>
+                        </div>
                     </div>
                     
                     ${warningHtml}
                     
-                    <div class="mt-3 text-sm border-t border-gray-100 pt-3 flex items-center gap-4">
-                        <span class="font-medium text-gray-700">${congDoanList.length} công đoạn</span>
+                    <div class="mt-3 text-sm border-t border-gray-100 pt-3 flex flex-wrap items-center gap-x-4 gap-y-2">
+                        <span class="font-medium text-gray-700 flex items-center gap-1">
+                            <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path></svg>
+                            ${congDoanList.length} công đoạn
+                        </span>
                         <div class="flex gap-3 text-xs">
-                            ${newCount > 0 ? `<span class="text-success font-medium">+${newCount} mới</span>` : ''}
-                            ${existingCount > 0 ? `<span class="text-gray-500">${existingCount} có sẵn</span>` : ''}
+                            ${newCount > 0 ? `<span class="text-success font-medium bg-green-50 px-1.5 py-0.5 rounded">+${newCount} mới</span>` : ''}
+                            ${existingCount > 0 ? `<span class="text-gray-500 bg-gray-100 px-1.5 py-0.5 rounded">${existingCount} có sẵn</span>` : ''}
                         </div>
                     </div>
                     
                     ${congDoanList.length > 0 ? `
-                        <details class="mt-2 group">
-                            <summary class="text-sm text-primary cursor-pointer hover:underline select-none list-none flex items-center gap-1 font-medium">
-                                <svg class="w-4 h-4 transition-transform group-open:rotate-90" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
-                                <span>Chi tiết công đoạn</span>
+                        <details class="mt-3 group bg-gray-50 rounded-lg border border-gray-100">
+                            <summary class="p-3 text-sm text-primary cursor-pointer hover:bg-gray-100 select-none list-none flex items-center justify-between font-medium rounded-lg transition-colors">
+                                <span>Xem chi tiết công đoạn</span>
+                                <svg class="w-4 h-4 transition-transform group-open:rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
                             </summary>
-                            <div class="mt-2 pl-5 space-y-1 max-h-40 overflow-y-auto">
+                            <div class="px-3 pb-3 space-y-1 max-h-60 overflow-y-auto custom-scrollbar">
                                 ${congDoanList.map((cd, idx) => `
-                                    <div class="text-sm flex justify-between items-center py-1 border-b border-gray-50 last:border-0">
-                                        <span class="text-gray-700">
-                                            <span class="text-gray-400 w-6 inline-block text-right mr-2">${idx + 1}.</span>
-                                            ${escapeHtml(cd.ten_cong_doan)}
-                                        </span>
-                                        <span class="text-xs ${cd.is_new ? 'text-success font-medium' : 'text-gray-400'}">
+                                    <div class="text-sm flex justify-between items-start py-2 border-b border-gray-200 last:border-0 gap-2">
+                                        <div class="flex gap-2">
+                                            <span class="text-gray-400 text-xs mt-0.5 w-5 text-right flex-shrink-0">${idx + 1}.</span>
+                                            <span class="text-gray-700 break-words">${escapeHtml(cd.ten_cong_doan)}</span>
+                                        </div>
+                                        <span class="text-xs whitespace-nowrap ${cd.is_new ? 'text-success font-medium bg-green-50 px-1.5 py-0.5 rounded border border-green-100' : 'text-gray-400 bg-white px-1.5 py-0.5 rounded border border-gray-200'}">
                                             ${cd.ma_cong_doan} ${cd.is_new ? '(Mới)' : ''}
                                         </span>
                                     </div>
