@@ -51,6 +51,7 @@ export function renderPermissionsTable() {
         const hasHistoryPerm = userPerms ? userPerms.permissions.includes('can_view_history') : false;
         const hasCreateReportPerm = userPerms ? userPerms.permissions.includes('tao_bao_cao') : false;
         const hasCreateReportAnyLinePerm = userPerms ? userPerms.permissions.includes('tao_bao_cao_cho_line') : false;
+        const hasImportPerm = userPerms ? userPerms.permissions.includes('import_ma_hang_cong_doan') : false;
         const isAdmin = u.role === 'admin';
         
         return `
@@ -82,6 +83,15 @@ export function renderPermissionsTable() {
                         ${hasCreateReportAnyLinePerm || isAdmin ? 'checked' : ''}
                         ${isAdmin ? 'disabled' : ''}
                         onchange="window.toggleCreateReportAnyLinePermission(${u.id}, this.checked)">
+                    <span class="slider round ${isAdmin ? 'disabled' : ''}"></span>
+                </label>
+            </td>
+            <td>
+                <label class="switch">
+                    <input type="checkbox"
+                        ${hasImportPerm || isAdmin ? 'checked' : ''}
+                        ${isAdmin ? 'disabled' : ''}
+                        onchange="window.toggleImportPermission(${u.id}, this.checked)">
                     <span class="slider round ${isAdmin ? 'disabled' : ''}"></span>
                 </label>
             </td>
@@ -192,6 +202,43 @@ export async function toggleCreateReportAnyLinePermission(userId, checked) {
                     }
                 } else {
                     userPerms.permissions = userPerms.permissions.filter(p => p !== 'tao_bao_cao_cho_line');
+                }
+            }
+        } else {
+            showToast(response.message, 'error');
+            renderPermissionsTable();
+        }
+    } catch (error) {
+        showToast('Lỗi cập nhật quyền', 'error');
+        renderPermissionsTable();
+    }
+}
+
+export async function toggleImportPermission(userId, checked) {
+    const state = getState();
+    if (!userId) return;
+    
+    try {
+        let response;
+        if (checked) {
+            response = await api('POST', '/user-permissions', {
+                nguoi_dung_id: userId,
+                quyen: 'import_ma_hang_cong_doan'
+            });
+        } else {
+            response = await api('DELETE', `/user-permissions/${userId}/import_ma_hang_cong_doan`);
+        }
+        
+        if (response.success) {
+            showToast(response.message, 'success');
+            const userPerms = state.usersPermissions.find(up => up.userId == userId);
+            if (userPerms) {
+                if (checked) {
+                    if (!userPerms.permissions.includes('import_ma_hang_cong_doan')) {
+                        userPerms.permissions.push('import_ma_hang_cong_doan');
+                    }
+                } else {
+                    userPerms.permissions = userPerms.permissions.filter(p => p !== 'import_ma_hang_cong_doan');
                 }
             }
         } else {

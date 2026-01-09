@@ -5,6 +5,7 @@ This file provides guidance to agents when working with code in this repository.
 ## Critical Configuration
 
 - **Database config is EXTERNAL**: `C:/xampp/config/db.php` - outside project root
+- **Admin whitelist config is EXTERNAL**: `C:/xampp/config/admin_whitelist.php` - controls which admin users can access admin panel
 - **Multi-database pattern**: 3 separate databases with different purposes:
   - `mysqli` → User authentication + permissions (table `user`, `user_permissions`)
   - `nang_suat` → Productivity data (reports, routing, moc_gio, etc.)
@@ -36,6 +37,7 @@ This file provides guidance to agents when working with code in this repository.
 - **Version Control (Optimistic Locking)**: Reports have `version` column, incremented on each update for conflict detection
 - **Excel Import**: PhpSpreadsheet library for importing ma_hang and routing from Excel. Expected format: MH code in C2, công đoạn list from C5 down. Max 10MB
 - **Bulk Create Reports**: Admin can create reports in bulk via POST /admin/bao-cao/bulk-create with `skip_existing` option
+- **Admin Panel Whitelist**: Only admins with `ma_nv` in `ADMIN_WHITELIST` array (from `C:/xampp/config/admin_whitelist.php`) can access admin.php. If whitelist is empty or file doesn't exist, all admins can access. Admins not in whitelist are redirected to nhap-nang-suat.php but can still use Nhập Năng Suất and Lịch Sử features.
 
 ## Key Files
 

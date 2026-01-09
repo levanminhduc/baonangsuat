@@ -26,7 +26,7 @@ async function uploadForPreview(file) {
         options.headers['X-CSRF-Token'] = csrfToken;
     }
     
-    const response = await fetch(API_BASE + '/admin/import/preview', options);
+    const response = await fetch(API_BASE + '/import/preview', options);
     return await response.json();
 }
 
@@ -270,7 +270,7 @@ async function handleConfirmImport() {
     showLoading();
     
     try {
-        const response = await api('POST', '/admin/import/confirm', { ma_hang_list: maHangList });
+        const response = await api('POST', '/import/confirm', { ma_hang_list: maHangList });
         
         if (response.success) {
             showToast(response.message || 'Import thành công', 'success');

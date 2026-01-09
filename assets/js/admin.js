@@ -42,6 +42,7 @@ const modules = {
             window.toggleHistoryPermission = m.toggleHistoryPermission;
             window.toggleCreateReportPermission = m.toggleCreateReportPermission;
             window.toggleCreateReportAnyLinePermission = m.toggleCreateReportAnyLinePermission;
+            window.toggleImportPermission = m.toggleImportPermission;
             await m.loadUsers();
         }
     },

@@ -12,6 +12,11 @@ if (!Auth::checkRole(['admin'])) {
     exit;
 }
 
+if (!Auth::canAccessAdminPanel()) {
+    header('Location: nhap-nang-suat.php');
+    exit;
+}
+
 $session = Auth::getSession();
 ?>
 <!DOCTYPE html>
@@ -162,6 +167,7 @@ $session = Auth::getSession();
                                 <th>Quyền xem Lịch sử</th>
                                 <th>Quyền tạo báo cáo</th>
                                 <th>Quyền tạo báo cáo (chọn LINE)</th>
+                                <th>Quyền Import MH & CĐ</th>
                             </tr>
                         </thead>
                         <tbody></tbody>

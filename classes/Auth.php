@@ -317,4 +317,54 @@ class Auth {
         
         return self::hasPermission($userId, 'tao_bao_cao_cho_line');
     }
+    
+    public static function canImport($userId = null) {
+        if (self::checkRole(['admin'])) {
+            return true;
+        }
+        
+        if (!self::isLoggedIn()) {
+            return false;
+        }
+        
+        if ($userId === null) {
+            $userId = $_SESSION['user_id'] ?? null;
+        }
+        
+        if ($userId === null) {
+            return false;
+        }
+        
+        return self::hasPermission($userId, 'import_ma_hang_cong_doan');
+    }
+    
+    public static function canAccessAdminPanel() {
+        if (!self::checkRole(['admin'])) {
+            return false;
+        }
+        
+        $ma_nv = strtoupper(trim($_SESSION['ma_nv'] ?? ''));
+        if (empty($ma_nv)) {
+            return false;
+        }
+        
+        $configFile = 'C:/xampp/config/admin_whitelist.php';
+        
+        if (!file_exists($configFile)) {
+            return true;
+        }
+        
+        $config = require $configFile;
+        $whitelist = $config['ADMIN_WHITELIST'] ?? [];
+        
+        if (empty($whitelist)) {
+            return true;
+        }
+        
+        $whitelist = array_map(function($item) {
+            return strtoupper(trim($item));
+        }, $whitelist);
+        
+        return in_array($ma_nv, $whitelist);
+    }
 }
