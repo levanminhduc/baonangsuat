@@ -119,6 +119,15 @@ const modules = {
             await m.loadCaList();
             m.updateMocGioLineSelect();
         }
+    },
+    'import': {
+        path: './modules/admin/import.js',
+        deps: [],
+        instance: null,
+        loaded: false,
+        init: async (m) => {
+            m.init();
+        }
     }
 };
 

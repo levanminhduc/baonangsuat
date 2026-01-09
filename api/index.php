@@ -28,6 +28,7 @@ require_once __DIR__ . '/../classes/NangSuatService.php';
 require_once __DIR__ . '/../classes/AdminService.php';
 require_once __DIR__ . '/../classes/services/MocGioSetService.php';
 require_once __DIR__ . '/../classes/services/HistoryService.php';
+require_once __DIR__ . '/../classes/services/ImportService.php';
 require_once __DIR__ . '/../csrf.php';
 
 $requestUri = $_SERVER['REQUEST_URI'];
@@ -644,6 +645,68 @@ function handleAdmin($segments, $method, $input) {
                 }
                 
                 $result = $nangSuatService->bulkCreateBaoCao($items, $session['ma_nv'], $skipExisting);
+                response($result);
+            }
+            break;
+            
+        case 'import':
+            $action = $segments[2] ?? '';
+            
+            if ($method === 'POST' && $action === 'preview') {
+                requireCsrf();
+                
+                if (!isset($_FILES['file']) || $_FILES['file']['error'] !== UPLOAD_ERR_OK) {
+                    $errorMessages = [
+                        UPLOAD_ERR_INI_SIZE => 'File vượt quá kích thước cho phép',
+                        UPLOAD_ERR_FORM_SIZE => 'File vượt quá kích thước cho phép',
+                        UPLOAD_ERR_PARTIAL => 'File chỉ được upload một phần',
+                        UPLOAD_ERR_NO_FILE => 'Không có file được upload',
+                        UPLOAD_ERR_NO_TMP_DIR => 'Thiếu thư mục tạm',
+                        UPLOAD_ERR_CANT_WRITE => 'Không thể ghi file',
+                        UPLOAD_ERR_EXTENSION => 'Upload bị chặn bởi extension'
+                    ];
+                    $errorCode = $_FILES['file']['error'] ?? UPLOAD_ERR_NO_FILE;
+                    $message = $errorMessages[$errorCode] ?? 'Lỗi upload file';
+                    response(['success' => false, 'message' => $message, 'error_code' => 'NO_FILE_UPLOADED'], 400);
+                }
+                
+                $file = $_FILES['file'];
+                $allowedMimes = [
+                    'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+                    'application/vnd.ms-excel'
+                ];
+                $allowedExts = ['xlsx', 'xls'];
+                
+                $ext = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
+                $finfo = finfo_open(FILEINFO_MIME_TYPE);
+                $mime = finfo_file($finfo, $file['tmp_name']);
+                finfo_close($finfo);
+                
+                if (!in_array($ext, $allowedExts)) {
+                    response(['success' => false, 'message' => 'File không phải Excel (.xlsx, .xls)', 'error_code' => 'INVALID_FILE_TYPE'], 400);
+                }
+                
+                $maxSize = 10 * 1024 * 1024;
+                if ($file['size'] > $maxSize) {
+                    response(['success' => false, 'message' => 'File vượt quá 10MB', 'error_code' => 'FILE_TOO_LARGE'], 400);
+                }
+                
+                $importService = new ImportService();
+                $result = $importService->preview($file['tmp_name']);
+                response($result);
+            }
+            
+            if ($method === 'POST' && $action === 'confirm') {
+                requireCsrf();
+                
+                $maHangList = $input['ma_hang_list'] ?? [];
+                
+                if (empty($maHangList)) {
+                    response(['success' => false, 'message' => 'Danh sách mã hàng không được rỗng', 'error_code' => 'VALIDATION_FAILED'], 400);
+                }
+                
+                $importService = new ImportService();
+                $result = $importService->confirm($maHangList);
                 response($result);
             }
             break;

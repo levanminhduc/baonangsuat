@@ -22,6 +22,7 @@ tools/
 .vscode/
 .idea/
 .roo/
+vendor/
 
 # Logs
 logs/
