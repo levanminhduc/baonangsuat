@@ -13,8 +13,9 @@ class NangSuatApp {
         this.isSaving = false;
         
         this.gridManager = new GridManager(this);
-        this.historyModule = null; // Will be initialized if permission granted
+        this.historyModule = null;
         this.router = new Router(this);
+        this.context = null;
         
         this.init();
     }
@@ -46,19 +47,14 @@ class NangSuatApp {
                 });
             });
 
-        this.loadContext().then(() => {
-            // Check initial route via query params first (for backward compatibility)
-            // If query params exist, they take precedence and we stay on input tab (but maybe URL changes)
-            // But per requirements, query params opening a report should map to input tab
+        this.loadContext().then(async () => {
             const hasQueryParams = this.handleInitialRouteQueryParams();
             
-            this.router.start(false); // Start listening to hash changes but don't handle yet
+            this.router.start(false);
             
             if (!hasQueryParams) {
-                // If no query params, respect the hash
                 this.router.handleHashChange();
             } else {
-                // If query params were handled, ensure hash is synced to /nhap-bao-cao if empty
                 if (!window.location.hash) {
                     this.router.navigate('/nhap-bao-cao');
                 }
@@ -194,22 +190,20 @@ class NangSuatApp {
             const response = await api('GET', '/context');
             if (response.success) {
                 window.appContext = response.data;
+                this.context = response.data;
                 this.renderHeader(response.data);
                 
-                // Permission check for create buttons
                 this.updateCreateButtonVisibility();
                 
-                // Permission check for history tab
                 if (window.appContext.can_view_history) {
                     const tabHistory = document.getElementById('tabHistory');
                     const mainTabs = document.getElementById('mainTabs');
                     if (tabHistory) tabHistory.classList.remove('hidden');
                     if (mainTabs) mainTabs.classList.remove('hidden');
                     
-                    // Init history module if needed
                     if (!this.historyModule) {
                         this.historyModule = new HistoryModule(this);
-                        window.historyModule = this.historyModule; // Expose for onclick handlers
+                        window.historyModule = this.historyModule;
                     }
                 }
 
@@ -480,6 +474,23 @@ class NangSuatApp {
         
         const bc = this.baoCao;
         const isEditable = bc.trang_thai === 'draft';
+        const isCompleted = bc.trang_thai === 'completed';
+        const canComplete = bc.trang_thai !== 'completed' && bc.trang_thai !== 'draft';
+        const isAdmin = window.appContext?.session?.role === 'admin';
+        
+        let actionButtons = `<button id="backBtn" class="btn">← Quay lại</button>`;
+        
+        if (isEditable) {
+            actionButtons += `<button id="submitBtn" class="btn btn-success">Chốt báo cáo</button>`;
+        }
+        
+        if (canComplete) {
+            actionButtons += `<button id="completeBtn" class="btn btn-primary">✓ Hoàn tất</button>`;
+        }
+        
+        if (isCompleted && isAdmin) {
+            actionButtons += `<button id="reopenBtn" class="btn btn-warning">↩ Mở lại</button>`;
+        }
         
         header.innerHTML = `
             <div class="header-field">
@@ -488,7 +499,7 @@ class NangSuatApp {
             </div>
             <div class="header-field">
                 <label>LĐ:</label>
-                ${isEditable 
+                ${isEditable
                     ? `<input type="number" id="headerLaoDong" value="${bc.so_lao_dong}" min="0" style="width:60px">`
                     : `<span class="value">${bc.so_lao_dong}</span>`
                 }
@@ -499,7 +510,7 @@ class NangSuatApp {
             </div>
             <div class="header-field">
                 <label>CTNS:</label>
-                ${isEditable 
+                ${isEditable
                     ? `<input type="number" id="headerCtns" value="${bc.ctns}" min="0" style="width:80px">`
                     : `<span class="value">${bc.ctns}</span>`
                 }
@@ -509,8 +520,7 @@ class NangSuatApp {
                 <span class="value" id="ctGioDisplay">${bc.ct_gio}</span>
             </div>
             <div class="header-actions">
-                <button id="backBtn" class="btn">← Quay lại</button>
-                ${isEditable ? `<button id="submitBtn" class="btn btn-success">Chốt báo cáo</button>` : ''}
+                ${actionButtons}
             </div>
         `;
         
@@ -534,6 +544,16 @@ class NangSuatApp {
         const submitBtn = document.getElementById('submitBtn');
         if (submitBtn) {
             submitBtn.addEventListener('click', () => this.submitReport());
+        }
+        
+        const completeBtn = document.getElementById('completeBtn');
+        if (completeBtn) {
+            completeBtn.addEventListener('click', () => this.completeReport());
+        }
+        
+        const reopenBtn = document.getElementById('reopenBtn');
+        if (reopenBtn) {
+            reopenBtn.addEventListener('click', () => this.reopenReport());
         }
     }
     
@@ -657,6 +677,48 @@ class NangSuatApp {
             }
         } catch (error) {
             showToast('Lỗi chốt báo cáo', 'error');
+        } finally {
+            hideLoading();
+        }
+    }
+    
+    async completeReport() {
+        if (!this.baoCao) return;
+        
+        if (!confirm('Bạn có chắc muốn đánh dấu hoàn tất đơn hàng này? Báo cáo sẽ không hiển thị trong danh sách hàng ngày nữa.')) return;
+        
+        try {
+            showLoading();
+            const response = await api('POST', `/bao-cao/${this.baoCao.id}/complete`);
+            if (response.success) {
+                showToast('Đã hoàn tất đơn hàng', 'success');
+                this.showReportList();
+            } else {
+                showToast(response.message, 'error');
+            }
+        } catch (error) {
+            showToast('Lỗi hoàn tất đơn hàng', 'error');
+        } finally {
+            hideLoading();
+        }
+    }
+    
+    async reopenReport() {
+        if (!this.baoCao) return;
+        
+        if (!confirm('Bạn có chắc muốn mở lại báo cáo này?')) return;
+        
+        try {
+            showLoading();
+            const response = await api('POST', `/bao-cao/${this.baoCao.id}/reopen`);
+            if (response.success) {
+                showToast('Đã mở lại báo cáo', 'success');
+                await this.loadReport(this.baoCao.id);
+            } else {
+                showToast(response.message, 'error');
+            }
+        } catch (error) {
+            showToast('Lỗi mở lại báo cáo', 'error');
         } finally {
             hideLoading();
         }

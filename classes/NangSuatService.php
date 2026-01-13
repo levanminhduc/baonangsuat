@@ -423,7 +423,7 @@ class NangSuatService {
             return ['success' => false, 'message' => 'Dữ liệu đã được cập nhật bởi người khác. Vui lòng tải lại trang.'];
         }
         
-        if (in_array($baoCao['trang_thai'], ['submitted', 'approved', 'locked'])) {
+        if (in_array($baoCao['trang_thai'], ['submitted', 'approved', 'locked', 'completed'])) {
             return ['success' => false, 'message' => 'Báo cáo đã chốt, không thể sửa'];
         }
         
@@ -486,8 +486,8 @@ class NangSuatService {
             return ['success' => false, 'message' => 'Dữ liệu đã được cập nhật. Vui lòng tải lại trang.'];
         }
         
-        if (in_array($baoCao['trang_thai'], ['approved', 'locked'])) {
-            return ['success' => false, 'message' => 'Báo cáo đã duyệt/khóa, không thể sửa'];
+        if (in_array($baoCao['trang_thai'], ['approved', 'locked', 'completed'])) {
+            return ['success' => false, 'message' => 'Báo cáo đã duyệt/khóa/hoàn tất, không thể sửa'];
         }
         
         $so_lao_dong = intval($data['so_lao_dong'] ?? 0);
@@ -545,6 +545,67 @@ class NangSuatService {
         return $this->changeTrangThai($bao_cao_id, 'draft', ['submitted', 'approved', 'locked'], $ma_nv);
     }
     
+    public function completeBaoCao($bao_cao_id, $ma_nv) {
+        $stmt = mysqli_prepare($this->db, "SELECT trang_thai FROM bao_cao_nang_suat WHERE id = ?");
+        mysqli_stmt_bind_param($stmt, "i", $bao_cao_id);
+        mysqli_stmt_execute($stmt);
+        $result = mysqli_stmt_get_result($stmt);
+        $baoCao = mysqli_fetch_assoc($result);
+        mysqli_stmt_close($stmt);
+        
+        if (!$baoCao) {
+            return ['success' => false, 'message' => 'Báo cáo không tồn tại'];
+        }
+        
+        if ($baoCao['trang_thai'] === 'completed') {
+            return ['success' => false, 'message' => 'Báo cáo đã hoàn tất rồi'];
+        }
+        
+        $ma_nv = strtoupper(trim($ma_nv));
+        $updateStmt = mysqli_prepare($this->db,
+            "UPDATE bao_cao_nang_suat SET trang_thai = 'completed', hoan_tat_luc = NOW(), hoan_tat_boi = ? WHERE id = ?"
+        );
+        mysqli_stmt_bind_param($updateStmt, "si", $ma_nv, $bao_cao_id);
+        
+        if (mysqli_stmt_execute($updateStmt)) {
+            mysqli_stmt_close($updateStmt);
+            return ['success' => true, 'message' => 'Đã đánh dấu hoàn tất đơn hàng'];
+        }
+        
+        mysqli_stmt_close($updateStmt);
+        return ['success' => false, 'message' => 'Lỗi cập nhật trạng thái'];
+    }
+    
+    public function reopenBaoCao($bao_cao_id, $ma_nv) {
+        $stmt = mysqli_prepare($this->db, "SELECT trang_thai FROM bao_cao_nang_suat WHERE id = ?");
+        mysqli_stmt_bind_param($stmt, "i", $bao_cao_id);
+        mysqli_stmt_execute($stmt);
+        $result = mysqli_stmt_get_result($stmt);
+        $baoCao = mysqli_fetch_assoc($result);
+        mysqli_stmt_close($stmt);
+        
+        if (!$baoCao) {
+            return ['success' => false, 'message' => 'Báo cáo không tồn tại'];
+        }
+        
+        if ($baoCao['trang_thai'] !== 'completed') {
+            return ['success' => false, 'message' => 'Chỉ có thể mở lại báo cáo đã hoàn tất'];
+        }
+        
+        $updateStmt = mysqli_prepare($this->db,
+            "UPDATE bao_cao_nang_suat SET trang_thai = 'draft', hoan_tat_luc = NULL, hoan_tat_boi = NULL WHERE id = ?"
+        );
+        mysqli_stmt_bind_param($updateStmt, "i", $bao_cao_id);
+        
+        if (mysqli_stmt_execute($updateStmt)) {
+            mysqli_stmt_close($updateStmt);
+            return ['success' => true, 'message' => 'Đã mở lại báo cáo'];
+        }
+        
+        mysqli_stmt_close($updateStmt);
+        return ['success' => false, 'message' => 'Lỗi mở lại báo cáo'];
+    }
+    
     private function changeTrangThai($bao_cao_id, $newStatus, $allowedStatuses, $ma_nv, $ketQuaLuyKe = null) {
         $stmt = mysqli_prepare($this->db, "SELECT trang_thai FROM bao_cao_nang_suat WHERE id = ?");
         mysqli_stmt_bind_param($stmt, "i", $bao_cao_id);
@@ -584,6 +645,8 @@ class NangSuatService {
     }
     
     public function getBaoCaoList($line_id, $filters = []) {
+        $includeCompleted = isset($filters['include_completed']) ? (bool)$filters['include_completed'] : false;
+        
         $sql = "SELECT bc.id, bc.ngay_bao_cao, bc.so_lao_dong, bc.ctns, bc.ct_gio, bc.trang_thai,
                        l.ma_line, c.ma_ca, mh.ma_hang
                 FROM bao_cao_nang_suat bc
@@ -594,6 +657,10 @@ class NangSuatService {
         
         $params = [$line_id];
         $types = "i";
+        
+        if (!$includeCompleted) {
+            $sql .= " AND bc.trang_thai != 'completed'";
+        }
         
         if (!empty($filters['ngay_tu'])) {
             $sql .= " AND bc.ngay_bao_cao >= ?";
@@ -619,7 +686,7 @@ class NangSuatService {
             $types .= "i";
         }
         
-        $sql .= " ORDER BY bc.ngay_bao_cao DESC, bc.id DESC";
+        $sql .= " ORDER BY bc.tao_luc ASC";
         
         $stmt = mysqli_prepare($this->db, $sql);
         mysqli_stmt_bind_param($stmt, $types, ...$params);

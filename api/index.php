@@ -270,7 +270,8 @@ function handleBaoCao($segments, $method, $input) {
             'ngay_tu' => $_GET['ngay_tu'] ?? null,
             'ngay_den' => $_GET['ngay_den'] ?? null,
             'ca_id' => isset($_GET['ca_id']) ? intval($_GET['ca_id']) : null,
-            'ma_hang_id' => isset($_GET['ma_hang_id']) ? intval($_GET['ma_hang_id']) : null
+            'ma_hang_id' => isset($_GET['ma_hang_id']) ? intval($_GET['ma_hang_id']) : null,
+            'include_completed' => isset($_GET['include_completed']) && $_GET['include_completed'] === '1'
         ];
         $list = $service->getBaoCaoList($session['line_id'], $filters);
         response(['success' => true, 'data' => $list]);
@@ -339,6 +340,18 @@ function handleBaoCao($segments, $method, $input) {
         requireRole(['admin']);
         requireCsrf();
         response($service->unlockBaoCao($baoCaoId, $session['ma_nv']));
+    }
+    
+    if ($method === 'POST' && $baoCaoId && $action === 'complete') {
+        requireRole(['to_truong', 'quan_doc', 'admin']);
+        requireCsrf();
+        response($service->completeBaoCao($baoCaoId, $session['ma_nv']));
+    }
+    
+    if ($method === 'POST' && $baoCaoId && $action === 'reopen') {
+        requireRole(['admin']);
+        requireCsrf();
+        response($service->reopenBaoCao($baoCaoId, $session['ma_nv']));
     }
     
     if ($method === 'DELETE' && $baoCaoId && !$action) {

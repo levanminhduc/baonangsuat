@@ -10,7 +10,8 @@ export function getStatusText(status) {
         'draft': 'Nháp',
         'submitted': 'Đã gửi',
         'approved': 'Đã duyệt',
-        'locked': 'Đã khóa'
+        'locked': 'Đã khóa',
+        'completed': 'Hoàn tất'
     };
     return map[status] || status;
 }

@@ -243,8 +243,8 @@ export class HistoryModule {
             const canUnlock = isAdmin && ['submitted', 'approved', 'locked'].includes(baoCao.trang_thai);
             
             const unlockBtn = canUnlock ? `
-                <button onclick="window.historyModule.unlockReport(${baoCao.id})" 
-                    class="ml-auto bg-red-600 hover:bg-red-700 text-white text-sm font-medium py-1 px-3 rounded focus:outline-none focus:shadow-outline flex items-center shadow-sm transition-colors duration-200"
+                <button onclick="window.historyModule.unlockReport(${baoCao.id})"
+                    class="btn bg-red-600 hover:bg-red-700 text-white text-sm font-medium w-full flex justify-center items-center shadow-sm transition-colors duration-200"
                     title="Mở khóa báo cáo để chỉnh sửa">
                     <svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 11V7a4 4 0 118 0m-4 8v2m-6 4h12a1 1 0 001-1v-6a1 1 0 00-1-1H9a1 1 0 00-1 1v6a1 1 0 001 1z"></path>
@@ -278,7 +278,9 @@ export class HistoryModule {
                     <label>Ngày:</label>
                     <span class="value">${baoCao.ngay_bao_cao}${fallbackBadge}</span>
                 </div>
-                ${unlockBtn}
+                <div class="header-actions">
+                    ${unlockBtn}
+                </div>
             `;
         }
 

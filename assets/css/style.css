@@ -630,6 +630,11 @@ select.custom-select {
     color: #c62828;
 }
 
+.status-completed {
+    background: #e3f2fd;
+    color: #1565c0;
+}
+
 .hidden {
     display: none !important;
 }
@@ -1233,6 +1238,148 @@ select.custom-select {
     font-size: 1rem;
     font-weight: 600;
     color: #111827;
+}
+
+/* History Header Mobile Responsive */
+@media (max-width: 768px) {
+    .history-report-header {
+        display: grid;
+        grid-template-columns: 1fr 1.2fr 1fr;
+        gap: 8px;
+        padding: 12px 10px;
+        align-items: stretch;
+    }
+
+    .history-report-header .header-field {
+        background: #fff;
+        padding: 8px 4px;
+        border: 1px solid #e0e0e0;
+        border-radius: 4px;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 4px;
+        width: 100%;
+        min-height: 64px;
+        min-width: 0;
+    }
+
+    .history-report-header .header-field label {
+        font-size: 11px;
+        color: #666;
+        text-transform: uppercase;
+        font-weight: 600;
+        margin-bottom: 0;
+        line-height: 1.2;
+    }
+
+    .history-report-header .header-field .value {
+        font-size: 16px;
+        font-weight: 700;
+        color: #333;
+        text-align: center;
+        width: 100% !important;
+    }
+
+    /* LINE: Top left */
+    .history-report-header .header-field:nth-child(1) {
+        grid-column: 1 / 2;
+        grid-row: 1;
+        background: transparent;
+        border: none;
+        padding: 0 4px;
+        min-height: auto;
+        align-items: flex-start;
+        justify-content: flex-end;
+        margin-bottom: 4px;
+    }
+    .history-report-header .header-field:nth-child(1) label { display: inline-block; margin-right: 4px; }
+    .history-report-header .header-field:nth-child(1) .value {
+        display: inline-block;
+        font-size: 13px;
+        font-weight: 600;
+        width: auto !important;
+        text-align: left;
+    }
+
+    /* MH: Top right */
+    .history-report-header .header-field:nth-child(3) {
+        grid-column: 2 / 4;
+        grid-row: 1;
+        background: transparent;
+        border: none;
+        padding: 0 4px;
+        min-height: auto;
+        align-items: flex-end;
+        justify-content: flex-end;
+        margin-bottom: 4px;
+    }
+    .history-report-header .header-field:nth-child(3) label { display: inline-block; margin-right: 4px; }
+    .history-report-header .header-field:nth-child(3) .value {
+        display: inline-block;
+        font-size: 13px;
+        font-weight: 600;
+        width: auto !important;
+        text-align: right;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        max-width: 100%;
+    }
+
+    /* Row 2: LĐ | CTNS | CT/Giờ */
+    .history-report-header .header-field:nth-child(2) {
+        grid-column: 1 / 2;
+        grid-row: 2;
+    }
+
+    .history-report-header .header-field:nth-child(4) {
+        grid-column: 2 / 3;
+        grid-row: 2;
+    }
+
+    .history-report-header .header-field:nth-child(5) {
+        grid-column: 3 / 4;
+        grid-row: 2;
+        background: #e3f2fd;
+        border-color: #143583;
+    }
+    .history-report-header .header-field:nth-child(5) .value {
+        color: #143583;
+        font-size: 18px;
+    }
+
+    /* Row 3: Ngày (Full width) */
+    .history-report-header .header-field:nth-child(6) {
+        grid-column: 1 / -1;
+        grid-row: 3;
+        min-height: 40px;
+        flex-direction: row;
+        gap: 10px;
+    }
+    
+    .history-report-header .header-field:nth-child(6) label {
+        margin-bottom: 0;
+    }
+    
+    .history-report-header .header-field:nth-child(6) .value {
+        text-align: left;
+        width: auto !important;
+    }
+
+    /* Header Actions (Unlock button) */
+    .history-report-header .header-actions {
+        grid-column: 1 / -1;
+        grid-row: 4;
+        display: flex;
+        gap: 10px;
+        margin-top: 8px;
+    }
+    
+    .history-report-header .header-actions .btn {
+        width: 100%;
+        height: 44px;
+    }
 }
 
 .history-grid-container .excel-grid th {
