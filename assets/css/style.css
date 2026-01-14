@@ -916,11 +916,22 @@ select.custom-select {
     .excel-grid thead th:nth-child(1),
     .excel-grid thead th:nth-child(2) {
         z-index: 40;
+        background: var(--header-bg);
     }
 
     .excel-grid thead tr.row-chitieu td:nth-child(1),
     .excel-grid thead tr.row-chitieu td:nth-child(2) {
+        position: sticky;
+        background-color: #e8f5e9;
         z-index: 35;
+    }
+
+    .excel-grid thead tr.row-chitieu td:nth-child(1) {
+        left: 0;
+    }
+
+    .excel-grid thead tr.row-chitieu td:nth-child(2) {
+        left: 35px;
     }
 
     .excel-grid .col-stt { width: 35px; }
@@ -1414,5 +1425,23 @@ select.custom-select {
 
 #tabContentHistory {
     padding: 2px;
+}
+
+#editorContainer {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+}
+
+#gridContainer {
+    width: 100%;
+    max-height: calc(100vh - 200px);
+    overflow-y: auto;
+}
+
+@media (max-width: 768px) {
+    #gridContainer {
+        max-height: calc(100vh - 220px);
+    }
 }
 
