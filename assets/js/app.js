@@ -491,33 +491,38 @@ class NangSuatApp {
         }
         
         header.innerHTML = `
-            <div class="header-field">
-                <label>LINE:</label>
-                <span class="value">${bc.ma_line}</span>
-            </div>
-            <div class="header-field">
-                <label>LĐ:</label>
-                ${isEditable
-                    ? `<input type="number" id="headerLaoDong" value="${bc.so_lao_dong}" min="0" style="width:60px">`
-                    : `<span class="value">${bc.so_lao_dong}</span>`
-                }
-            </div>
-            <div class="header-field">
-                <label>MH:</label>
-                <span class="value">${bc.ma_hang}</span>
-            </div>
-            <div class="header-field">
-                <label>CTNS:</label>
-                ${isEditable
-                    ? `<input type="number" id="headerCtns" value="${bc.ctns}" min="0" style="width:80px">`
-                    : `<span class="value">${bc.ctns}</span>`
-                }
-            </div>
-            <div class="header-field">
-                <label>CT/Giờ:</label>
-                <span class="value" id="ctGioDisplay">${bc.ct_gio}</span>
+            <div class="header-info-container" id="headerInfoContainer">
+                <div class="header-field">
+                    <label>LINE:</label>
+                    <span class="value">${bc.ma_line}</span>
+                </div>
+                <div class="header-field">
+                    <label>LĐ:</label>
+                    ${isEditable
+                        ? `<input type="number" id="headerLaoDong" value="${bc.so_lao_dong}" min="0" style="width:60px">`
+                        : `<span class="value">${bc.so_lao_dong}</span>`
+                    }
+                </div>
+                <div class="header-field">
+                    <label>MH:</label>
+                    <span class="value">${bc.ma_hang}</span>
+                </div>
+                <div class="header-field">
+                    <label>CTNS:</label>
+                    ${isEditable
+                        ? `<input type="number" id="headerCtns" value="${bc.ctns}" min="0" style="width:80px">`
+                        : `<span class="value">${bc.ctns}</span>`
+                    }
+                </div>
+                <div class="header-field">
+                    <label>CT/Giờ:</label>
+                    <span class="value" id="ctGioDisplay">${bc.ct_gio}</span>
+                </div>
             </div>
             <div class="header-actions">
+                <button id="toggleInfoBtn" title="Ẩn/Hiện thông tin">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m18 15-6-6-6 6"/></svg>
+                </button>
                 ${actionButtons}
             </div>
         `;
@@ -526,6 +531,11 @@ class NangSuatApp {
         if (footer) {
             footer.innerHTML = '';
             footer.style.display = 'none';
+        }
+
+        const toggleBtn = document.getElementById('toggleInfoBtn');
+        if (toggleBtn) {
+            toggleBtn.addEventListener('click', () => this.toggleHeaderInfo());
         }
         
         if (isEditable) {
@@ -558,6 +568,23 @@ class NangSuatApp {
         const reopenBtn = document.getElementById('reopenBtn');
         if (reopenBtn) {
             reopenBtn.addEventListener('click', () => this.reopenReport());
+        }
+    }
+
+    toggleHeaderInfo() {
+        const container = document.getElementById('headerInfoContainer');
+        const btn = document.getElementById('toggleInfoBtn');
+        if (container && btn) {
+            container.classList.toggle('hidden');
+            const isHidden = container.classList.contains('hidden');
+            
+            if (isHidden) {
+                btn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>';
+                btn.title = "Hiện thông tin";
+            } else {
+                btn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m18 15-6-6-6 6"/></svg>';
+                btn.title = "Ẩn thông tin";
+            }
         }
     }
     

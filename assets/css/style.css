@@ -228,9 +228,20 @@ select.custom-select {
     padding: 15px 20px;
     border-bottom: 1px solid var(--border-color);
     display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.header-info-container {
+    display: flex;
     flex-wrap: wrap;
     gap: 15px;
     align-items: center;
+    width: 100%;
+}
+
+.header-info-container.hidden {
+    display: none !important;
 }
 
 .header-field {
@@ -267,6 +278,28 @@ select.custom-select {
     margin-left: auto;
     display: flex;
     gap: 10px;
+    width: 100%;
+    justify-content: flex-end;
+}
+
+#toggleInfoBtn {
+    margin-right: auto; /* Push other buttons to right */
+    padding: 0;
+    width: 36px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid var(--border-color);
+    background: #fff;
+    color: #555;
+    border-radius: 4px;
+}
+
+#toggleInfoBtn:hover {
+    background: #f9f9f9;
+    color: var(--primary-color);
+    border-color: var(--primary-color);
 }
 
 .grid-container {
@@ -735,11 +768,17 @@ select.custom-select {
     }
 
     .report-header {
+        padding: 12px 10px;
+        background: #f8f9fa;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    .header-info-container {
         display: grid;
         grid-template-columns: 1fr 1.2fr 1fr;
         gap: 8px;
-        padding: 12px 10px;
-        background: #f8f9fa;
         align-items: stretch;
     }
 
@@ -782,7 +821,7 @@ select.custom-select {
         height: 32px;
     }
 
-    .header-field:nth-child(1) {
+    .header-info-container .header-field:nth-child(1) {
         grid-column: 1 / 2;
         grid-row: 1;
         background: transparent;
@@ -793,16 +832,16 @@ select.custom-select {
         justify-content: flex-end;
         margin-bottom: 4px;
     }
-    .header-field:nth-child(1) label { display: inline-block; margin-right: 4px; }
-    .header-field:nth-child(1) .value { 
-        display: inline-block; 
-        font-size: 13px; 
+    .header-info-container .header-field:nth-child(1) label { display: inline-block; margin-right: 4px; }
+    .header-info-container .header-field:nth-child(1) .value {
+        display: inline-block;
+        font-size: 13px;
         font-weight: 600;
         width: auto !important; 
         text-align: left; 
     }
 
-    .header-field:nth-child(3) {
+    .header-info-container .header-field:nth-child(3) {
         grid-column: 2 / 4;
         grid-row: 1;
         background: transparent;
@@ -813,9 +852,9 @@ select.custom-select {
         justify-content: flex-end;
         margin-bottom: 4px;
     }
-    .header-field:nth-child(3) label { display: inline-block; margin-right: 4px; }
-    .header-field:nth-child(3) .value { 
-        display: inline-block; 
+    .header-info-container .header-field:nth-child(3) label { display: inline-block; margin-right: 4px; }
+    .header-info-container .header-field:nth-child(3) .value {
+        display: inline-block;
         font-size: 13px;
         font-weight: 600; 
         width: auto !important; 
@@ -826,35 +865,40 @@ select.custom-select {
         max-width: 100%;
     }
 
-    .header-field:nth-child(2) {
+    .header-info-container .header-field:nth-child(2) {
         grid-column: 1 / 2;
         grid-row: 2;
     }
 
-    .header-field:nth-child(4) {
+    .header-info-container .header-field:nth-child(4) {
         grid-column: 2 / 3;
         grid-row: 2;
     }
 
-    .header-field:nth-child(5) {
+    .header-info-container .header-field:nth-child(5) {
         grid-column: 3 / 4;
         grid-row: 2;
         background: #e3f2fd;
         border-color: #143583;
     }
-    .header-field:nth-child(5) .value {
+    .header-info-container .header-field:nth-child(5) .value {
         color: #143583;
         font-size: 18px;
     }
 
     .header-actions {
-        grid-column: 1 / -1;
-        grid-row: 3;
         display: flex;
         gap: 10px;
-        margin-top: 8px;
+        margin-top: 0;
         margin-left: 0;
         justify-content: space-between;
+        width: 100%;
+    }
+    
+    #toggleInfoBtn {
+        flex: 0 0 44px;
+        height: 44px;
+        margin-right: 8px;
     }
 
     .header-actions .btn {
@@ -1001,6 +1045,12 @@ select.custom-select {
     .status-bar {
         font-size: 11px;
         padding: 8px 10px;
+    }
+
+    /* Hide Luy Ke column on mobile */
+    .excel-grid .col-luyke,
+    .excel-grid td.cell-luyke {
+        display: none !important;
     }
 }
 
@@ -1428,23 +1478,33 @@ select.custom-select {
     padding: 2px;
 }
 
+#tabContentInput {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+}
+
 #editorContainer {
     display: flex;
     flex-direction: column;
     width: 100%;
+    flex: 1;
+    min-height: 0;
 }
 
 #gridContainer,
 #historyGridContainer {
     width: 100%;
-    max-height: calc(100vh - 200px);
+    flex: 1;
     overflow-y: auto;
+    max-height: none;
 }
 
 @media (max-width: 768px) {
     #gridContainer,
     #historyGridContainer {
-        max-height: calc(100vh - 280px);
+        max-height: none;
     }
 }
 
