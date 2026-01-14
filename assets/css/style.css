@@ -272,16 +272,23 @@ select.custom-select {
 .grid-container {
     flex: 1;
     overflow: auto;
-    padding: 15px;
+    padding: 1px;
     background: #e8e8e8;
 }
 
 .excel-grid {
     background: #fff;
     border: 1px solid var(--grid-border);
-    border-collapse: collapse;
+    border-collapse: separate;
+    border-spacing: 0;
     width: 100%;
     table-layout: fixed;
+}
+
+.excel-grid thead {
+    position: sticky;
+    top: 0;
+    z-index: 10;
 }
 
 .excel-grid th,
@@ -296,9 +303,6 @@ select.custom-select {
     background: var(--header-bg);
     font-weight: 600;
     padding: 8px 5px;
-    position: sticky;
-    top: 0;
-    z-index: 10;
 }
 
 .excel-grid thead tr:first-child th {
@@ -345,6 +349,10 @@ select.custom-select {
 
 .excel-grid .row-chitieu td {
     padding: 5px;
+}
+
+.excel-grid thead tr.row-chitieu td {
+    background-color: #e8f5e9;
 }
 
 .excel-grid .row-hieuSuat {
@@ -901,15 +909,18 @@ select.custom-select {
         max-width: 130px;
     }
 
-    /* Ensure header row z-index is higher than body sticky cols */
-    .excel-grid thead th {
-        z-index: 30; 
+    .excel-grid thead {
+        z-index: 30;
     }
     
-    /* Super high z-index for top-left intersection headers */
     .excel-grid thead th:nth-child(1),
     .excel-grid thead th:nth-child(2) {
         z-index: 40;
+    }
+
+    .excel-grid thead tr.row-chitieu td:nth-child(1),
+    .excel-grid thead tr.row-chitieu td:nth-child(2) {
+        z-index: 35;
     }
 
     .excel-grid .col-stt { width: 35px; }
@@ -1399,5 +1410,9 @@ select.custom-select {
 /* Pagination Styles Override (if needed) */
 #historyPagination nav button {
     cursor: pointer;
+}
+
+#tabContentHistory {
+    padding: 2px;
 }
 
