@@ -250,8 +250,7 @@ class NangSuatApp {
     
     async loadReportList() {
         try {
-            const today = new Date().toISOString().split('T')[0];
-            const response = await api('GET', `/bao-cao?ngay_tu=${today}&ngay_den=${today}`);
+            const response = await api('GET', `/bao-cao`);
             if (response.success) {
                 this.renderReportList(response.data);
             }
@@ -295,9 +294,8 @@ class NangSuatApp {
         if (!tbody) return;
         
         if (reports.length === 0) {
-            let message = 'Chưa có báo cáo nào hôm nay';
+            let message = 'Chưa có báo cáo nào đang xử lý';
             
-            // Check permission for message
             if (window.appContext) {
                 const isAdmin = window.appContext.session && window.appContext.session.role === 'admin';
                 const canCreate = isAdmin || window.appContext.can_create_report;
