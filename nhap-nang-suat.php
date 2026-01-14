@@ -159,11 +159,11 @@ $session = Auth::getSession();
                     </button>
                  </div>
                  <div class="report-header history-report-header mb-4"></div>
-                 <div id="historyGridContainer" class="grid-container history-grid-container" style="max-height: 60vh;"></div>
+                 <div id="historyGridContainer" class="grid-container history-grid-container"></div>
             </div>
         </div>
         
-        <footer class="status-bar">
+        <footer class="status-bar hidden">
             <div class="status-message">
                 <span class="status-indicator"></span>
                 <span>Sẵn sàng</span>

@@ -522,6 +522,12 @@ class NangSuatApp {
             </div>
         `;
         
+        const footer = document.getElementById('gridFooter');
+        if (footer) {
+            footer.innerHTML = '';
+            footer.style.display = 'none';
+        }
+        
         if (isEditable) {
             const ldInput = document.getElementById('headerLaoDong');
             const ctnsInput = document.getElementById('headerCtns');
