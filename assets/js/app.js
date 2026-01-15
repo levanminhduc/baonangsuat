@@ -3,6 +3,7 @@ import { showLoading, hideLoading, showToast, updateStatusBar, getStatusText } f
 import { GridManager } from './modules/grid.js';
 import { HistoryModule } from './modules/history.js';
 import { Router } from './modules/router.js';
+import networkMonitor from './modules/network-monitor.js';
 
 class NangSuatApp {
     constructor() {
@@ -17,7 +18,35 @@ class NangSuatApp {
         this.router = new Router(this);
         this.context = null;
         
+        // Setup network monitor callbacks
+        this.setupNetworkCallbacks();
+        
         this.init();
+    }
+    
+    /**
+     * Setup callbacks cho network monitor
+     * Pause auto-save khi offline, resume khi online
+     */
+    setupNetworkCallbacks() {
+        // Pause auto-save khi offline
+        networkMonitor.on('network:offline', () => {
+            if (this.saveTimer) {
+                clearTimeout(this.saveTimer);
+                this.saveTimer = null;
+            }
+            updateStatusBar('Mất kết nối - Dữ liệu chưa được lưu', 'error');
+        });
+
+        // Resume khi online
+        networkMonitor.on('network:online', () => {
+            // Trigger save nếu có pending changes
+            if (this.modifiedEntries.size > 0) {
+                this.scheduleSave();
+            } else {
+                updateStatusBar('Đã kết nối lại', 'success');
+            }
+        });
     }
     
     async init() {
@@ -476,7 +505,7 @@ class NangSuatApp {
         const canComplete = bc.trang_thai !== 'completed' && bc.trang_thai !== 'draft';
         const isAdmin = window.appContext?.session?.role === 'admin';
         
-        let actionButtons = `<button id="backBtn" class="btn">← Quay lại</button>`;
+        let actionButtons = `<button id="backBtn" class="btn btn-secondary">← Quay lại</button>`;
         
         if (isEditable) {
             actionButtons += `<button id="submitBtn" class="btn btn-success">Chốt báo cáo</button>`;
@@ -617,6 +646,12 @@ class NangSuatApp {
     
     async saveChanges() {
         if (this.modifiedEntries.size === 0 || this.isSaving) return;
+        
+        // Check network trước khi save
+        if (!networkMonitor.isConnected()) {
+            updateStatusBar('Không có kết nối mạng', 'error');
+            return;
+        }
         
         this.isSaving = true;
         updateStatusBar('Đang lưu...', 'saving');

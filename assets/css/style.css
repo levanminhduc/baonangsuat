@@ -130,6 +130,15 @@ select.custom-select {
     color: #fff;
 }
 
+.btn-secondary {
+    background: #6c757d;
+    color: #fff;
+}
+
+.btn-secondary:hover {
+    background: #5a6268;
+}
+
 .btn-block {
     display: block;
     width: 100%;

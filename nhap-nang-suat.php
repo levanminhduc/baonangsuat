@@ -218,6 +218,7 @@ $session = Auth::getSession();
     </div>
     
     <?php include __DIR__ . '/includes/components/confirm-modal.php'; ?>
+    <?php include __DIR__ . '/includes/components/loading-overlay.php'; ?>
     
     <script>
         function closeModal(id) { document.getElementById(id).classList.add('hidden'); }
