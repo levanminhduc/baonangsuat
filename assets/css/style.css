@@ -1508,6 +1508,40 @@ select.custom-select {
     }
 }
 
+/* ===================================================
+   STICKY HEADER FIX - Giới hạn chiều cao container
+   =================================================== */
+
+/* Desktop: Giới hạn chiều cao để tạo scroll container */
+#gridContainer {
+    max-height: calc(100vh - 310px);
+}
+
+#historyGridContainer {
+    max-height: calc(100vh - 350px);
+}
+
+.excel-grid thead th {
+    box-shadow: 0 2px 4px -1px rgba(0, 0, 0, 0.1);
+}
+
+@media (max-width: 768px) {
+    #gridContainer {
+        max-height: calc(100vh - 330px);
+    }
+    
+    #historyGridContainer {
+        max-height: calc(100vh - 350px);
+    }
+}
+
+@supports not (max-height: calc(100vh - 310px)) {
+    #gridContainer,
+    #historyGridContainer {
+        max-height: 550px;
+    }
+}
+
 .grid-footer {
     background: #fff;
     padding: 15px 20px;
