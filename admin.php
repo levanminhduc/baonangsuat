@@ -480,7 +480,7 @@ $session = Auth::getSession();
     </div>
     
     <!-- Line Modal -->
-    <div id="lineModal" class="modal hidden fixed inset-0 z-50 flex items-center justify-center bg-gray-900/50 backdrop-blur-sm" onclick="closeModal('lineModal')">
+    <div id="lineModal" class="modal hidden fixed inset-0 z-[1000] flex items-center justify-center bg-gray-900/50 backdrop-blur-sm" onclick="closeModal('lineModal')">
         <div class="modal-content bg-white rounded-xl shadow-2xl w-full max-w-md p-0 overflow-hidden" onclick="event.stopPropagation()">
             <div class="px-6 py-4 border-b border-gray-100 bg-gray-50 flex justify-between items-center">
                 <h2 id="lineModalTitle" class="text-xl font-bold text-gray-800 m-0">Thêm LINE mới</h2>
@@ -513,7 +513,7 @@ $session = Auth::getSession();
     </div>
     
     <!-- User Line Modal -->
-    <div id="userLineModal" class="modal hidden fixed inset-0 z-50 flex items-center justify-center bg-gray-900/50 backdrop-blur-sm" onclick="closeModal('userLineModal')">
+    <div id="userLineModal" class="modal hidden fixed inset-0 z-[1000] flex items-center justify-center bg-gray-900/50 backdrop-blur-sm" onclick="closeModal('userLineModal')">
         <div class="modal-content bg-white rounded-xl shadow-2xl w-full max-w-md p-0 overflow-hidden" onclick="event.stopPropagation()">
             <div class="px-6 py-4 border-b border-gray-100 bg-gray-50 flex justify-between items-center">
                 <h2 class="text-xl font-bold text-gray-800 m-0">Thêm User-LINE Mapping</h2>

@@ -1,5 +1,5 @@
 import { api } from '../admin-api.js';
-import { escapeHtml, showToast, showLoading, hideLoading } from '../admin-utils.js';
+import { escapeHtml, showToast, showLoading, hideLoading, showConfirmModal, closeModal } from '../admin-utils.js';
 
 const API_BASE = '/baonangsuat/api';
 let previewData = null;
@@ -250,7 +250,7 @@ function renderPreview(response) {
     }
 }
 
-async function handleConfirmImport() {
+async function handleConfirmImport(acknowledgeDeletion = false) {
     if (!previewData || !previewData.data || previewData.data.length === 0) {
         showToast('Không có dữ liệu để import', 'error');
         return;
@@ -270,11 +270,45 @@ async function handleConfirmImport() {
     showLoading();
     
     try {
-        const response = await api('POST', '/import/confirm', { ma_hang_list: maHangList });
+        const payload = { ma_hang_list: maHangList };
+        if (acknowledgeDeletion) {
+            payload.acknowledge_deletion = true;
+        }
+        
+        const response = await api('POST', '/import/confirm', payload);
         
         if (response.success) {
             showToast(response.message || 'Import thành công', 'success');
             renderImportResult(response);
+        } else if (response.error_code === 'DELETION_WARNING' && response.requires_acknowledgement) {
+            hideLoading();
+            showConfirmModal(
+                response.message || 'Import sẽ xóa một số routing hiện có. Vui lòng xác nhận để tiếp tục.',
+                async () => {
+                    showLoading();
+                    try {
+                        const confirmResponse = await api('POST', '/import/confirm', {
+                            ma_hang_list: maHangList,
+                            acknowledge_deletion: true
+                        });
+                        if (confirmResponse.success) {
+                            showToast(confirmResponse.message || 'Import thành công', 'success');
+                            renderImportResult(confirmResponse);
+                        } else {
+                            showToast(confirmResponse.message || 'Lỗi import', 'error');
+                        }
+                    } catch (error) {
+                        console.error('Import confirm error:', error);
+                        showToast('Lỗi kết nối server', 'error');
+                    } finally {
+                        hideLoading();
+                    }
+                    closeModal('confirmModal');
+                },
+                'Xác nhận xóa routing',
+                'danger'
+            );
+            return;
         } else {
             showToast(response.message || 'Lỗi import', 'error');
         }

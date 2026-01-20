@@ -106,6 +106,38 @@ class CongDoanService {
             return ['success' => false, 'message' => 'Không thể xóa công đoạn đang có routing'];
         }
         
+        $nhapLieuStmt = mysqli_prepare($this->db, "SELECT COUNT(*) as cnt FROM nhap_lieu_nang_suat WHERE cong_doan_id = ?");
+        mysqli_stmt_bind_param($nhapLieuStmt, "i", $id);
+        mysqli_stmt_execute($nhapLieuStmt);
+        $nhapLieuResult = mysqli_stmt_get_result($nhapLieuStmt);
+        $nhapLieuRow = mysqli_fetch_assoc($nhapLieuResult);
+        mysqli_stmt_close($nhapLieuStmt);
+        
+        if ($nhapLieuRow['cnt'] > 0) {
+            return ['success' => false, 'message' => 'Không thể xóa công đoạn đang có dữ liệu nhập liệu năng suất'];
+        }
+        
+        $ketQuaLuyKeStmt = mysqli_prepare($this->db, "SELECT ket_qua_luy_ke FROM bao_cao_nang_suat WHERE ket_qua_luy_ke IS NOT NULL");
+        mysqli_stmt_execute($ketQuaLuyKeStmt);
+        $ketQuaResult = mysqli_stmt_get_result($ketQuaLuyKeStmt);
+        $hasReference = false;
+        while ($ketQuaRow = mysqli_fetch_assoc($ketQuaResult)) {
+            $ketQuaLuyKe = json_decode($ketQuaRow['ket_qua_luy_ke'], true);
+            if (is_array($ketQuaLuyKe)) {
+                foreach ($ketQuaLuyKe as $entry) {
+                    if (isset($entry['cong_doan_id']) && intval($entry['cong_doan_id']) === $id) {
+                        $hasReference = true;
+                        break 2;
+                    }
+                }
+            }
+        }
+        mysqli_stmt_close($ketQuaLuyKeStmt);
+        
+        if ($hasReference) {
+            return ['success' => false, 'message' => 'Không thể xóa công đoạn đang được tham chiếu trong kết quả lũy kế của báo cáo'];
+        }
+        
         $stmt = mysqli_prepare($this->db, "DELETE FROM cong_doan WHERE id = ?");
         mysqli_stmt_bind_param($stmt, "i", $id);
         

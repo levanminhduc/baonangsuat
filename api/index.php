@@ -846,17 +846,23 @@ function handleImport($segments, $method, $input) {
         $mime = finfo_file($finfo, $file['tmp_name']);
         finfo_close($finfo);
         
-        if (!in_array($ext, $allowedExts)) {
-            response(['success' => false, 'message' => 'File không phải Excel (.xlsx, .xls)', 'error_code' => 'INVALID_FILE_TYPE'], 400);
+        if (!in_array($mime, $allowedMimes)) {
+            @unlink($file['tmp_name']);
+            response(['success' => false, 'message' => 'File không đúng định dạng Excel', 'error_code' => 'INVALID_MIME_TYPE'], 400);
         }
         
         $maxSize = 10 * 1024 * 1024;
         if ($file['size'] > $maxSize) {
+            @unlink($file['tmp_name']);
             response(['success' => false, 'message' => 'File vượt quá 10MB', 'error_code' => 'FILE_TOO_LARGE'], 400);
         }
         
         $importService = new ImportService();
-        $result = $importService->preview($file['tmp_name']);
+        try {
+            $result = $importService->preview($file['tmp_name']);
+        } finally {
+            @unlink($file['tmp_name']);
+        }
         response($result);
     }
     
@@ -870,7 +876,7 @@ function handleImport($segments, $method, $input) {
         }
         
         $importService = new ImportService();
-        $result = $importService->confirm($maHangList);
+        $result = $importService->confirm($maHangList, $input['acknowledge_deletion'] ?? false);
         response($result);
     }
     

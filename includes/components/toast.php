@@ -3,7 +3,7 @@
 // Usage: include this component once in layout, then call window.toast.show()
 ?>
 
-<div id="toast-container" class="fixed top-4 right-4 z-50 flex flex-col gap-3 pointer-events-none">
+<div id="toast-container" class="fixed top-4 right-4 z-[1000] flex flex-col gap-3 pointer-events-none">
     <!-- Toasts will be injected here -->
 </div>
 

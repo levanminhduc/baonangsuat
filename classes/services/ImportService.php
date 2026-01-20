@@ -23,7 +23,8 @@ class ImportService {
             'total_ma_hang_existing' => 0,
             'total_cong_doan_new' => 0,
             'total_cong_doan_existing' => 0,
-            'total_routing_new' => 0
+            'total_routing_new' => 0,
+            'routing_to_delete' => 0
         ];
         
         $newCongDoanCounter = $this->getNextMaCongDoanNumber();
@@ -60,6 +61,7 @@ class ImportService {
             $reportStats = null;
             $hasWarning = false;
             $warningMessage = '';
+            $routingToDelete = 0;
             
             if ($isNewMaHang) {
                 $stats['total_ma_hang_new']++;
@@ -69,6 +71,13 @@ class ImportService {
                 if ($reportStats['locked_reports'] > 0) {
                     $hasWarning = true;
                     $warningMessage = "Mã hàng {$maHang} có {$reportStats['locked_reports']} báo cáo đã chốt. Import routing mới có thể ảnh hưởng hiển thị báo cáo cũ nếu không có routing snapshot.";
+                }
+                $routingToDelete = $this->countRoutingToDelete(intval($existingMaHang['id']), []);
+                if ($routingToDelete > 0) {
+                    $hasWarning = true;
+                    $warningMessage = empty($warningMessage) ? 
+                        "Import sẽ xóa {$routingToDelete} công đoạn routing hiện tại của mã hàng {$maHang}" : 
+                        $warningMessage . " Import cũng sẽ xóa {$routingToDelete} công đoạn routing hiện tại.";
                 }
             }
             
@@ -125,6 +134,8 @@ class ImportService {
                 'warning_message' => $warningMessage,
                 'cong_doan_list' => $congDoanList
             ];
+            
+            $stats['routing_to_delete'] += $routingToDelete;
         }
         
         $message = empty($errors) ? 'Phân tích file thành công' : 'Phân tích file hoàn tất với một số lỗi';
@@ -138,9 +149,25 @@ class ImportService {
         ];
     }
     
-    public function confirm($maHangList) {
+    public function confirm($maHangList, $acknowledgeDeletion = false) {
         if (empty($maHangList)) {
             return ['success' => false, 'message' => 'Danh sách mã hàng không được rỗng', 'error_code' => 'VALIDATION_FAILED'];
+        }
+        
+        $hasExistingMaHang = false;
+        foreach ($maHangList as $maHangData) {
+            $maHang = strtoupper(trim($maHangData['ma_hang'] ?? ''));
+            if (!empty($maHang)) {
+                $existing = $this->findMaHangByCode($maHang);
+                if ($existing !== null) {
+                    $hasExistingMaHang = true;
+                    break;
+                }
+            }
+        }
+        
+        if ($hasExistingMaHang && !$acknowledgeDeletion) {
+            return ['success' => false, 'message' => 'Import sẽ xóa một số routing hiện có. Vui lòng xác nhận để tiếp tục.', 'error_code' => 'DELETION_WARNING', 'requires_acknowledgement' => true];
         }
         
         $stats = [
@@ -236,13 +263,17 @@ class ImportService {
                 
                 if ($isExistingMaHang && !empty($routingDataList)) {
                     $newCongDoanIds = array_column($routingDataList, 'cong_doan_id');
-                    $idsString = implode(',', array_map('intval', $newCongDoanIds));
-                    $deleteQuery = "DELETE FROM ma_hang_cong_doan
-                                    WHERE ma_hang_id = " . intval($maHangId) . "
-                                    AND line_id IS NULL
-                                    AND cong_doan_id NOT IN ($idsString)";
-                    mysqli_query($this->db, $deleteQuery);
-                    $stats['routing_deleted'] += mysqli_affected_rows($this->db);
+                    if (empty($newCongDoanIds)) {
+                        $deleteStmt = mysqli_prepare($this->db, "DELETE FROM ma_hang_cong_doan WHERE ma_hang_id = ? AND line_id IS NULL");
+                        mysqli_stmt_bind_param($deleteStmt, "i", $maHangId);
+                    } else {
+                        $placeholders = implode(',', array_fill(0, count($newCongDoanIds), '?'));
+                        $deleteStmt = mysqli_prepare($this->db, "DELETE FROM ma_hang_cong_doan WHERE ma_hang_id = ? AND line_id IS NULL AND cong_doan_id NOT IN ($placeholders)");
+                        mysqli_stmt_bind_param($deleteStmt, "i" . str_repeat("i", count($newCongDoanIds)), $maHangId, ...$newCongDoanIds);
+                    }
+                    mysqli_stmt_execute($deleteStmt);
+                    $stats['routing_deleted'] += mysqli_stmt_affected_rows($deleteStmt);
+                    mysqli_stmt_close($deleteStmt);
                 }
                 
                 foreach ($routingDataList as $routingData) {
@@ -439,5 +470,22 @@ class ImportService {
             'locked_reports' => intval($row['locked']),
             'draft_reports' => intval($row['draft'])
         ];
+    }
+    
+    public function countRoutingToDelete($maHangId, $newCongDoanIds) {
+        if (empty($newCongDoanIds)) {
+            $stmt = mysqli_prepare($this->db, "SELECT COUNT(*) as cnt FROM ma_hang_cong_doan WHERE ma_hang_id = ? AND line_id IS NULL");
+            mysqli_stmt_bind_param($stmt, "i", $maHangId);
+        } else {
+            $placeholders = implode(',', array_fill(0, count($newCongDoanIds), '?'));
+            $stmt = mysqli_prepare($this->db, "SELECT COUNT(*) as cnt FROM ma_hang_cong_doan WHERE ma_hang_id = ? AND line_id IS NULL AND cong_doan_id NOT IN ($placeholders)");
+            mysqli_stmt_bind_param($stmt, "i" . str_repeat("i", count($newCongDoanIds)), $maHangId, ...$newCongDoanIds);
+        }
+        mysqli_stmt_execute($stmt);
+        $result = mysqli_stmt_get_result($stmt);
+        $row = mysqli_fetch_assoc($result);
+        mysqli_stmt_close($stmt);
+        
+        return intval($row['cnt']);
     }
 }
