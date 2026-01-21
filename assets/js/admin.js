@@ -129,6 +129,16 @@ const modules = {
         init: async (m) => {
             m.init();
         }
+    },
+    'import-history': {
+        path: './modules/admin/import-history.js',
+        deps: [],
+        instance: null,
+        loaded: false,
+        init: async (m) => {
+            m.init();
+            await m.loadImportHistory();
+        }
     }
 };
 
@@ -176,7 +186,8 @@ function initRouter() {
         'routing': '/routing',
         'presets': '/presets',
         'moc-gio': '/moc-gio',
-        'bulk-create': '/bulk-create'
+        'bulk-create': '/bulk-create',
+        'import-history': '/import-history'
     };
     
     const adminRouter = new Router(null, {
