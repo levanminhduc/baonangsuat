@@ -99,18 +99,23 @@ CREATE TABLE bao_cao_nang_suat (
     ct_gio DECIMAL(10,2) DEFAULT 0,
     tong_phut_hieu_dung INT DEFAULT 0,
     ghi_chu TEXT,
-    trang_thai ENUM('draft', 'submitted', 'approved', 'locked') DEFAULT 'draft',
+    trang_thai ENUM('draft', 'submitted', 'approved', 'locked', 'completed') DEFAULT 'draft',
     version INT DEFAULT 1,
     tao_boi VARCHAR(50),
     tao_luc TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     cap_nhat_luc TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    ket_qua_luy_ke JSON NULL,
+    routing_snapshot JSON NULL,
+    hoan_tat_luc TIMESTAMP NULL,
+    hoan_tat_boi VARCHAR(50) NULL,
     FOREIGN KEY (line_id) REFERENCES line(id) ON DELETE RESTRICT,
     FOREIGN KEY (ca_id) REFERENCES ca_lam(id) ON DELETE RESTRICT,
     FOREIGN KEY (ma_hang_id) REFERENCES ma_hang(id) ON DELETE RESTRICT,
     UNIQUE KEY uk_bao_cao (ngay_bao_cao, line_id, ca_id, ma_hang_id),
     INDEX idx_ngay (ngay_bao_cao),
     INDEX idx_line (line_id),
-    INDEX idx_trang_thai (trang_thai)
+    INDEX idx_trang_thai (trang_thai),
+    INDEX idx_ma_hang (ma_hang_id)
 ) ENGINE=InnoDB;
 
 CREATE TABLE nhap_lieu_nang_suat (

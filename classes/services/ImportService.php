@@ -453,7 +453,7 @@ class ImportService {
         $stmt = mysqli_prepare($this->db,
             "SELECT
                 COUNT(*) as total,
-                SUM(CASE WHEN trang_thai IN ('submitted','approved','locked') THEN 1 ELSE 0 END) as locked,
+                SUM(CASE WHEN trang_thai IN ('submitted','approved','locked','completed') THEN 1 ELSE 0 END) as locked,
                 SUM(CASE WHEN trang_thai = 'draft' THEN 1 ELSE 0 END) as draft
              FROM bao_cao_nang_suat
              WHERE ma_hang_id = ?"
