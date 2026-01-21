@@ -12,6 +12,7 @@ yarn-error.log*
 dist/
 build/
 tools/
+specs/
 
 # Environment
 .env
@@ -24,6 +25,7 @@ tools/
 .roo/
 vendor/
 .kilocode/
+.claude/
 
 # Logs
 logs/

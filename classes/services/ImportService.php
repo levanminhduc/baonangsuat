@@ -17,6 +17,7 @@ class ImportService {
         
         $data = [];
         $errors = [];
+        $hasBlockingReports = false;
         $stats = [
             'total_sheets' => count($sheets),
             'total_ma_hang_new' => 0,
@@ -24,7 +25,8 @@ class ImportService {
             'total_cong_doan_new' => 0,
             'total_cong_doan_existing' => 0,
             'total_routing_new' => 0,
-            'routing_to_delete' => 0
+            'routing_to_delete' => 0,
+            'total_blocked_ma_hang' => 0
         ];
         
         $newCongDoanCounter = $this->getNextMaCongDoanNumber();
@@ -59,6 +61,8 @@ class ImportService {
             $isNewMaHang = ($existingMaHang === null);
             
             $reportStats = null;
+            $blockingCheck = null;
+            $isBlocked = false;
             $hasWarning = false;
             $warningMessage = '';
             $routingToDelete = 0;
@@ -67,13 +71,24 @@ class ImportService {
                 $stats['total_ma_hang_new']++;
             } else {
                 $stats['total_ma_hang_existing']++;
-                $reportStats = $this->checkExistingReports(intval($existingMaHang['id']));
-                if ($reportStats['locked_reports'] > 0) {
+                $maHangId = intval($existingMaHang['id']);
+                
+                // Check for blocking reports
+                $blockingCheck = $this->checkBlockingReports($maHangId);
+                $isBlocked = $blockingCheck['is_blocked'];
+                
+                if ($isBlocked) {
+                    $hasBlockingReports = true;
+                    $stats['total_blocked_ma_hang']++;
+                }
+                
+                $reportStats = $this->checkExistingReports($maHangId);
+                if ($reportStats['locked_reports'] > 0 && !$isBlocked) {
                     $hasWarning = true;
                     $warningMessage = "Mã hàng {$maHang} có {$reportStats['locked_reports']} báo cáo đã chốt. Import routing mới có thể ảnh hưởng hiển thị báo cáo cũ nếu không có routing snapshot.";
                 }
-                $routingToDelete = $this->countRoutingToDelete(intval($existingMaHang['id']), []);
-                if ($routingToDelete > 0) {
+                $routingToDelete = $this->countRoutingToDelete($maHangId, []);
+                if ($routingToDelete > 0 && !$isBlocked) {
                     $hasWarning = true;
                     $warningMessage = empty($warningMessage) ? 
                         "Import sẽ xóa {$routingToDelete} công đoạn routing hiện tại của mã hàng {$maHang}" : 
@@ -129,6 +144,8 @@ class ImportService {
                 'ten_hang' => 'Mã hàng ' . $maHang,
                 'is_new' => $isNewMaHang,
                 'existing_id' => $isNewMaHang ? null : intval($existingMaHang['id']),
+                'is_blocked' => $isBlocked,
+                'blocking_check' => $blockingCheck,
                 'report_stats' => $reportStats,
                 'has_warning' => $hasWarning,
                 'warning_message' => $warningMessage,
@@ -145,7 +162,8 @@ class ImportService {
             'message' => $message,
             'data' => $data,
             'stats' => $stats,
-            'errors' => $errors
+            'errors' => $errors,
+            'has_blocking_reports' => $hasBlockingReports
         ];
     }
     
@@ -154,16 +172,50 @@ class ImportService {
             return ['success' => false, 'message' => 'Danh sách mã hàng không được rỗng', 'error_code' => 'VALIDATION_FAILED'];
         }
         
+        // Check for blocking reports BEFORE starting transaction
+        $blockedMaHangList = [];
         $hasExistingMaHang = false;
+        
         foreach ($maHangList as $maHangData) {
             $maHang = strtoupper(trim($maHangData['ma_hang'] ?? ''));
             if (!empty($maHang)) {
                 $existing = $this->findMaHangByCode($maHang);
                 if ($existing !== null) {
                     $hasExistingMaHang = true;
-                    break;
+                    $maHangId = intval($existing['id']);
+                    
+                    // Check for blocking reports
+                    $blockingCheck = $this->checkBlockingReports($maHangId);
+                    if ($blockingCheck['is_blocked']) {
+                        $totalBlocking = $blockingCheck['summary']['locked_count'] + $blockingCheck['summary']['draft_with_data_count'];
+                        $blockedMaHangList[] = [
+                            'ma_hang' => $maHang,
+                            'ma_hang_id' => $maHangId,
+                            'blocking_count' => $totalBlocking,
+                            'blocking_check' => $blockingCheck
+                        ];
+                    }
                 }
             }
+        }
+        
+        // Block import if any ma_hang has blocking reports
+        if (!empty($blockedMaHangList)) {
+            $blockedMaHangCodes = array_column($blockedMaHangList, 'ma_hang');
+            $blockedCount = count($blockedMaHangList);
+            
+            $message = $blockedCount === 1 
+                ? "Không thể import: Mã hàng {$blockedMaHangList[0]['ma_hang']} đang có {$blockedMaHangList[0]['blocking_count']} báo cáo sử dụng."
+                : "Không thể import: {$blockedCount} mã hàng đang có báo cáo sử dụng (" . implode(', ', $blockedMaHangCodes) . ").";
+            
+            $message .= " Vui lòng hoàn thành hoặc xóa các báo cáo trước khi import.";
+            
+            return [
+                'success' => false,
+                'message' => $message,
+                'error_code' => 'IMPORT_BLOCKED',
+                'blocked_ma_hang' => $blockedMaHangList
+            ];
         }
         
         if ($hasExistingMaHang && !$acknowledgeDeletion) {
@@ -469,6 +521,111 @@ class ImportService {
             'total_reports' => intval($row['total']),
             'locked_reports' => intval($row['locked']),
             'draft_reports' => intval($row['draft'])
+        ];
+    }
+    
+    /**
+     * Check for reports that would block import for a ma_hang
+     * @param int $maHangId
+     * @return array ['is_blocked' => bool, 'blocking_reports' => [...], 'summary' => [...], 'message' => string]
+     */
+    public function checkBlockingReports(int $maHangId): array {
+        $blockingReports = [];
+        $summary = [
+            'locked_count' => 0,
+            'draft_with_data_count' => 0
+        ];
+        
+        // Status display mapping
+        $statusLabels = [
+            'submitted' => 'Đã nộp',
+            'approved' => 'Đã duyệt',
+            'locked' => 'Đã khóa',
+            'completed' => 'Hoàn thành',
+            'draft' => 'Nháp'
+        ];
+        
+        // Reason display mapping
+        $reasonLabels = [
+            'LOCKED_REPORT' => 'Báo cáo đã chốt',
+            'DRAFT_WITH_DATA' => 'Báo cáo đang nhập dữ liệu'
+        ];
+        
+        // Query 1: Locked reports (submitted, approved, locked, completed)
+        $stmtLocked = mysqli_prepare($this->db,
+            "SELECT bc.id, bc.ngay_bao_cao, l.ten_line, ca.ma_ca, bc.trang_thai, 
+                    bc.tao_boi, 'LOCKED_REPORT' as reason
+             FROM bao_cao_nang_suat bc
+             LEFT JOIN line l ON l.id = bc.line_id
+             LEFT JOIN ca_lam ca ON ca.id = bc.ca_id
+             WHERE bc.ma_hang_id = ?
+               AND bc.trang_thai IN ('submitted','approved','locked','completed')
+             ORDER BY bc.ngay_bao_cao DESC
+             LIMIT 50"
+        );
+        mysqli_stmt_bind_param($stmtLocked, "i", $maHangId);
+        mysqli_stmt_execute($stmtLocked);
+        $resultLocked = mysqli_stmt_get_result($stmtLocked);
+        
+        while ($row = mysqli_fetch_assoc($resultLocked)) {
+            $row['trang_thai_label'] = $statusLabels[$row['trang_thai']] ?? $row['trang_thai'];
+            $row['reason_label'] = $reasonLabels[$row['reason']] ?? $row['reason'];
+            $row['ten_line'] = $row['ten_line'] ?? 'N/A';
+            $row['ma_ca'] = $row['ma_ca'] ?? 'N/A';
+            $blockingReports[] = $row;
+            $summary['locked_count']++;
+        }
+        mysqli_stmt_close($stmtLocked);
+        
+        // Query 2: Draft reports with data (so_luong > 0)
+        $stmtDraft = mysqli_prepare($this->db,
+            "SELECT bc.id, bc.ngay_bao_cao, l.ten_line, ca.ma_ca, bc.trang_thai,
+                    bc.tao_boi, 'DRAFT_WITH_DATA' as reason,
+                    (SELECT COUNT(*) FROM nhap_lieu_nang_suat nl 
+                     WHERE nl.bao_cao_id = bc.id AND nl.so_luong > 0) as total_entries
+             FROM bao_cao_nang_suat bc
+             LEFT JOIN line l ON l.id = bc.line_id  
+             LEFT JOIN ca_lam ca ON ca.id = bc.ca_id
+             WHERE bc.ma_hang_id = ?
+               AND bc.trang_thai = 'draft'
+               AND EXISTS (SELECT 1 FROM nhap_lieu_nang_suat nl 
+                           WHERE nl.bao_cao_id = bc.id AND nl.so_luong > 0)
+             ORDER BY bc.ngay_bao_cao DESC
+             LIMIT 50"
+        );
+        mysqli_stmt_bind_param($stmtDraft, "i", $maHangId);
+        mysqli_stmt_execute($stmtDraft);
+        $resultDraft = mysqli_stmt_get_result($stmtDraft);
+        
+        while ($row = mysqli_fetch_assoc($resultDraft)) {
+            $row['trang_thai_label'] = $statusLabels[$row['trang_thai']] ?? $row['trang_thai'];
+            $row['reason_label'] = $reasonLabels[$row['reason']] ?? $row['reason'];
+            $row['ten_line'] = $row['ten_line'] ?? 'N/A';
+            $row['ma_ca'] = $row['ma_ca'] ?? 'N/A';
+            $blockingReports[] = $row;
+            $summary['draft_with_data_count']++;
+        }
+        mysqli_stmt_close($stmtDraft);
+        
+        $isBlocked = count($blockingReports) > 0;
+        $totalBlocking = $summary['locked_count'] + $summary['draft_with_data_count'];
+        
+        $message = '';
+        if ($isBlocked) {
+            $message = "Có {$totalBlocking} báo cáo đang sử dụng mã hàng này.";
+            if ($summary['locked_count'] > 0) {
+                $message .= " {$summary['locked_count']} báo cáo đã chốt.";
+            }
+            if ($summary['draft_with_data_count'] > 0) {
+                $message .= " {$summary['draft_with_data_count']} báo cáo đang nhập dữ liệu.";
+            }
+        }
+        
+        return [
+            'is_blocked' => $isBlocked,
+            'blocking_reports' => $blockingReports,
+            'summary' => $summary,
+            'message' => $message
         ];
     }
     
