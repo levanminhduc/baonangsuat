@@ -89,7 +89,8 @@ $isAdmin = Auth::checkRole(['admin']);
     include __DIR__ . '/includes/navbar.php';
     ?>
     
-    <div class="app-container max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+    <div class="app-container">
+        <div class="px-4 sm:px-6 lg:px-8 py-6">
         <!-- Filter Section -->
         <div class="bg-white rounded-lg shadow-sm p-4 mb-6">
             <h2 class="text-lg font-semibold text-gray-800 mb-4">Bộ lọc</h2>
@@ -388,6 +389,7 @@ $isAdmin = Auth::checkRole(['admin']);
                     </div>
                 </div>
             </div>
+        </div>
         </div>
     </div>
     
