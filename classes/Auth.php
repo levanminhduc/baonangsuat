@@ -254,6 +254,65 @@ class Auth {
         }
     }
     
+    /**
+     * Get permissions for multiple users in a single query
+     * @param array $userIds Array of user IDs
+     * @return array Array of user permissions grouped by userId
+     */
+    public static function getAllUsersPermissions(array $userIds) {
+        if (empty($userIds)) {
+            return [];
+        }
+        
+        try {
+            $mysqli = Database::getMysqli();
+            
+            // Sanitize user IDs
+            $userIds = array_filter(array_map('intval', $userIds));
+            if (empty($userIds)) {
+                return [];
+            }
+            
+            // Build placeholders for IN clause
+            $placeholders = str_repeat('?,', count($userIds) - 1) . '?';
+            
+            $stmt = mysqli_prepare($mysqli,
+                "SELECT nguoi_dung_id, quyen FROM user_permissions WHERE nguoi_dung_id IN ($placeholders)"
+            );
+            
+            // Bind all user IDs
+            $types = str_repeat('i', count($userIds));
+            mysqli_stmt_bind_param($stmt, $types, ...$userIds);
+            mysqli_stmt_execute($stmt);
+            $result = mysqli_stmt_get_result($stmt);
+            
+            // Group permissions by user
+            $permissionsMap = [];
+            while ($row = mysqli_fetch_assoc($result)) {
+                $userId = (int)$row['nguoi_dung_id'];
+                if (!isset($permissionsMap[$userId])) {
+                    $permissionsMap[$userId] = [];
+                }
+                $permissionsMap[$userId][] = $row['quyen'];
+            }
+            mysqli_stmt_close($stmt);
+            
+            // Format result: include all requested users (even those with no permissions)
+            $resultArray = [];
+            foreach ($userIds as $userId) {
+                $resultArray[] = [
+                    'userId' => $userId,
+                    'permissions' => $permissionsMap[$userId] ?? []
+                ];
+            }
+            
+            return $resultArray;
+        } catch (Exception $e) {
+            error_log("Error in getAllUsersPermissions: " . $e->getMessage());
+            return [];
+        }
+    }
+    
     public static function canViewHistory($userId = null) {
         if (self::checkRole(['admin'])) {
             return true;

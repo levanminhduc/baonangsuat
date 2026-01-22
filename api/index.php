@@ -956,6 +956,18 @@ function handleUserPermissions($segments, $method, $input) {
     
     $mysqli = Database::getMysqli();
     
+    // Bulk fetch permissions for multiple users
+    if ($method === 'POST' && ($segments[1] ?? '') === 'bulk') {
+        $userIds = $input['userIds'] ?? [];
+        
+        if (!is_array($userIds)) {
+            response(['success' => false, 'error' => 'userIds must be an array'], 400);
+        }
+        
+        $permissions = Auth::getAllUsersPermissions($userIds);
+        response(['success' => true, 'data' => $permissions]);
+    }
+    
     $userId = isset($segments[1]) && is_numeric($segments[1]) ? intval($segments[1]) : null;
     $permissionKey = $segments[2] ?? null;
     

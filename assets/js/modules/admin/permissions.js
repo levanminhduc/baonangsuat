@@ -17,17 +17,31 @@ export async function loadUsers() {
 
 export async function loadUsersPermissions() {
     const state = getState();
-    const promises = state.users.map(u => api('GET', `/user-permissions/${u.id}`));
+    
+    if (!state.users || state.users.length === 0) {
+        setUsersPermissions([]);
+        renderPermissionsTable();
+        return;
+    }
+    
+    // Bulk fetch all permissions in a single API call
+    const userIds = state.users.map(u => u.id);
+    
     try {
-        const results = await Promise.all(promises);
-        const permissionsData = results.map((r, index) => ({
-            userId: state.users[index].id,
-            permissions: r.success ? r.data.permissions : []
-        }));
-        setUsersPermissions(permissionsData);
+        const response = await api('POST', '/user-permissions/bulk', { userIds });
+        
+        if (response.success) {
+            setUsersPermissions(response.data);
+        } else {
+            console.error('Error loading permissions:', response.error);
+            setUsersPermissions([]);
+        }
+        
         renderPermissionsTable();
     } catch (e) {
         console.error('Error loading permissions', e);
+        setUsersPermissions([]);
+        renderPermissionsTable();
     }
 }
 
