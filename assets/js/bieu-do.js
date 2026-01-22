@@ -384,16 +384,55 @@ class BieuDoApp {
         const mocGioColors = ['#86EFAC', '#4ADE80', '#22C55E', '#16A34A', '#15803D', '#166534', '#14532D', '#052E16'];
         const mocGioLabels = chartData.moc_gio_labels || [];
         const mocGioThucTe = chartData.moc_gio_thuc_te || {};
-        const mocGioIds = Object.keys(mocGioThucTe).map(id => parseInt(id));
+        const mocGioIds = Object.keys(mocGioThucTe).map(id => parseInt(id)).sort((a, b) => a - b);
         
-        const datasets = [{
-            label: 'Chỉ tiêu',
-            data: chartData.chi_tieu,
-            backgroundColor: '#3B82F6',
-            borderWidth: 0,
-            borderRadius: 4,
-            stack: 'target'
-        }];
+        const datasets = [];
+        const chiTieuColors = ['#FCA5A5', '#F87171', '#EF4444', '#DC2626', '#B91C1C', '#991B1B', '#7F1D1D', '#450A0A'];
+
+        if (chartData.moc_gio_chi_tieu) {
+            const mocGioChiTieu = chartData.moc_gio_chi_tieu;
+            const targetMocGioIds = Object.keys(mocGioChiTieu).map(id => parseInt(id)).sort((a, b) => a - b);
+
+            targetMocGioIds.forEach((mocGioId, idx) => {
+                const currentChiTieu = mocGioChiTieu[mocGioId];
+                let incrementalChiTieu = currentChiTieu;
+                
+                if (idx > 0) {
+                    const prevMocGioId = targetMocGioIds[idx - 1];
+                    const prevChiTieu = mocGioChiTieu[prevMocGioId] || 0;
+                    incrementalChiTieu = currentChiTieu - prevChiTieu;
+                }
+                
+                const label = chartData.moc_gio_labels[idx] || `Mốc ${idx + 1}`;
+
+                datasets.push({
+                    type: 'line',
+                    label: `CT ${label}`,
+                    data: Array(chartData.labels.length).fill(incrementalChiTieu),
+                    borderColor: chiTieuColors[idx % chiTieuColors.length],
+                    borderWidth: 2,
+                    borderDash: [5, 5],
+                    pointRadius: 3,
+                    pointBackgroundColor: chiTieuColors[idx % chiTieuColors.length],
+                    fill: false,
+                    order: 0,
+                    _cumulativeChiTieu: currentChiTieu
+                });
+            });
+        } else {
+            datasets.push({
+                type: 'line',
+                label: 'Chỉ tiêu',
+                data: chartData.chi_tieu,
+                borderColor: '#EF4444',
+                borderWidth: 2,
+                borderDash: [5, 5],
+                pointRadius: 4,
+                pointBackgroundColor: '#EF4444',
+                fill: false,
+                order: 0
+            });
+        }
         
         if (mocGioLabels.length > 0 && mocGioIds.length > 0) {
             mocGioIds.forEach((mocGioId, idx) => {
@@ -472,6 +511,12 @@ class BieuDoApp {
                             label: (context) => {
                                 const value = context.parsed.y;
                                 const dataset = context.dataset;
+                                if (dataset.type === 'line') {
+                                    if (dataset._cumulativeChiTieu) {
+                                        return `${dataset.label}: +${this.formatNumber(value)} (lũy kế: ${this.formatNumber(dataset._cumulativeChiTieu)})`;
+                                    }
+                                    return `${dataset.label}: ${this.formatNumber(value)}`;
+                                }
                                 if (dataset.stack === 'actual' && dataset._cumulativeData) {
                                     const cumulative = dataset._cumulativeData[context.dataIndex] || 0;
                                     return `${dataset.label}: +${this.formatNumber(value)} (lũy kế: ${this.formatNumber(cumulative)})`;
@@ -479,13 +524,13 @@ class BieuDoApp {
                                 return `${context.dataset.label}: ${this.formatNumber(value)}`;
                             },
                             afterBody: (tooltipItems) => {
-                                const chiTieuItem = tooltipItems.find(t => t.dataset.stack === 'target');
                                 const actualItems = tooltipItems.filter(t => t.dataset.stack === 'actual');
-                                if (chiTieuItem && actualItems.length > 0) {
-                                    const chiTieu = chiTieuItem.parsed.y;
+                                if (actualItems.length > 0) {
+                                    const dataIndex = actualItems[0].dataIndex;
+                                    const chiTieu = chartData.chi_tieu[dataIndex];
                                     const lastActualDataset = actualItems[actualItems.length - 1].dataset;
                                     const thucTe = lastActualDataset._cumulativeData 
-                                        ? lastActualDataset._cumulativeData[actualItems[0].dataIndex] || 0
+                                        ? lastActualDataset._cumulativeData[dataIndex] || 0
                                         : actualItems.reduce((sum, t) => sum + t.parsed.y, 0);
                                     const diff = thucTe - chiTieu;
                                     const pct = chiTieu > 0 ? ((thucTe / chiTieu) * 100).toFixed(1) : 0;

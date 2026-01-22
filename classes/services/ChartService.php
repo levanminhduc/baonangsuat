@@ -608,6 +608,18 @@ class ChartService {
         
         // 5. Calculate per-công đoạn breakdown
         $ctns = intval($baoCao['ctns']);
+        $tongPhut = intval($baoCao['tong_phut_hieu_dung']);
+        
+        $mocGioChiTieu = [];
+        foreach ($mocGioList as $mocGio) {
+            $mocGioId = intval($mocGio['id']);
+            $soPhutLuyKe = intval($mocGio['so_phut_hieu_dung_luy_ke']);
+            $chiTieu = 0;
+            if ($tongPhut > 0 && $ctns > 0) {
+                $chiTieu = round($ctns * $soPhutLuyKe / $tongPhut);
+            }
+            $mocGioChiTieu[$mocGioId] = $chiTieu;
+        }
         
         $congDoanDetails = [];
         $chartLabels = [];
@@ -701,7 +713,8 @@ class ChartService {
                     'thuc_te' => $chartThucTe,
                     'below_target' => $chartBelowTarget,
                     'moc_gio_labels' => $mocGioLabels,
-                    'moc_gio_thuc_te' => $mocGioThucTeByMocGio
+                    'moc_gio_thuc_te' => $mocGioThucTeByMocGio,
+                    'moc_gio_chi_tieu' => $mocGioChiTieu
                 ]
             ]
         ];
