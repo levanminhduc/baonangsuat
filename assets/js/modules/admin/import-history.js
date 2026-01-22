@@ -76,6 +76,8 @@ function renderHistoryList(data, pagination) {
         const statusClass = getStatusClass(item.trang_thai);
         const fileSize = formatFileSize(item.kich_thuoc_file);
         const importTime = formatDateTime(item.import_luc);
+        const displayName = item.ho_ten || item.import_boi;
+        const displayTitle = item.ho_ten ? `${item.ho_ten} (${item.import_boi})` : item.import_boi;
         
         return `
             <tr class="hover:bg-gray-50 border-b border-gray-100">
@@ -84,7 +86,7 @@ function renderHistoryList(data, pagination) {
                     <div class="text-xs text-gray-500">${escapeHtml(importTime.time)}</div>
                 </td>
                 <td class="px-4 py-3">
-                    <div class="text-sm font-medium text-gray-900">${escapeHtml(item.import_boi)}</div>
+                    <div class="text-sm font-medium text-gray-900" title="${escapeHtml(displayTitle)}">${escapeHtml(displayName)}</div>
                 </td>
                 <td class="px-4 py-3">
                     <div class="text-sm text-gray-900 truncate max-w-[150px]" title="${escapeHtml(item.ten_file)}">${escapeHtml(item.ten_file)}</div>
@@ -172,6 +174,8 @@ function renderDetailModal(detail) {
     const chiTiet = detail.chi_tiet || { ma_hang: [], cong_doan_moi: [] };
     const maHangList = chiTiet.ma_hang || [];
     const congDoanMoi = chiTiet.cong_doan_moi || [];
+    const detailDisplayName = detail.ho_ten || detail.import_boi;
+    const detailDisplayTitle = detail.ho_ten ? `${detail.ho_ten} (${detail.import_boi})` : detail.import_boi;
     
     const content = `
         <div class="bg-white rounded-lg shadow-xl max-w-3xl w-full max-h-[90vh] overflow-hidden flex flex-col">
@@ -195,7 +199,7 @@ function renderDetailModal(detail) {
                         </div>
                         <div>
                             <div class="text-gray-500">👤 Người import</div>
-                            <div class="font-medium">${escapeHtml(detail.import_boi)}</div>
+                            <div class="font-medium" title="${escapeHtml(detailDisplayTitle)}">${escapeHtml(detailDisplayName)}</div>
                         </div>
                         <div>
                             <div class="text-gray-500">🕐 Thời gian</div>

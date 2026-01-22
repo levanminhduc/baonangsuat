@@ -7,12 +7,14 @@ use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
 
 class ImportService {
     private $db;
+    private $dbNhanSu;
     private $lastPreviewStats = [];
     private $lastPreviewErrors = [];
     private $lastPreviewData = [];
     
     public function __construct() {
         $this->db = Database::getNangSuat();
+        $this->dbNhanSu = Database::getNhanSu();
     }
     
     public function preview($filePath) {
@@ -795,6 +797,39 @@ class ImportService {
         }
         mysqli_stmt_close($stmt);
         
+        // Fetch ho_ten from quan_ly_nhan_su.nhan_vien for all import_boi values
+        if (!empty($data)) {
+            $maNvList = array_unique(array_filter(array_map(function ($item) {
+                return strtoupper(trim($item['import_boi'] ?? ''));
+            }, $data)));
+            
+            if (!empty($maNvList)) {
+                $maNvArray = array_values($maNvList);
+                $placeholders = str_repeat('?,', count($maNvArray) - 1) . '?';
+                $nhanVienStmt = mysqli_prepare(
+                    $this->dbNhanSu,
+                    "SELECT UPPER(ma_nv) as ma_nv, ho_ten FROM nhan_vien WHERE UPPER(ma_nv) IN ($placeholders)"
+                );
+                $nhanVienTypes = str_repeat('s', count($maNvArray));
+                mysqli_stmt_bind_param($nhanVienStmt, $nhanVienTypes, ...$maNvArray);
+                mysqli_stmt_execute($nhanVienStmt);
+                $nhanVienResult = mysqli_stmt_get_result($nhanVienStmt);
+                
+                $nhanVienMap = [];
+                while ($nhanVienRow = mysqli_fetch_assoc($nhanVienResult)) {
+                    $nhanVienMap[$nhanVienRow['ma_nv']] = $nhanVienRow['ho_ten'];
+                }
+                mysqli_stmt_close($nhanVienStmt);
+                
+                // Add ho_ten to each data row
+                foreach ($data as &$dataRow) {
+                    $maNvUpper = strtoupper(trim($dataRow['import_boi'] ?? ''));
+                    $dataRow['ho_ten'] = $nhanVienMap[$maNvUpper] ?? null;
+                }
+                unset($dataRow); // Break reference
+            }
+        }
+        
         return [
             'data' => $data,
             'pagination' => [
@@ -824,6 +859,22 @@ class ImportService {
             }
             if (!empty($row['chi_tiet'])) {
                 $row['chi_tiet'] = json_decode($row['chi_tiet'], true);
+            }
+            
+            // Fetch ho_ten from quan_ly_nhan_su.nhan_vien
+            if (!empty($row['import_boi'])) {
+                $maNvUpper = strtoupper(trim($row['import_boi']));
+                $nhanVienStmt = mysqli_prepare(
+                    $this->dbNhanSu,
+                    "SELECT ho_ten FROM nhan_vien WHERE UPPER(ma_nv) = ?"
+                );
+                mysqli_stmt_bind_param($nhanVienStmt, "s", $maNvUpper);
+                mysqli_stmt_execute($nhanVienStmt);
+                $nhanVienResult = mysqli_stmt_get_result($nhanVienStmt);
+                $nhanVienRow = mysqli_fetch_assoc($nhanVienResult);
+                mysqli_stmt_close($nhanVienStmt);
+                
+                $row['ho_ten'] = $nhanVienRow['ho_ten'] ?? null;
             }
         }
         
