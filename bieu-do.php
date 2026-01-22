@@ -156,7 +156,7 @@ $isAdmin = Auth::checkRole(['admin']);
         </div>
         
         <!-- Chart Section -->
-        <div id="chartSection" class="hidden">
+        <div id="chartSection" class="">
             <!-- Report Info Header -->
             <div id="reportInfo" class="bg-white rounded-lg shadow-sm p-4 mb-6">
                 <div class="flex flex-wrap items-center gap-4 text-sm">
@@ -203,16 +203,16 @@ $isAdmin = Auth::checkRole(['admin']);
                 </div>
             </div>
             
-            <!-- View Toggle -->
-            <div class="flex justify-center mb-4">
+            <!-- View Toggle (temporarily hidden - show only Theo công đoạn view) -->
+            <div class="flex justify-center mb-4" style="display: none;">
                 <div class="inline-flex rounded-lg border border-gray-200 bg-gray-100 p-1">
                     <button id="btnViewTongQuan" class="px-4 py-2 rounded-md bg-primary text-white text-sm font-medium transition-colors">Tổng quan</button>
                     <button id="btnViewCongDoan" class="px-4 py-2 rounded-md text-gray-600 hover:bg-gray-200 text-sm font-medium transition-colors">Theo công đoạn</button>
                 </div>
             </div>
             
-            <!-- View: Tổng quan (existing chart) -->
-            <div id="viewTongQuan">
+            <!-- View: Tổng quan (existing chart) - temporarily hidden -->
+            <div id="viewTongQuan" style="display: none;">
                 <!-- NEW: Chart Type Toggle -->
                 <div class="flex justify-center mb-4">
                     <div class="inline-flex rounded-lg border border-gray-200 bg-gray-100 p-1">
@@ -308,8 +308,8 @@ $isAdmin = Auth::checkRole(['admin']);
                 </div>
             </div>
             
-            <!-- View: Theo công đoạn (new) -->
-            <div id="viewCongDoan" class="hidden">
+            <!-- View: Theo công đoạn (now shown by default) -->
+            <div id="viewCongDoan" class="">
                 <!-- Loading state for công đoạn view -->
                 <div id="congDoanLoading" class="hidden bg-white rounded-lg shadow-sm p-8 mb-6">
                     <div class="flex flex-col items-center justify-center">
@@ -331,8 +331,8 @@ $isAdmin = Auth::checkRole(['admin']);
                 
                 <!-- Summary View (existing table + bar chart) -->
                 <div id="viewSummary">
-                    <!-- Summary Table -->
-                    <div class="overflow-x-auto mb-6 bg-white rounded-lg shadow-sm">
+                    <!-- Summary Table (hidden - kept for potential future use) -->
+                    <div class="overflow-x-auto mb-6 bg-white rounded-lg shadow-sm" style="display: none;">
                         <table id="congDoanTable" class="min-w-full">
                             <thead class="bg-gray-50">
                                 <tr>
