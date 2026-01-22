@@ -156,6 +156,9 @@ try {
         case 'user-permissions':
             handleUserPermissions($segments, $method, $input);
             break;
+        case 'bieu-do':
+            handleBieuDo($segments, $method);
+            break;
         default:
             response(['success' => false, 'message' => 'API không tồn tại'], 404);
     }
@@ -1037,6 +1040,123 @@ function handleUserPermissions($segments, $method, $input) {
             mysqli_stmt_close($stmt);
             response(['success' => false, 'message' => 'Không thể thu hồi quyền'], 500);
         }
+    }
+    
+    response(['success' => false, 'message' => 'Endpoint không hợp lệ'], 404);
+}
+
+function handleBieuDo($segments, $method) {
+    requireLogin();
+    
+    $action = $segments[1] ?? '';
+    $session = Auth::getSession();
+    $isAdmin = Auth::checkRole(['admin']);
+    
+    require_once __DIR__ . '/../classes/services/ChartService.php';
+    $service = new ChartService();
+    
+    // GET /bieu-do/so-sanh - Get productivity comparison chart data
+    if ($method === 'GET' && $action === 'so-sanh') {
+        $line_id = isset($_GET['line_id']) ? intval($_GET['line_id']) : 0;
+        $ma_hang_id = isset($_GET['ma_hang_id']) ? intval($_GET['ma_hang_id']) : 0;
+        $ngay = $_GET['ngay'] ?? date('Y-m-d');
+        $ca_id = isset($_GET['ca_id']) ? intval($_GET['ca_id']) : 0;
+        
+        // Validate required parameters
+        if (!$line_id || !$ma_hang_id || !$ca_id) {
+            response(['success' => false, 'message' => 'Thiếu tham số bắt buộc (line_id, ma_hang_id, ca_id)'], 400);
+        }
+        
+        // Validate LINE access for non-admin
+        if (!$isAdmin) {
+            if ($session['line_id'] != $line_id) {
+                response(['success' => false, 'message' => 'Không có quyền xem LINE này'], 403);
+            }
+        }
+        
+        $result = $service->getProductivityComparison($line_id, $ma_hang_id, $ngay, $ca_id);
+        response($result);
+    }
+    
+    // GET /bieu-do/ma-hang-list - Get list of ma_hang with reports for a LINE and date
+    if ($method === 'GET' && $action === 'ma-hang-list') {
+        $line_id = isset($_GET['line_id']) ? intval($_GET['line_id']) : 0;
+        $ngay = $_GET['ngay'] ?? date('Y-m-d');
+        
+        if (!$line_id) {
+            response(['success' => false, 'message' => 'Thiếu tham số line_id'], 400);
+        }
+        
+        // Validate LINE access for non-admin
+        if (!$isAdmin) {
+            if ($session['line_id'] != $line_id) {
+                response(['success' => false, 'message' => 'Không có quyền xem LINE này'], 403);
+            }
+        }
+        
+        $result = $service->getMaHangListForChart($line_id, $ngay);
+        response(['success' => true, 'data' => $result]);
+    }
+    
+    // GET /bieu-do/lines - Get list of active lines (for admin)
+    if ($method === 'GET' && $action === 'lines') {
+        if (!$isAdmin) {
+            response(['success' => false, 'message' => 'Không có quyền'], 403);
+        }
+        $result = $service->getLineList();
+        response(['success' => true, 'data' => $result]);
+    }
+    
+    // GET /bieu-do/ca-list - Get list of shifts
+    if ($method === 'GET' && $action === 'ca-list') {
+        $result = $service->getCaList();
+        response(['success' => true, 'data' => $result]);
+    }
+    
+    // GET /bieu-do/so-sanh-chi-tiet - Get detailed per-công đoạn comparison
+    if ($method === 'GET' && $action === 'so-sanh-chi-tiet') {
+        $line_id = isset($_GET['line_id']) ? intval($_GET['line_id']) : null;
+        $ma_hang_id = isset($_GET['ma_hang_id']) ? intval($_GET['ma_hang_id']) : null;
+        $ngay = $_GET['ngay'] ?? date('Y-m-d');
+        $ca_id = isset($_GET['ca_id']) ? intval($_GET['ca_id']) : null;
+        
+        // Validate required parameters
+        if (!$line_id || !$ma_hang_id || !$ca_id) {
+            response(['success' => false, 'message' => 'Thiếu tham số bắt buộc (line_id, ma_hang_id, ca_id)'], 400);
+        }
+        
+        // Validate LINE access for non-admin
+        if (!$isAdmin) {
+            if ($session['line_id'] != $line_id) {
+                response(['success' => false, 'message' => 'Không có quyền xem LINE này'], 403);
+            }
+        }
+        
+        $result = $service->getProductivityComparisonDetailed($line_id, $ma_hang_id, $ngay, $ca_id);
+        response($result);
+    }
+    
+    // GET /bieu-do/so-sanh-matrix - Get matrix view (công đoạn × mốc giờ) with heatmap
+    if ($method === 'GET' && $action === 'so-sanh-matrix') {
+        $line_id = isset($_GET['line_id']) ? intval($_GET['line_id']) : null;
+        $ma_hang_id = isset($_GET['ma_hang_id']) ? intval($_GET['ma_hang_id']) : null;
+        $ngay = $_GET['ngay'] ?? date('Y-m-d');
+        $ca_id = isset($_GET['ca_id']) ? intval($_GET['ca_id']) : null;
+        
+        // Validate required parameters
+        if (!$line_id || !$ma_hang_id || !$ca_id) {
+            response(['success' => false, 'message' => 'Thiếu tham số bắt buộc (line_id, ma_hang_id, ca_id)'], 400);
+        }
+        
+        // Validate LINE access for non-admin
+        if (!$isAdmin) {
+            if ($session['line_id'] != $line_id) {
+                response(['success' => false, 'message' => 'Không có quyền xem LINE này'], 403);
+            }
+        }
+        
+        $result = $service->getProductivityComparisonMatrix($line_id, $ma_hang_id, $ngay, $ca_id);
+        response($result);
     }
     
     response(['success' => false, 'message' => 'Endpoint không hợp lệ'], 404);

@@ -89,6 +89,7 @@ if ($isLoggedIn) {
     $navLinks = [
         ['label' => 'Nhập năng suất', 'url' => 'nhap-nang-suat.php#/nhap-bao-cao', 'show' => true],
         ['label' => 'Lịch sử', 'url' => 'nhap-nang-suat.php#/lich-su', 'show' => Auth::canViewHistory()],
+        ['label' => 'Biểu đồ', 'url' => 'bieu-do.php', 'show' => Auth::hasLine() || Auth::checkRole(['admin'])],
         ['label' => 'Quản trị', 'url' => 'admin.php', 'show' => Auth::checkRole(['admin'])],
         // ['label' => 'Hướng dẫn', 'url' => 'huong-dan.php', 'show' => true]
     ];
@@ -117,6 +118,9 @@ if ($isLoggedIn) {
             if (!href) return;
             
             if (href === 'admin.php' && currentPath === 'admin.php') {
+                link.classList.add('active');
+            }
+            else if (href === 'bieu-do.php' && currentPath === 'bieu-do.php') {
                 link.classList.add('active');
             }
             else if (href === 'huong-dan.php' && currentPath === 'huong-dan.php') {
