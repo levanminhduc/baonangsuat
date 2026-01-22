@@ -212,10 +212,97 @@ $isAdmin = Auth::checkRole(['admin']);
             
             <!-- View: Tổng quan (existing chart) -->
             <div id="viewTongQuan">
-                <!-- Chart Container -->
-                <div class="bg-white rounded-lg shadow-sm p-4">
+                <!-- NEW: Chart Type Toggle -->
+                <div class="flex justify-center mb-4">
+                    <div class="inline-flex rounded-lg border border-gray-200 bg-gray-100 p-1">
+                        <button id="btnChartLine" class="chart-type-btn px-4 py-2 rounded-md bg-primary text-white text-sm font-medium transition-colors flex items-center gap-2">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 12l3-3 3 3 4-4M8 21l4-4 4 4M3 4h18M4 4h16v12a1 1 0 01-1 1H5a1 1 0 01-1-1V4z" />
+                            </svg>
+                            Đường
+                        </button>
+                        <button id="btnChartBar" class="chart-type-btn px-4 py-2 rounded-md text-gray-600 hover:bg-gray-200 text-sm font-medium transition-colors flex items-center gap-2">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                            </svg>
+                            Cột
+                        </button>
+                        <button id="btnChartTable" class="chart-type-btn px-4 py-2 rounded-md text-gray-600 hover:bg-gray-200 text-sm font-medium transition-colors flex items-center gap-2">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M3 14h18m-9-4v8m-7 0h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                            </svg>
+                            Bảng
+                        </button>
+                        <button id="btnChartMultiLine" class="chart-type-btn px-4 py-2 rounded-md text-gray-600 hover:bg-gray-200 text-sm font-medium transition-colors flex items-center gap-2">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                            </svg>
+                            Đa công đoạn
+                        </button>
+                        <button id="btnChartStacked" class="chart-type-btn px-4 py-2 rounded-md text-gray-600 hover:bg-gray-200 text-sm font-medium transition-colors flex items-center gap-2">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16" />
+                            </svg>
+                            Xếp chồng
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- Chart Container (for line and bar) -->
+                <div id="tongQuanChartContainer" class="bg-white rounded-lg shadow-sm p-4">
                     <div class="chart-container">
                         <canvas id="productivityChart"></canvas>
+                    </div>
+                </div>
+                
+                <!-- Table Container (hidden by default) -->
+                <div id="tongQuanTableContainer" class="hidden bg-white rounded-lg shadow-sm overflow-x-auto">
+                    <table id="tongQuanTable" class="min-w-full text-sm">
+                        <thead id="tongQuanTableHead" class="bg-gray-50"></thead>
+                        <tbody id="tongQuanTableBody" class="divide-y divide-gray-200"></tbody>
+                    </table>
+                    <!-- Legend for table -->
+                    <div class="flex flex-wrap justify-center py-4 gap-4 text-sm border-t">
+                        <div class="flex items-center gap-1">
+                            <div class="w-4 h-4 rounded bg-green-500"></div>
+                            <span>≥95% (Đạt)</span>
+                        </div>
+                        <div class="flex items-center gap-1">
+                            <div class="w-4 h-4 rounded bg-yellow-500"></div>
+                            <span>80-94% (Cần chú ý)</span>
+                        </div>
+                        <div class="flex items-center gap-1">
+                            <div class="w-4 h-4 rounded bg-red-500"></div>
+                            <span>&lt;80% (Chưa đạt)</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="flex items-center justify-end mb-4">
+                    <label class="flex items-center cursor-pointer">
+                        <span class="mr-2 text-sm font-medium text-gray-700">Ma trận công đoạn × mốc giờ</span>
+                        <div class="relative">
+                            <input type="checkbox" id="toggleTongQuanMatrix" class="sr-only peer">
+                            <div class="w-11 h-6 bg-gray-200 rounded-full peer peer-checked:bg-primary peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-0.5 after:left-[2px] after:bg-white after:border after:rounded-full after:h-5 after:w-5 after:transition-all"></div>
+                        </div>
+                    </label>
+                </div>
+
+                <div id="tongQuanMatrixContainer" class="hidden">
+                    <div id="tongQuanMatrixLoading" class="text-center py-8 hidden">
+                        <div class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+                        <p class="mt-2 text-gray-600">Đang tải dữ liệu...</p>
+                    </div>
+                    <div class="bg-white rounded-lg shadow-sm overflow-x-auto">
+                        <table id="tongQuanMatrixTable" class="min-w-full text-sm">
+                            <thead id="tongQuanMatrixHead" class="bg-gray-50"></thead>
+                            <tbody id="tongQuanMatrixBody" class="divide-y divide-gray-200"></tbody>
+                        </table>
+                    </div>
+                    <div class="flex flex-wrap justify-center mt-4 gap-4 text-sm">
+                        <div class="flex items-center gap-1"><div class="w-4 h-4 rounded bg-green-500"></div><span>≥95% (Đạt)</span></div>
+                        <div class="flex items-center gap-1"><div class="w-4 h-4 rounded bg-yellow-500"></div><span>80-94%</span></div>
+                        <div class="flex items-center gap-1"><div class="w-4 h-4 rounded bg-red-500"></div><span>&lt;80%</span></div>
                     </div>
                 </div>
             </div>

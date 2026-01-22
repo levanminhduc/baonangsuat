@@ -22,6 +22,12 @@ class BieuDoApp {
         this.maHangList = [];
         this.isAdmin = window.appConfig?.isAdmin ?? false;
         
+        // Chart Type Toggle state (AC-17 to AC-21)
+        this.tongQuanChartType = 'line';  // 'line' | 'bar' | 'table' | 'multiline'
+        this.tongQuanData = null;         // Cache data for re-rendering
+        this.tongQuanMatrixData = null;
+        this.tongQuanMatrixLoaded = false;
+        
         this.init();
     }
     
@@ -31,6 +37,8 @@ class BieuDoApp {
         this.bindEvents();
         this.bindViewToggle();
         this.bindMatrixToggle();
+        this.bindChartTypeToggle();
+        this.bindTongQuanMatrixToggle();
         await this.loadInitialData();
     }
     
@@ -73,7 +81,22 @@ class BieuDoApp {
             matrixNoData: document.getElementById('matrixNoData'),
             matrixTable: document.getElementById('matrixTable'),
             matrixTableHead: document.getElementById('matrixTableHead'),
-            matrixTableBody: document.getElementById('matrixTableBody')
+            matrixTableBody: document.getElementById('matrixTableBody'),
+            // Chart type toggle elements (AC-17 to AC-21)
+            btnChartLine: document.getElementById('btnChartLine'),
+            btnChartBar: document.getElementById('btnChartBar'),
+            btnChartTable: document.getElementById('btnChartTable'),
+            tongQuanChartContainer: document.getElementById('tongQuanChartContainer'),
+            tongQuanTableContainer: document.getElementById('tongQuanTableContainer'),
+            tongQuanTableHead: document.getElementById('tongQuanTableHead'),
+            tongQuanTableBody: document.getElementById('tongQuanTableBody'),
+            toggleTongQuanMatrix: document.getElementById('toggleTongQuanMatrix'),
+            tongQuanMatrixContainer: document.getElementById('tongQuanMatrixContainer'),
+            tongQuanMatrixLoading: document.getElementById('tongQuanMatrixLoading'),
+            tongQuanMatrixHead: document.getElementById('tongQuanMatrixHead'),
+            tongQuanMatrixBody: document.getElementById('tongQuanMatrixBody'),
+            btnChartMultiLine: document.getElementById('btnChartMultiLine'),
+            btnChartStacked: document.getElementById('btnChartStacked')
         };
     }
     
@@ -239,11 +262,17 @@ class BieuDoApp {
         // Reset công đoạn and matrix data loaded flags when loading new data
         this.congDoanDataLoaded = false;
         this.matrixDataLoaded = false;
+        this.tongQuanMatrixLoaded = false;
         
         // Reset matrix toggle to off
         if (this.elements.toggleMatrix) {
             this.elements.toggleMatrix.checked = false;
             this.toggleMatrixView(false);
+        }
+        
+        if (this.elements.toggleTongQuanMatrix) {
+            this.elements.toggleTongQuanMatrix.checked = false;
+            this.toggleTongQuanMatrix(false);
         }
         
         try {
@@ -348,36 +377,67 @@ class BieuDoApp {
         
         const ctx = this.elements.congDoanChart.getContext('2d');
         
-        // Destroy existing chart if any
         if (this.congDoanChart) {
             this.congDoanChart.destroy();
         }
         
-        // Create colors array based on below_target
-        const thucTeColors = chartData.below_target.map(below => 
-            below ? '#EF4444' : '#10B981'  // red if below, green if met
-        );
+        const mocGioColors = ['#86EFAC', '#4ADE80', '#22C55E', '#16A34A', '#15803D', '#166534', '#14532D', '#052E16'];
+        const mocGioLabels = chartData.moc_gio_labels || [];
+        const mocGioThucTe = chartData.moc_gio_thuc_te || {};
+        const mocGioIds = Object.keys(mocGioThucTe).map(id => parseInt(id));
+        
+        const datasets = [{
+            label: 'Chỉ tiêu',
+            data: chartData.chi_tieu,
+            backgroundColor: '#3B82F6',
+            borderWidth: 0,
+            borderRadius: 4,
+            stack: 'target'
+        }];
+        
+        if (mocGioLabels.length > 0 && mocGioIds.length > 0) {
+            mocGioIds.forEach((mocGioId, idx) => {
+                const currentValues = mocGioThucTe[mocGioId] || [];
+                
+                const incrementalValues = currentValues.map((val, cdIdx) => {
+                    if (idx === 0) {
+                        return val;
+                    } else {
+                        const prevMocGioId = mocGioIds[idx - 1];
+                        const prevVal = mocGioThucTe[prevMocGioId]?.[cdIdx] || 0;
+                        return Math.max(0, val - prevVal);
+                    }
+                });
+                
+                datasets.push({
+                    label: mocGioLabels[idx] || `Mốc ${idx + 1}`,
+                    data: incrementalValues,
+                    backgroundColor: mocGioColors[idx % mocGioColors.length],
+                    borderWidth: 0,
+                    borderRadius: idx === mocGioIds.length - 1 ? 4 : 0,
+                    stack: 'actual',
+                    _cumulativeData: currentValues
+                });
+            });
+        } else {
+            const thucTeColors = chartData.below_target.map(below => 
+                below ? '#EF4444' : '#10B981'
+            );
+            datasets.push({
+                label: 'Thực tế',
+                data: chartData.thuc_te,
+                backgroundColor: thucTeColors,
+                borderWidth: 0,
+                borderRadius: 4,
+                stack: 'actual'
+            });
+        }
         
         this.congDoanChart = new Chart(ctx, {
             type: 'bar',
             data: {
                 labels: chartData.labels,
-                datasets: [
-                    {
-                        label: 'Chỉ tiêu',
-                        data: chartData.chi_tieu,
-                        backgroundColor: '#3B82F6',
-                        borderWidth: 0,
-                        borderRadius: 4
-                    },
-                    {
-                        label: 'Thực tế',
-                        data: chartData.thuc_te,
-                        backgroundColor: thucTeColors,
-                        borderWidth: 0,
-                        borderRadius: 4
-                    }
-                ]
+                datasets: datasets
             },
             options: {
                 responsive: true,
@@ -411,16 +471,27 @@ class BieuDoApp {
                         callbacks: {
                             label: (context) => {
                                 const value = context.parsed.y;
+                                const dataset = context.dataset;
+                                if (dataset.stack === 'actual' && dataset._cumulativeData) {
+                                    const cumulative = dataset._cumulativeData[context.dataIndex] || 0;
+                                    return `${dataset.label}: +${this.formatNumber(value)} (lũy kế: ${this.formatNumber(cumulative)})`;
+                                }
                                 return `${context.dataset.label}: ${this.formatNumber(value)}`;
                             },
                             afterBody: (tooltipItems) => {
-                                if (tooltipItems.length >= 2) {
-                                    const chiTieu = tooltipItems[0].parsed.y;
-                                    const thucTe = tooltipItems[1].parsed.y;
+                                const chiTieuItem = tooltipItems.find(t => t.dataset.stack === 'target');
+                                const actualItems = tooltipItems.filter(t => t.dataset.stack === 'actual');
+                                if (chiTieuItem && actualItems.length > 0) {
+                                    const chiTieu = chiTieuItem.parsed.y;
+                                    const lastActualDataset = actualItems[actualItems.length - 1].dataset;
+                                    const thucTe = lastActualDataset._cumulativeData 
+                                        ? lastActualDataset._cumulativeData[actualItems[0].dataIndex] || 0
+                                        : actualItems.reduce((sum, t) => sum + t.parsed.y, 0);
                                     const diff = thucTe - chiTieu;
                                     const pct = chiTieu > 0 ? ((thucTe / chiTieu) * 100).toFixed(1) : 0;
                                     return [
                                         '',
+                                        `Tổng lũy kế: ${this.formatNumber(thucTe)}`,
                                         `Chênh lệch: ${diff >= 0 ? '+' : ''}${this.formatNumber(diff)}`,
                                         `Tỷ lệ: ${pct}%`
                                     ];
@@ -432,6 +503,7 @@ class BieuDoApp {
                 },
                 scales: {
                     x: {
+                        stacked: true,
                         title: {
                             display: true,
                             text: 'Công đoạn',
@@ -442,6 +514,7 @@ class BieuDoApp {
                         }
                     },
                     y: { 
+                        stacked: true,
                         beginAtZero: true,
                         title: {
                             display: true,
@@ -464,6 +537,9 @@ class BieuDoApp {
     }
     
     renderChart(data) {
+        // Cache data for re-rendering when chart type changes (AC-21)
+        this.tongQuanData = data;
+        
         // Update info header
         this.elements.infoLine.textContent = `${data.line.ma_line} - ${data.line.ten_line}`;
         this.elements.infoDate.textContent = this.formatDate(data.ngay);
@@ -486,117 +562,8 @@ class BieuDoApp {
         this.elements.summaryTyLe.textContent = `${tyLe}%`;
         this.elements.summaryTyLe.className = `text-2xl font-bold ${tyLe >= 100 ? 'text-green-600' : tyLe >= 80 ? 'text-yellow-600' : 'text-red-600'}`;
         
-        // Destroy existing chart
-        if (this.chart) {
-            this.chart.destroy();
-        }
-        
-        // Create chart
-        const ctx = this.elements.chartCanvas.getContext('2d');
-        this.chart = new Chart(ctx, {
-            type: 'line',
-            data: {
-                labels: data.chart.labels,
-                datasets: [
-                    {
-                        label: 'Chỉ tiêu',
-                        data: data.chart.chi_tieu,
-                        borderColor: '#3B82F6',
-                        backgroundColor: 'rgba(59, 130, 246, 0.1)',
-                        borderWidth: 2,
-                        fill: true,
-                        tension: 0.3,
-                        pointRadius: 5,
-                        pointHoverRadius: 8,
-                        pointBackgroundColor: '#3B82F6'
-                    },
-                    {
-                        label: 'Thực tế',
-                        data: data.chart.thuc_te,
-                        borderColor: '#10B981',
-                        backgroundColor: 'rgba(16, 185, 129, 0.1)',
-                        borderWidth: 2,
-                        fill: true,
-                        tension: 0.3,
-                        pointRadius: 5,
-                        pointHoverRadius: 8,
-                        pointBackgroundColor: '#10B981'
-                    }
-                ]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                interaction: {
-                    mode: 'index',
-                    intersect: false
-                },
-                plugins: {
-                    legend: {
-                        position: 'top',
-                        labels: {
-                            usePointStyle: true,
-                            font: {
-                                size: 13,
-                                weight: '500'
-                            }
-                        }
-                    },
-                    tooltip: {
-                        backgroundColor: 'rgba(0, 0, 0, 0.8)',
-                        titleFont: { size: 14, weight: 'bold' },
-                        bodyFont: { size: 13 },
-                        padding: 12,
-                        callbacks: {
-                            title: (tooltipItems) => {
-                                return `Mốc giờ: ${tooltipItems[0].label}`;
-                            },
-                            label: (context) => {
-                                const value = context.parsed.y;
-                                return `${context.dataset.label}: ${this.formatNumber(value)}`;
-                            },
-                            afterBody: (tooltipItems) => {
-                                if (tooltipItems.length >= 2) {
-                                    const chiTieu = tooltipItems[0].parsed.y;
-                                    const thucTe = tooltipItems[1].parsed.y;
-                                    const diff = thucTe - chiTieu;
-                                    const pct = chiTieu > 0 ? ((thucTe / chiTieu) * 100).toFixed(1) : 0;
-                                    return [
-                                        '',
-                                        `Chênh lệch: ${diff >= 0 ? '+' : ''}${this.formatNumber(diff)}`,
-                                        `Tỷ lệ: ${pct}%`
-                                    ];
-                                }
-                                return [];
-                            }
-                        }
-                    }
-                },
-                scales: {
-                    x: {
-                        title: {
-                            display: true,
-                            text: 'Mốc giờ',
-                            font: { size: 13, weight: '500' }
-                        },
-                        grid: {
-                            display: false
-                        }
-                    },
-                    y: {
-                        title: {
-                            display: true,
-                            text: 'Số lượng',
-                            font: { size: 13, weight: '500' }
-                        },
-                        beginAtZero: true,
-                        grid: {
-                            color: 'rgba(0, 0, 0, 0.05)'
-                        }
-                    }
-                }
-            }
-        });
+        // Render based on current chart type (AC-17 to AC-21)
+        this.renderTongQuan();
     }
     
     showLoading() {
@@ -751,6 +718,475 @@ class BieuDoApp {
             default:
                 return 'bg-red-500';
         }
+    }
+    
+    // =====================
+    // Chart Type Toggle Methods (AC-17 to AC-21)
+    // =====================
+    
+    bindChartTypeToggle() {
+        this.elements.btnChartLine?.addEventListener('click', () => this.switchChartType('line'));
+        this.elements.btnChartBar?.addEventListener('click', () => this.switchChartType('bar'));
+        this.elements.btnChartTable?.addEventListener('click', () => this.switchChartType('table'));
+        this.elements.btnChartMultiLine?.addEventListener('click', () => this.switchChartType('multiline'));
+        this.elements.btnChartStacked?.addEventListener('click', () => this.switchChartType('stacked'));
+    }
+    
+    bindTongQuanMatrixToggle() {
+        this.elements.toggleTongQuanMatrix?.addEventListener('change', (e) => {
+            this.toggleTongQuanMatrix(e.target.checked);
+        });
+    }
+    
+    toggleTongQuanMatrix(show) {
+        const chartContainer = this.elements.tongQuanChartContainer;
+        const tableContainer = this.elements.tongQuanTableContainer;
+        const matrixContainer = this.elements.tongQuanMatrixContainer;
+        
+        if (show) {
+            chartContainer?.classList.add('hidden');
+            tableContainer?.classList.add('hidden');
+            matrixContainer?.classList.remove('hidden');
+            if (!this.tongQuanMatrixLoaded) {
+                this.loadTongQuanMatrix();
+            }
+        } else {
+            matrixContainer?.classList.add('hidden');
+            this.renderTongQuan();
+        }
+    }
+    
+    async loadTongQuanMatrix() {
+        const loading = this.elements.tongQuanMatrixLoading;
+        loading?.classList.remove('hidden');
+        
+        const params = new URLSearchParams({
+            line_id: this.filters.line_id,
+            ma_hang_id: this.filters.ma_hang_id,
+            ngay: this.filters.ngay,
+            ca_id: this.filters.ca_id
+        });
+        
+        try {
+            const response = await api('GET', `/bieu-do/so-sanh-matrix?${params}`);
+            loading?.classList.add('hidden');
+            
+            if (response.success) {
+                this.tongQuanMatrixData = response.data;
+                this.renderTongQuanMatrix(response.data);
+                this.tongQuanMatrixLoaded = true;
+            }
+        } catch (error) {
+            loading?.classList.add('hidden');
+            showToast('Không thể tải dữ liệu ma trận', 'error');
+        }
+    }
+    
+    renderTongQuanMatrix(data) {
+        const thead = this.elements.tongQuanMatrixHead;
+        const tbody = this.elements.tongQuanMatrixBody;
+        
+        thead.innerHTML = `
+            <tr>
+                <th class="px-3 py-2 text-left font-semibold sticky left-0 bg-gray-50 border-r">Công đoạn</th>
+                ${data.moc_gio_list.map(mg => `<th class="px-3 py-2 text-center font-semibold min-w-[80px]">${mg.gio}</th>`).join('')}
+                <th class="px-3 py-2 text-center font-semibold bg-gray-100 min-w-[80px]">TỔNG</th>
+            </tr>
+        `;
+        
+        tbody.innerHTML = data.cong_doan_matrix.map(cd => `
+            <tr class="border-b hover:bg-gray-50">
+                <td class="px-3 py-2 font-medium sticky left-0 bg-white border-r">${this.escapeHtml(cd.ten_cong_doan)}</td>
+                ${data.moc_gio_list.map(mg => {
+                    const cell = cd.moc_gio_data[mg.id] || { chi_tieu: 0, thuc_te: 0, ty_le: 0 };
+                    return this.renderMatrixCellTongQuan(cell);
+                }).join('')}
+                ${this.renderMatrixCellTongQuan(cd.tong, true)}
+            </tr>
+        `).join('');
+    }
+    
+    renderMatrixCellTongQuan(cell, isSummary = false) {
+        const bgColor = cell.ty_le >= 95 ? 'bg-green-500' : cell.ty_le >= 80 ? 'bg-yellow-500' : 'bg-red-500';
+        const bgClass = isSummary ? 'bg-gray-100' : '';
+        
+        return `
+            <td class="px-2 py-2 text-center ${bgClass}">
+                <div class="rounded px-2 py-1 text-white text-xs font-medium ${bgColor}">
+                    <div>${cell.thuc_te}/${cell.chi_tieu}</div>
+                    <div class="text-[10px] opacity-90">${cell.ty_le.toFixed(0)}%</div>
+                </div>
+            </td>
+        `;
+    }
+    
+    async renderMultiLineChart() {
+        if (!this.tongQuanMatrixData) {
+            await this.loadTongQuanMatrix();
+        }
+        const data = this.tongQuanMatrixData;
+        if (!data) return;
+        
+        const ctx = this.elements.chartCanvas.getContext('2d');
+        if (this.chart) this.chart.destroy();
+        
+        const colors = ['#3B82F6', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6', '#EC4899', '#06B6D4', '#84CC16'];
+        
+        const datasets = data.cong_doan_matrix.map((cd, idx) => ({
+            label: cd.ten_cong_doan,
+            data: data.moc_gio_list.map(mg => cd.moc_gio_data[mg.id]?.thuc_te || 0),
+            borderColor: colors[idx % colors.length],
+            backgroundColor: colors[idx % colors.length] + '20',
+            borderWidth: 2,
+            fill: false,
+            tension: 0.3
+        }));
+        
+        this.chart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: data.moc_gio_list.map(mg => mg.gio),
+                datasets: datasets
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { position: 'top' },
+                    title: { display: true, text: 'Năng suất theo công đoạn' }
+                },
+                scales: { y: { beginAtZero: true } }
+            }
+        });
+    }
+    
+    async renderStackedBarChart() {
+        if (!this.tongQuanMatrixData) {
+            await this.loadTongQuanMatrix();
+        }
+        const data = this.tongQuanMatrixData;
+        if (!data) return;
+        
+        const ctx = this.elements.chartCanvas.getContext('2d');
+        if (this.chart) this.chart.destroy();
+        
+        const colors = ['#3B82F6', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6', '#EC4899', '#06B6D4', '#84CC16'];
+        
+        const datasets = data.cong_doan_matrix.map((cd, idx) => ({
+            label: cd.ten_cong_doan,
+            data: data.moc_gio_list.map(mg => cd.moc_gio_data[mg.id]?.thuc_te || 0),
+            backgroundColor: colors[idx % colors.length],
+            borderRadius: 2
+        }));
+        
+        this.chart = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: data.moc_gio_list.map(mg => mg.gio),
+                datasets: datasets
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { position: 'top' },
+                    title: { display: true, text: 'Năng suất xếp chồng theo công đoạn' }
+                },
+                scales: {
+                    x: { stacked: true },
+                    y: { stacked: true, beginAtZero: true }
+                }
+            }
+        });
+    }
+    
+    switchChartType(type) {
+        this.tongQuanChartType = type;
+        this.updateChartTypeButtons(type);
+        
+        if (this.elements.toggleTongQuanMatrix) {
+            this.elements.toggleTongQuanMatrix.checked = false;
+        }
+        this.elements.tongQuanMatrixContainer?.classList.add('hidden');
+        
+        if (type === 'multiline') {
+            this.elements.tongQuanChartContainer?.classList.remove('hidden');
+            this.elements.tongQuanTableContainer?.classList.add('hidden');
+            this.renderMultiLineChart();
+        } else if (type === 'stacked') {
+            this.elements.tongQuanChartContainer?.classList.remove('hidden');
+            this.elements.tongQuanTableContainer?.classList.add('hidden');
+            this.elements.tongQuanMatrixContainer?.classList.add('hidden');
+            if (this.elements.toggleTongQuanMatrix) this.elements.toggleTongQuanMatrix.checked = false;
+            this.renderStackedBarChart();
+        } else {
+            this.renderTongQuan();
+        }
+    }
+    
+    updateChartTypeButtons(activeType) {
+        const buttons = {
+            line: this.elements.btnChartLine,
+            bar: this.elements.btnChartBar,
+            table: this.elements.btnChartTable,
+            multiline: this.elements.btnChartMultiLine,
+            stacked: this.elements.btnChartStacked
+        };
+        
+        Object.entries(buttons).forEach(([type, btn]) => {
+            if (!btn) return;
+            if (type === activeType) {
+                btn.classList.add('bg-primary', 'text-white');
+                btn.classList.remove('text-gray-600', 'hover:bg-gray-200');
+            } else {
+                btn.classList.remove('bg-primary', 'text-white');
+                btn.classList.add('text-gray-600', 'hover:bg-gray-200');
+            }
+        });
+    }
+    
+    renderTongQuan() {
+        if (!this.tongQuanData) return;
+        
+        const chartContainer = this.elements.tongQuanChartContainer;
+        const tableContainer = this.elements.tongQuanTableContainer;
+        
+        switch (this.tongQuanChartType) {
+            case 'line':
+                chartContainer?.classList.remove('hidden');
+                tableContainer?.classList.add('hidden');
+                this.renderLineChart(this.tongQuanData);
+                break;
+            case 'bar':
+                chartContainer?.classList.remove('hidden');
+                tableContainer?.classList.add('hidden');
+                this.renderBarChartTongQuan(this.tongQuanData);
+                break;
+            case 'table':
+                chartContainer?.classList.add('hidden');
+                tableContainer?.classList.remove('hidden');
+                this.renderTongQuanTable(this.tongQuanData);
+                break;
+        }
+    }
+    
+    renderLineChart(data) {
+        const ctx = this.elements.chartCanvas.getContext('2d');
+        if (this.chart) this.chart.destroy();
+        
+        this.chart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: data.chart.labels,
+                datasets: [
+                    {
+                        label: 'Chỉ tiêu',
+                        data: data.chart.chi_tieu,
+                        borderColor: '#3B82F6',
+                        backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                        borderWidth: 2,
+                        fill: true,
+                        tension: 0.3,
+                        pointRadius: 5,
+                        pointHoverRadius: 8,
+                        pointBackgroundColor: '#3B82F6'
+                    },
+                    {
+                        label: 'Thực tế',
+                        data: data.chart.thuc_te,
+                        borderColor: '#10B981',
+                        backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                        borderWidth: 2,
+                        fill: true,
+                        tension: 0.3,
+                        pointRadius: 5,
+                        pointHoverRadius: 8,
+                        pointBackgroundColor: '#10B981'
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                interaction: {
+                    mode: 'index',
+                    intersect: false
+                },
+                plugins: {
+                    legend: { 
+                        position: 'top',
+                        labels: {
+                            usePointStyle: true,
+                            font: { size: 13, weight: '500' }
+                        }
+                    },
+                    tooltip: {
+                        backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                        titleFont: { size: 14, weight: 'bold' },
+                        bodyFont: { size: 13 },
+                        padding: 12,
+                        callbacks: {
+                            title: (tooltipItems) => `Mốc giờ: ${tooltipItems[0].label}`,
+                            label: (context) => `${context.dataset.label}: ${this.formatNumber(context.parsed.y)}`,
+                            afterBody: (tooltipItems) => {
+                                if (tooltipItems.length >= 2) {
+                                    const chiTieu = tooltipItems[0].parsed.y;
+                                    const thucTe = tooltipItems[1].parsed.y;
+                                    const diff = thucTe - chiTieu;
+                                    const pct = chiTieu > 0 ? ((thucTe / chiTieu) * 100).toFixed(1) : 0;
+                                    return ['', `Chênh lệch: ${diff >= 0 ? '+' : ''}${this.formatNumber(diff)}`, `Tỷ lệ: ${pct}%`];
+                                }
+                                return [];
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    x: {
+                        title: { display: true, text: 'Mốc giờ', font: { size: 13, weight: '500' } },
+                        grid: { display: false }
+                    },
+                    y: {
+                        beginAtZero: true,
+                        title: { display: true, text: 'Số lượng', font: { size: 13, weight: '500' } },
+                        grid: { color: 'rgba(0, 0, 0, 0.05)' }
+                    }
+                }
+            }
+        });
+    }
+    
+    renderBarChartTongQuan(data) {
+        const ctx = this.elements.chartCanvas.getContext('2d');
+        if (this.chart) this.chart.destroy();
+        
+        // Dynamic colors for thực tế bars (AC-19)
+        const thucTeColors = data.chart.thuc_te.map((val, i) => 
+            val >= data.chart.chi_tieu[i] ? '#10B981' : '#EF4444'
+        );
+        
+        this.chart = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: data.chart.labels,
+                datasets: [
+                    {
+                        label: 'Chỉ tiêu',
+                        data: data.chart.chi_tieu,
+                        backgroundColor: '#3B82F6',
+                        borderRadius: 4
+                    },
+                    {
+                        label: 'Thực tế',
+                        data: data.chart.thuc_te,
+                        backgroundColor: thucTeColors,
+                        borderRadius: 4
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                interaction: {
+                    mode: 'index',
+                    intersect: false
+                },
+                plugins: {
+                    legend: { 
+                        position: 'top',
+                        labels: {
+                            usePointStyle: true,
+                            font: { size: 13, weight: '500' }
+                        }
+                    },
+                    tooltip: {
+                        backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                        titleFont: { size: 14, weight: 'bold' },
+                        bodyFont: { size: 13 },
+                        padding: 12,
+                        callbacks: {
+                            title: (tooltipItems) => `Mốc giờ: ${tooltipItems[0].label}`,
+                            label: (context) => `${context.dataset.label}: ${this.formatNumber(context.parsed.y)}`,
+                            afterBody: (tooltipItems) => {
+                                if (tooltipItems.length >= 2) {
+                                    const chiTieu = tooltipItems[0].parsed.y;
+                                    const thucTe = tooltipItems[1].parsed.y;
+                                    const diff = thucTe - chiTieu;
+                                    const pct = chiTieu > 0 ? ((thucTe / chiTieu) * 100).toFixed(1) : 0;
+                                    return ['', `Chênh lệch: ${diff >= 0 ? '+' : ''}${this.formatNumber(diff)}`, `Tỷ lệ: ${pct}%`];
+                                }
+                                return [];
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    x: {
+                        title: { display: true, text: 'Mốc giờ', font: { size: 13, weight: '500' } },
+                        grid: { display: false }
+                    },
+                    y: {
+                        beginAtZero: true,
+                        title: { display: true, text: 'Số lượng', font: { size: 13, weight: '500' } },
+                        grid: { color: 'rgba(0, 0, 0, 0.05)' }
+                    }
+                }
+            }
+        });
+    }
+    
+    renderTongQuanTable(data) {
+        const thead = this.elements.tongQuanTableHead;
+        const tbody = this.elements.tongQuanTableBody;
+        
+        // Generate table header
+        thead.innerHTML = `
+            <tr>
+                <th class="px-4 py-3 text-left font-semibold">Mốc giờ</th>
+                <th class="px-4 py-3 text-right font-semibold">Chỉ tiêu</th>
+                <th class="px-4 py-3 text-right font-semibold">Thực tế</th>
+                <th class="px-4 py-3 text-right font-semibold">Chênh lệch</th>
+                <th class="px-4 py-3 text-right font-semibold">Tỷ lệ (%)</th>
+                <th class="px-4 py-3 text-center font-semibold">Trạng thái</th>
+            </tr>
+        `;
+        
+        // Generate table body (AC-20)
+        tbody.innerHTML = data.chart.labels.map((label, i) => {
+            const chiTieu = data.chart.chi_tieu[i];
+            const thucTe = data.chart.thuc_te[i];
+            const chenhLech = thucTe - chiTieu;
+            const tyLe = chiTieu > 0 ? ((thucTe / chiTieu) * 100).toFixed(1) : 0;
+            const trangThai = tyLe >= 95 ? 'dat' : tyLe >= 80 ? 'can_chu_y' : 'chua_dat';
+            
+            const statusClasses = {
+                dat: 'bg-green-100 text-green-800',
+                can_chu_y: 'bg-yellow-100 text-yellow-800',
+                chua_dat: 'bg-red-100 text-red-800'
+            };
+            const statusText = {
+                dat: 'Đạt',
+                can_chu_y: 'Cần chú ý',
+                chua_dat: 'Chưa đạt'
+            };
+            
+            return `
+                <tr class="hover:bg-gray-50">
+                    <td class="px-4 py-3 font-medium">${this.escapeHtml(label)}</td>
+                    <td class="px-4 py-3 text-right">${chiTieu.toLocaleString()}</td>
+                    <td class="px-4 py-3 text-right">${thucTe.toLocaleString()}</td>
+                    <td class="px-4 py-3 text-right ${chenhLech >= 0 ? 'text-green-600' : 'text-red-600'}">
+                        ${chenhLech >= 0 ? '+' : ''}${chenhLech.toLocaleString()}
+                    </td>
+                    <td class="px-4 py-3 text-right font-medium">${tyLe}%</td>
+                    <td class="px-4 py-3 text-center">
+                        <span class="px-2 py-1 rounded-full text-xs font-medium ${statusClasses[trangThai]}">
+                            ${statusText[trangThai]}
+                        </span>
+                    </td>
+                </tr>
+            `;
+        }).join('');
     }
 }
 

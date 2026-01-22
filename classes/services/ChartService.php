@@ -644,11 +644,32 @@ class ChartService {
                 'trang_thai' => $trangThai
             ];
             
-            // Chart data
             $chartLabels[] = $tenCongDoan;
             $chartChiTieu[] = $chiTieu;
             $chartThucTe[] = $thucTe;
             $chartBelowTarget[] = $thucTe < $chiTieu;
+        }
+        
+        $mocGioLabels = [];
+        $mocGioThucTeByMocGio = [];
+        
+        foreach ($mocGioList as $mocGio) {
+            $mocGioId = intval($mocGio['id']);
+            $mocGioLabels[] = $mocGio['gio'];
+            $mocGioThucTeByMocGio[$mocGioId] = [];
+        }
+        
+        foreach ($routing as $cd) {
+            $congDoanId = intval($cd['cong_doan_id']);
+            foreach ($mocGioList as $mocGio) {
+                $mocGioId = intval($mocGio['id']);
+                $key = $congDoanId . '_' . $mocGioId;
+                $soLuong = 0;
+                if (isset($entries[$key])) {
+                    $soLuong = intval($entries[$key]['so_luong']);
+                }
+                $mocGioThucTeByMocGio[$mocGioId][] = $soLuong;
+            }
         }
         
         return [
@@ -678,7 +699,9 @@ class ChartService {
                     'labels' => $chartLabels,
                     'chi_tieu' => $chartChiTieu,
                     'thuc_te' => $chartThucTe,
-                    'below_target' => $chartBelowTarget
+                    'below_target' => $chartBelowTarget,
+                    'moc_gio_labels' => $mocGioLabels,
+                    'moc_gio_thuc_te' => $mocGioThucTeByMocGio
                 ]
             ]
         ];
