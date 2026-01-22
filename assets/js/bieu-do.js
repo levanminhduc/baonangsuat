@@ -10,7 +10,7 @@ class BieuDoApp {
     constructor() {
         this.chart = null;
         this.congDoanChart = null;
-        this.currentView = 'tongquan';
+        this.currentView = 'congdoan'; // Default to 'congdoan' (Theo công đoạn view)
         this.congDoanDataLoaded = false;
         this.matrixDataLoaded = false;
         this.filters = {
@@ -28,18 +28,169 @@ class BieuDoApp {
         this.tongQuanMatrixData = null;
         this.tongQuanMatrixLoaded = false;
         
+        // URL filter persistence state
+        this.urlFilters = null;  // Filters loaded from URL (for deferred selection)
+        this.isInitialLoad = true;  // Track if this is initial page load
+        
         this.init();
     }
     
     async init() {
         await fetchCsrfToken();
         this.bindElements();
+        this.loadFiltersFromURL();  // Load URL params early
         this.bindEvents();
         this.bindViewToggle();
         this.bindMatrixToggle();
         this.bindChartTypeToggle();
         this.bindTongQuanMatrixToggle();
+        this.bindPopState();  // Handle browser back/forward
         await this.loadInitialData();
+    }
+    
+    // =====================
+    // URL Filter Persistence Methods
+    // =====================
+    
+    /**
+     * Parse query params and populate this.filters
+     * Read line_id, ngay, ma_hang_id, ca_id from URL
+     */
+    loadFiltersFromURL() {
+        const params = new URLSearchParams(window.location.search);
+        
+        // Store URL filters for deferred selection after dropdowns load
+        this.urlFilters = {
+            line_id: params.get('line_id') ? parseInt(params.get('line_id')) : null,
+            ngay: params.get('ngay') || null,
+            ma_hang_id: params.get('ma_hang_id') ? parseInt(params.get('ma_hang_id')) : null,
+            ca_id: params.get('ca_id') ? parseInt(params.get('ca_id')) : null
+        };
+        
+        // Apply ngay from URL if present, otherwise use today's date (from input default)
+        if (this.urlFilters.ngay) {
+            this.filters.ngay = this.urlFilters.ngay;
+        }
+        
+        // For non-admin users, line_id comes from session, not URL
+        if (!this.isAdmin && this.urlFilters.line_id) {
+            // Ignore URL line_id for non-admin (security)
+            this.urlFilters.line_id = null;
+        }
+    }
+    
+    /**
+     * Update browser URL with current filter state
+     * @param {boolean} replaceState - Use replaceState instead of pushState (for initial load)
+     */
+    updateURL(replaceState = false) {
+        const params = new URLSearchParams();
+        
+        // Only include non-null values
+        if (this.filters.line_id) {
+            params.set('line_id', this.filters.line_id);
+        }
+        if (this.filters.ngay) {
+            params.set('ngay', this.filters.ngay);
+        }
+        if (this.filters.ma_hang_id) {
+            params.set('ma_hang_id', this.filters.ma_hang_id);
+        }
+        if (this.filters.ca_id) {
+            params.set('ca_id', this.filters.ca_id);
+        }
+        
+        const queryString = params.toString();
+        const newUrl = queryString 
+            ? `${window.location.pathname}?${queryString}`
+            : window.location.pathname;
+        
+        // Avoid pushing same state
+        if (window.location.search === (queryString ? `?${queryString}` : '')) {
+            return;
+        }
+        
+        if (replaceState) {
+            window.history.replaceState({ filters: this.filters }, '', newUrl);
+        } else {
+            window.history.pushState({ filters: this.filters }, '', newUrl);
+        }
+    }
+    
+    /**
+     * Set dropdown/input values from this.filters
+     */
+    syncUIWithFilters() {
+        // Sync date input
+        if (this.filters.ngay && this.elements.filterDate) {
+            this.elements.filterDate.value = this.filters.ngay;
+        }
+        
+        // Sync LINE dropdown (admin only)
+        if (this.isAdmin && this.filters.line_id && this.elements.filterLine) {
+            this.elements.filterLine.value = this.filters.line_id;
+        }
+        
+        // Sync Ma Hang dropdown - construct composite value "{ma_hang_id}_{ca_id}"
+        if (this.filters.ma_hang_id && this.filters.ca_id && this.elements.filterMaHang) {
+            const compositeValue = `${this.filters.ma_hang_id}_${this.filters.ca_id}`;
+            const optionExists = Array.from(this.elements.filterMaHang.options)
+                .some(opt => opt.value === compositeValue);
+            
+            if (optionExists) {
+                this.elements.filterMaHang.value = compositeValue;
+            } else {
+                // Invalid ma_hang_id from URL - clear it
+                this.filters.ma_hang_id = null;
+                this.filters.ca_id = null;
+            }
+        }
+    }
+    
+    /**
+     * Handle browser back/forward navigation
+     */
+    bindPopState() {
+        window.addEventListener('popstate', (event) => {
+            // Reload filters from current URL
+            this.loadFiltersFromURL();
+            
+            // Apply ngay from URL
+            if (this.urlFilters.ngay) {
+                this.filters.ngay = this.urlFilters.ngay;
+            }
+            
+            // Apply line_id from URL (admin only)
+            if (this.isAdmin && this.urlFilters.line_id) {
+                this.filters.line_id = this.urlFilters.line_id;
+            }
+            
+            // Sync UI with date/line
+            this.syncUIWithFilters();
+            
+            // Reload ma_hang list, then select from URL and auto-load chart
+            this.loadMaHangList().then(() => {
+                // After ma_hang list loads, apply URL selection
+                if (this.urlFilters.ma_hang_id && this.urlFilters.ca_id) {
+                    this.filters.ma_hang_id = this.urlFilters.ma_hang_id;
+                    this.filters.ca_id = this.urlFilters.ca_id;
+                    this.syncUIWithFilters();
+                    
+                    // Auto-load chart if all filters are valid
+                    if (this.hasAllRequiredFilters()) {
+                        this.loadChartData();
+                    }
+                }
+            });
+        });
+    }
+    
+    /**
+     * Check if all required filters are present and valid
+     */
+    hasAllRequiredFilters() {
+        return !!(this.filters.line_id && this.filters.ngay && 
+                  this.filters.ma_hang_id && this.filters.ca_id);
     }
     
     bindElements() {
@@ -169,17 +320,57 @@ class BieuDoApp {
     }
     
     async loadInitialData() {
-        // Set initial filter values
-        this.filters.ngay = this.elements.filterDate.value;
+        // Set initial filter values from URL or defaults
+        if (this.urlFilters.ngay) {
+            this.filters.ngay = this.urlFilters.ngay;
+            this.elements.filterDate.value = this.urlFilters.ngay;
+        } else {
+            this.filters.ngay = this.elements.filterDate.value;
+        }
         
         if (this.isAdmin) {
             // Load lines for admin
             await this.loadLineList();
+            
+            // After line list loads, select from URL if present
+            if (this.urlFilters.line_id) {
+                const optionExists = Array.from(this.elements.filterLine.options)
+                    .some(opt => opt.value == this.urlFilters.line_id);
+                
+                if (optionExists) {
+                    this.filters.line_id = this.urlFilters.line_id;
+                    this.elements.filterLine.value = this.urlFilters.line_id;
+                    
+                    // Load ma_hang list for this line
+                    await this.loadMaHangList();
+                }
+            }
         } else {
             // Non-admin: use assigned line
             this.filters.line_id = window.appConfig.lineId;
             await this.loadMaHangList();
         }
+        
+        // After ma_hang list loads, select from URL and auto-load chart if all params present
+        if (this.urlFilters.ma_hang_id && this.urlFilters.ca_id && this.maHangList.length > 0) {
+            const compositeValue = `${this.urlFilters.ma_hang_id}_${this.urlFilters.ca_id}`;
+            const optionExists = Array.from(this.elements.filterMaHang.options)
+                .some(opt => opt.value === compositeValue);
+            
+            if (optionExists) {
+                this.filters.ma_hang_id = this.urlFilters.ma_hang_id;
+                this.filters.ca_id = this.urlFilters.ca_id;
+                this.elements.filterMaHang.value = compositeValue;
+                
+                // Auto-load chart if all required params are present in URL
+                if (this.hasAllRequiredFilters()) {
+                    await this.loadChartData();
+                }
+            }
+        }
+        
+        // Mark initial load complete
+        this.isInitialLoad = false;
     }
     
     async loadLineList() {
@@ -281,6 +472,9 @@ class BieuDoApp {
             if (response.success) {
                 this.renderChart(response.data);
                 this.showChart();
+                
+                // Update URL with current filter values after successful load
+                this.updateURL(this.isInitialLoad);
                 
                 // If currently on công đoạn view, load that data too
                 if (this.currentView === 'congdoan') {
