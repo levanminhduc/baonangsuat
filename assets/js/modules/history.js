@@ -472,7 +472,7 @@ export class HistoryModule {
         }, 'Xác nhận xóa', 'danger');
     }
 
-    showConfirmModal(message, callback, title = 'Xác nhận', variant = 'primary') {
+    showConfirmModal(message, callback, title = 'Xác nhận', variant = 'primary', confirmText = 'Xác nhận', cancelText = 'Hủy', isHtml = false) {
         const modal = document.getElementById('confirmModal');
         if (!modal) {
             if (confirm(message)) callback();
@@ -502,8 +502,37 @@ export class HistoryModule {
             }
         }
         
-        document.getElementById('confirmMessage').textContent = message;
-        confirmBtn.onclick = callback;
+        const messageEl = document.getElementById('confirmMessage');
+        if (isHtml) {
+            messageEl.innerHTML = message;
+        } else {
+            messageEl.textContent = message;
+        }
+
+        // Update button texts if provided
+        if (confirmBtn && confirmText) {
+            confirmBtn.textContent = confirmText;
+        }
+
+        const cancelBtn = document.getElementById('cancelConfirmBtn');
+        if (cancelBtn) {
+            if (cancelText === '') {
+                cancelBtn.classList.add('hidden');
+            } else {
+                cancelBtn.classList.remove('hidden');
+                cancelBtn.textContent = cancelText;
+            }
+        }
+
+        // Handle null callback (info-only modal)
+        if (callback === null) {
+            if (confirmBtn) {
+                confirmBtn.onclick = () => this.closeConfirmModal();
+            }
+        } else {
+            confirmBtn.onclick = callback;
+        }
+        
         modal.classList.remove('hidden');
     }
 

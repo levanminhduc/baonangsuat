@@ -13,6 +13,7 @@ dist/
 build/
 tools/
 specs/
+tests/
 
 # Environment
 .env
@@ -32,6 +33,6 @@ logs/
 *.log
 tailwindcss-windows-x64.exe
 tailwindcss-windows-x64.exe
-
+nul
 # Kilo Code agent worktrees
 .kilocode/worktrees/

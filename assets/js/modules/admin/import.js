@@ -3,6 +3,8 @@ import { escapeHtml, showToast, showLoading, hideLoading, showConfirmModal, clos
 
 const API_BASE = '/baonangsuat/api';
 let previewData = null;
+let uploadedFileName = '';
+let uploadedFileSize = 0;
 
 async function getCsrfToken() {
     const response = await fetch(API_BASE + '/csrf-token');
@@ -44,6 +46,8 @@ function renderUploadUI() {
 
 function resetState() {
     previewData = null;
+    uploadedFileName = '';
+    uploadedFileSize = 0;
     const fileInput = document.getElementById('importFileInput');
     if (fileInput) fileInput.value = '';
 }
@@ -67,6 +71,9 @@ function handleFileSelect(file) {
         showToast('File vượt quá 10MB', 'error');
         return;
     }
+    
+    uploadedFileName = file.name;
+    uploadedFileSize = file.size;
     
     document.getElementById('importFileName').textContent = file.name;
     document.getElementById('importSelectedFile').classList.remove('hidden');
@@ -122,10 +129,10 @@ function renderPreview(response) {
             <div class="text-xs text-gray-500 uppercase tracking-wide font-medium mb-1">Mã hàng cũ</div>
             <div class="text-2xl font-bold text-gray-600">${stats.total_ma_hang_existing || 0}</div>
         </div>
-        ${stats.total_blocked_ma_hang > 0 ? `
-        <div class="bg-white p-3 rounded-lg border border-danger text-center shadow-sm ring-1 ring-red-100">
-            <div class="text-xs text-red-500 uppercase tracking-wide font-medium mb-1">Bị chặn</div>
-            <div class="text-2xl font-bold text-danger">${stats.total_blocked_ma_hang}</div>
+        ${stats.total_ma_hang_with_reports > 0 ? `
+        <div class="bg-white p-3 rounded-lg border border-yellow-300 text-center shadow-sm ring-1 ring-yellow-100">
+            <div class="text-xs text-yellow-600 uppercase tracking-wide font-medium mb-1">Có báo cáo</div>
+            <div class="text-2xl font-bold text-yellow-600">${stats.total_ma_hang_with_reports}</div>
         </div>
         ` : ''}
         <div class="bg-white p-3 rounded-lg border border-gray-200 text-center shadow-sm">
@@ -163,29 +170,27 @@ function renderPreview(response) {
         previewListContainer.innerHTML = '<p class="text-gray-500 text-center py-4">Không có dữ liệu hợp lệ để import</p>';
         document.getElementById('importConfirmBtn').disabled = true;
     } else {
-        const hasBlocking = response.has_blocking_reports || false;
-        const totalBlocked = response.stats?.total_blocked_ma_hang || 0;
+        const hasActiveReports = response.has_active_reports || false;
+        const totalWithReports = response.stats?.total_ma_hang_with_reports || 0;
         const confirmBtn = document.getElementById('importConfirmBtn');
         
-        // Disable import if ALL are blocked or if we want to force resolution
-        // The requirement says "If ALL selected ma_hang are blocked, disable import button"
-        const allBlocked = data.every(item => item.is_blocked);
-        confirmBtn.disabled = allBlocked;
+        // Always enable import button - active reports don't block import
+        confirmBtn.disabled = false;
         
-        if (hasBlocking) {
+        if (hasActiveReports) {
             const warningEl = document.createElement('div');
-            warningEl.className = 'mb-4 p-4 bg-red-50 border border-red-200 rounded-lg text-red-800 text-sm flex items-center gap-2';
+            warningEl.className = 'mb-4 p-4 bg-yellow-50 border border-yellow-200 rounded-lg text-yellow-800 text-sm flex items-center gap-2';
             warningEl.innerHTML = `
-                <svg class="w-5 h-5 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
-                <span>Có ${totalBlocked} mã hàng bị chặn, không thể import. Vui lòng kiểm tra danh sách bên dưới.</span>
+                <svg class="w-5 h-5 text-yellow-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                <span>Có ${totalWithReports} mã hàng đang có báo cáo sử dụng. Các báo cáo này sẽ giữ nguyên routing cũ (dùng snapshot, không bị ảnh hưởng).</span>
             `;
             previewListContainer.before(warningEl);
         }
 
         previewListContainer.innerHTML = data.map(item => {
             const isNew = item.is_new;
-            const isBlocked = item.is_blocked || false;
-            const blockingCheck = item.blocking_check || null;
+            const hasActiveReportsForItem = item.has_active_reports || false;
+            const activeReportsCheck = item.active_reports_check || null;
             const hasWarning = item.has_warning || false;
             const warningMessage = item.warning_message || '';
             const reportStats = item.report_stats || null;
@@ -199,58 +204,55 @@ function renderPreview(response) {
             const newCount = congDoanList.filter(cd => cd.is_new).length;
             const existingCount = congDoanList.length - newCount;
             
-            let blockingHtml = '';
-            if (isBlocked && blockingCheck) {
-                const reports = blockingCheck.blocking_reports || [];
-                blockingHtml = `
-                    <div class="mt-3 p-3 bg-red-50 border border-red-200 rounded-lg blocking-panel">
-                        <div class="flex items-start gap-2 mb-2 text-red-800">
-                            <svg class="w-5 h-5 text-red-500 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+            // Active reports info panel (informational, yellow styling)
+            let activeReportsHtml = '';
+            if (hasActiveReportsForItem && activeReportsCheck) {
+                const reports = activeReportsCheck.blocking_reports || [];
+                activeReportsHtml = `
+                    <div class="mt-3 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                        <div class="flex items-start gap-2 mb-2 text-blue-800">
+                            <svg class="w-5 h-5 text-blue-500 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                             </svg>
                             <div class="flex-1">
-                                <p class="text-sm font-bold">Mã hàng bị chặn</p>
-                                <p class="text-xs mt-1">${escapeHtml(blockingCheck.message)}</p>
+                                <p class="text-sm font-bold">Có báo cáo đang sử dụng</p>
+                                <p class="text-xs mt-1">${escapeHtml(activeReportsCheck.message)} Các báo cáo này sẽ giữ nguyên routing cũ (không bị ảnh hưởng).</p>
                             </div>
                         </div>
                         <details class="group mt-2">
-                            <summary class="text-xs text-red-600 cursor-pointer hover:underline font-medium list-none flex items-center gap-1">
+                            <summary class="text-xs text-blue-600 cursor-pointer hover:underline font-medium list-none flex items-center gap-1">
                                 <span>Xem danh sách báo cáo</span>
                                 <svg class="w-3 h-3 transition-transform group-open:rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
                             </summary>
                             <div class="mt-2 overflow-x-auto">
                                 <table class="min-w-full text-[11px] border-collapse">
                                     <thead>
-                                        <tr class="bg-red-100 text-red-700">
-                                            <th class="px-2 py-1 text-left border border-red-200">Ngày</th>
-                                            <th class="px-2 py-1 text-left border border-red-200">Line</th>
-                                            <th class="px-2 py-1 text-left border border-red-200">Ca</th>
-                                            <th class="px-2 py-1 text-left border border-red-200">Trạng thái</th>
-                                            <th class="px-2 py-1 text-left border border-red-200">Lý do</th>
+                                        <tr class="bg-blue-100 text-blue-700">
+                                            <th class="px-2 py-1 text-left border border-blue-200">Ngày</th>
+                                            <th class="px-2 py-1 text-left border border-blue-200">Line</th>
+                                            <th class="px-2 py-1 text-left border border-blue-200">Ca</th>
+                                            <th class="px-2 py-1 text-left border border-blue-200">Trạng thái</th>
                                         </tr>
                                     </thead>
                                     <tbody class="bg-white">
                                         ${reports.map(rep => `
-                                            <tr class="blocking-report-row ${rep.reason === 'LOCKED_REPORT' ? 'status-locked bg-red-50/50' : 'status-draft-with-data'}">
-                                                <td class="px-2 py-1 border border-red-100">${escapeHtml(rep.ngay_bao_cao)}</td>
-                                                <td class="px-2 py-1 border border-red-100">${escapeHtml(rep.ten_line)}</td>
-                                                <td class="px-2 py-1 border border-red-100 font-medium">${escapeHtml(rep.ma_ca)}</td>
-                                                <td class="px-2 py-1 border border-red-100">${escapeHtml(rep.trang_thai_label || rep.trang_thai_display || rep.trang_thai)}</td>
-                                                <td class="px-2 py-1 border border-red-100 italic">${escapeHtml(rep.reason_label || rep.reason_display || rep.reason)}</td>
+                                            <tr class="bg-blue-50/50">
+                                                <td class="px-2 py-1 border border-blue-100">${escapeHtml(rep.ngay_bao_cao)}</td>
+                                                <td class="px-2 py-1 border border-blue-100">${escapeHtml(rep.ten_line)}</td>
+                                                <td class="px-2 py-1 border border-blue-100 font-medium">${escapeHtml(rep.ma_ca)}</td>
+                                                <td class="px-2 py-1 border border-blue-100">${escapeHtml(rep.trang_thai_label || rep.trang_thai_display || rep.trang_thai)}</td>
                                             </tr>
                                         `).join('')}
                                     </tbody>
                                 </table>
                             </div>
                         </details>
-                        <div class="mt-3 text-[11px] text-red-700 font-medium italic border-t border-red-100 pt-2">
-                            Vui lòng hoàn thành hoặc xóa các báo cáo trước khi import.
-                        </div>
                     </div>
                 `;
             }
 
-            const warningHtml = hasWarning && !isBlocked ? `
+            // Warning HTML for routing deletion (shown if no active reports panel)
+            const warningHtml = hasWarning && !hasActiveReportsForItem ? `
                 <div class="mt-3 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
                     <div class="flex items-start gap-2">
                         <svg class="w-5 h-5 text-yellow-600 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -271,16 +273,16 @@ function renderPreview(response) {
                 </div>
             ` : '';
             
-            const borderClass = isBlocked ? 'border-danger blocked-item ring-1 ring-red-200' : (hasWarning ? 'border-yellow-300 ring-1 ring-yellow-200' : 'border-gray-200');
+            const borderClass = hasActiveReportsForItem ? 'border-blue-300 ring-1 ring-blue-100' : (hasWarning ? 'border-yellow-300 ring-1 ring-yellow-200' : 'border-gray-200');
 
             return `
-                <div class="bg-white border ${borderClass} rounded-lg p-4 hover:border-primary transition-colors shadow-sm ${isBlocked ? 'opacity-95' : ''}">
+                <div class="bg-white border ${borderClass} rounded-lg p-4 hover:border-primary transition-colors shadow-sm">
                     <div class="flex flex-col sm:flex-row sm:items-start justify-between gap-2 mb-3">
                         <div class="flex-1 min-w-0">
                             <div class="flex items-center flex-wrap gap-2">
                                 <span class="font-bold text-gray-800 text-lg truncate" title="${escapeHtml(item.ma_hang)}">${escapeHtml(item.ma_hang)}</span>
                                 <span class="text-xs px-2 py-0.5 rounded font-medium whitespace-nowrap ${badgeClass}">${badgeText}</span>
-                                ${isBlocked ? '<span class="text-danger" title="Mã hàng bị chặn">🚫</span>' : (hasWarning ? '<span class="text-yellow-600" title="Có báo cáo đã chốt">⚠️</span>' : '')}
+                                ${hasActiveReportsForItem ? '<span class="text-blue-500" title="Có báo cáo đang sử dụng (sẽ giữ routing cũ)">ℹ️</span>' : (hasWarning ? '<span class="text-yellow-600" title="Cảnh báo">⚠️</span>' : '')}
                             </div>
                             <p class="text-sm text-gray-600 mt-1 truncate" title="${escapeHtml(item.ten_hang || '')}">${escapeHtml(item.ten_hang || '')}</p>
                         </div>
@@ -289,7 +291,7 @@ function renderPreview(response) {
                         </div>
                     </div>
                     
-                    ${blockingHtml}
+                    ${activeReportsHtml}
                     ${warningHtml}
                     
                     <div class="mt-3 text-sm border-t border-gray-100 pt-3 flex flex-wrap items-center gap-x-4 gap-y-2">
@@ -350,7 +352,13 @@ async function handleConfirmImport(acknowledgeDeletion = false) {
     showLoading();
     
     try {
-        const payload = { ma_hang_list: maHangList };
+        const payload = { 
+            ma_hang_list: maHangList,
+            file_name: uploadedFileName,
+            file_size: uploadedFileSize,
+            preview_stats: previewData.stats || {},
+            preview_errors: previewData.errors || []
+        };
         if (acknowledgeDeletion) {
             payload.acknowledge_deletion = true;
         }
@@ -360,29 +368,6 @@ async function handleConfirmImport(acknowledgeDeletion = false) {
         if (response.success) {
             showToast(response.message || 'Import thành công', 'success');
             renderImportResult(response);
-        } else if (response.error_code === 'IMPORT_BLOCKED') {
-            hideLoading();
-            const blockedList = response.blocked_ma_hang || [];
-            const blockedHtml = blockedList.length > 0 
-                ? `<div class="mt-3 text-left max-h-60 overflow-y-auto">
-                    <ul class="list-disc list-inside space-y-1">
-                        ${blockedList.map(m => `<li class="text-sm font-medium text-red-700">${escapeHtml(m)}</li>`).join('')}
-                    </ul>
-                   </div>`
-                : '';
-            
-            showConfirmModal(
-                `<div>
-                    <p>${escapeHtml(response.message || 'Một số mã hàng bị chặn và không thể import do đang có báo cáo sử dụng.')}</p>
-                    ${blockedHtml}
-                    <p class="mt-4 text-xs text-gray-500 italic">Vui lòng quay lại màn hình preview để xem chi tiết các báo cáo gây chặn.</p>
-                </div>`,
-                null, // No callback, just show info
-                'Import bị chặn',
-                'danger',
-                'Đã hiểu',
-                '' // Hide cancel button
-            );
         } else if (response.error_code === 'DELETION_WARNING' && response.requires_acknowledgement) {
             hideLoading();
             showConfirmModal(
@@ -392,7 +377,11 @@ async function handleConfirmImport(acknowledgeDeletion = false) {
                     try {
                         const confirmResponse = await api('POST', '/import/confirm', {
                             ma_hang_list: maHangList,
-                            acknowledge_deletion: true
+                            acknowledge_deletion: true,
+                            file_name: uploadedFileName,
+                            file_size: uploadedFileSize,
+                            preview_stats: previewData.stats || {},
+                            preview_errors: previewData.errors || []
                         });
                         if (confirmResponse.success) {
                             showToast(confirmResponse.message || 'Import thành công', 'success');

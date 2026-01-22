@@ -75,7 +75,7 @@ export function closeModal(modalId) {
     document.getElementById(modalId).classList.add('hidden');
 }
 
-export function showConfirmModal(message, callback, title = 'Xác nhận', variant = 'primary') {
+export function showConfirmModal(message, callback, title = 'Xác nhận', variant = 'primary', confirmText = 'Xác nhận', cancelText = 'Hủy', isHtml = false) {
     const modal = document.getElementById('confirmModal');
     
     const titleEl = document.getElementById('confirmModalTitle');
@@ -103,7 +103,36 @@ export function showConfirmModal(message, callback, title = 'Xác nhận', varia
         }
     }
     
-    document.getElementById('confirmMessage').textContent = message;
-    confirmBtn.onclick = callback;
+    const messageEl = document.getElementById('confirmMessage');
+    if (isHtml) {
+        messageEl.innerHTML = message;
+    } else {
+        messageEl.textContent = message;
+    }
+    
+    // Update button texts if provided
+    if (confirmBtn && confirmText) {
+        confirmBtn.textContent = confirmText;
+    }
+    
+    const cancelBtn = document.getElementById('cancelConfirmBtn');
+    if (cancelBtn) {
+        if (cancelText === '') {
+            cancelBtn.classList.add('hidden');
+        } else {
+            cancelBtn.classList.remove('hidden');
+            cancelBtn.textContent = cancelText;
+        }
+    }
+    
+    // Handle null callback (info-only modal)
+    if (callback === null) {
+        if (confirmBtn) {
+            confirmBtn.onclick = () => closeModal('confirmModal');
+        }
+    } else {
+        confirmBtn.onclick = callback;
+    }
+    
     modal.classList.remove('hidden');
 }

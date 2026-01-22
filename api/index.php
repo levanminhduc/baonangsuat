@@ -142,6 +142,11 @@ try {
         case 'import':
             handleImport($segments, $method, $input);
             break;
+        case 'import-history':
+            requireLogin();
+            requireRole(['admin']);
+            handleImportHistory($method, array_slice($segments, 1), $input);
+            break;
         case 'moc-gio-sets':
             handleMocGioSets($segments, $method, $input);
             break;
@@ -870,17 +875,80 @@ function handleImport($segments, $method, $input) {
         requireCsrf();
         
         $maHangList = $input['ma_hang_list'] ?? [];
+        $fileName = $input['file_name'] ?? '';
+        $fileSize = intval($input['file_size'] ?? 0);
+        $previewStats = $input['preview_stats'] ?? [];
+        $previewErrors = $input['preview_errors'] ?? [];
         
         if (empty($maHangList)) {
             response(['success' => false, 'message' => 'Danh sách mã hàng không được rỗng', 'error_code' => 'VALIDATION_FAILED'], 400);
         }
         
         $importService = new ImportService();
-        $result = $importService->confirm($maHangList, $input['acknowledge_deletion'] ?? false);
+        
+        // Set preview data for history
+        $importService->setPreviewData([
+            'stats' => $previewStats,
+            'errors' => $previewErrors,
+            'data' => $maHangList
+        ]);
+        
+        // Get current user
+        $session = Auth::getSession();
+        $importedBy = $session['ma_nv'] ?? '';
+        
+        $result = $importService->confirm(
+            $maHangList, 
+            $input['acknowledge_deletion'] ?? false,
+            $fileName,
+            $fileSize,
+            $importedBy
+        );
         response($result);
     }
     
     response(['success' => false, 'message' => 'Endpoint không hợp lệ'], 404);
+}
+
+function handleImportHistory($method, $segments, $input) {
+    require_once __DIR__ . '/../classes/services/ImportService.php';
+    
+    $importService = new ImportService();
+    $id = isset($segments[0]) && is_numeric($segments[0]) ? intval($segments[0]) : null;
+    
+    if ($method === 'GET') {
+        if ($id !== null) {
+            // GET /import-history/{id} - Get detail
+            $result = $importService->getImportHistoryDetail($id);
+            if ($result === null) {
+                response(['success' => false, 'message' => 'Không tìm thấy lịch sử import'], 404);
+            }
+            response(['success' => true, 'data' => $result]);
+        } else {
+            // GET /import-history - List with pagination
+            $page = intval($_GET['page'] ?? 1);
+            $pageSize = intval($_GET['page_size'] ?? 20);
+            
+            $filters = [];
+            if (!empty($_GET['date_from'])) {
+                $filters['date_from'] = $_GET['date_from'];
+            }
+            if (!empty($_GET['date_to'])) {
+                $filters['date_to'] = $_GET['date_to'];
+            }
+            if (!empty($_GET['import_boi'])) {
+                $filters['import_boi'] = $_GET['import_boi'];
+            }
+            if (!empty($_GET['trang_thai'])) {
+                $filters['trang_thai'] = $_GET['trang_thai'];
+            }
+            
+            $result = $importService->getImportHistoryList($page, $pageSize, $filters);
+            response(['success' => true, 'data' => $result['data'], 'pagination' => $result['pagination']]);
+        }
+    }
+    
+    response(['success' => false, 'message' => 'Method not allowed'], 405);
 }
 
 function handleUserPermissions($segments, $method, $input) {

@@ -7,6 +7,9 @@ use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
 
 class ImportService {
     private $db;
+    private $lastPreviewStats = [];
+    private $lastPreviewErrors = [];
+    private $lastPreviewData = [];
     
     public function __construct() {
         $this->db = Database::getNangSuat();
@@ -17,7 +20,7 @@ class ImportService {
         
         $data = [];
         $errors = [];
-        $hasBlockingReports = false;
+        $hasActiveReports = false;
         $stats = [
             'total_sheets' => count($sheets),
             'total_ma_hang_new' => 0,
@@ -26,7 +29,7 @@ class ImportService {
             'total_cong_doan_existing' => 0,
             'total_routing_new' => 0,
             'routing_to_delete' => 0,
-            'total_blocked_ma_hang' => 0
+            'total_ma_hang_with_reports' => 0
         ];
         
         $newCongDoanCounter = $this->getNextMaCongDoanNumber();
@@ -61,8 +64,8 @@ class ImportService {
             $isNewMaHang = ($existingMaHang === null);
             
             $reportStats = null;
-            $blockingCheck = null;
-            $isBlocked = false;
+            $activeReportsCheck = null;
+            $hasActiveReportsForItem = false;
             $hasWarning = false;
             $warningMessage = '';
             $routingToDelete = 0;
@@ -73,26 +76,27 @@ class ImportService {
                 $stats['total_ma_hang_existing']++;
                 $maHangId = intval($existingMaHang['id']);
                 
-                // Check for blocking reports
-                $blockingCheck = $this->checkBlockingReports($maHangId);
-                $isBlocked = $blockingCheck['is_blocked'];
+                // Check for active reports (informational only, not blocking)
+                $activeReportsCheck = $this->checkBlockingReports($maHangId);
+                $hasActiveReportsForItem = $activeReportsCheck['is_blocked']; // Reusing method, treating as info
                 
-                if ($isBlocked) {
-                    $hasBlockingReports = true;
-                    $stats['total_blocked_ma_hang']++;
+                if ($hasActiveReportsForItem) {
+                    $hasActiveReports = true;
+                    $stats['total_ma_hang_with_reports']++;
+                    
+                    // Set warning message - informational, not blocking
+                    $totalReports = $activeReportsCheck['summary']['locked_count'] + $activeReportsCheck['summary']['draft_with_data_count'];
+                    $hasWarning = true;
+                    $warningMessage = "Có {$totalReports} báo cáo đang sử dụng mã hàng này. Các báo cáo này sẽ giữ nguyên routing cũ (dùng snapshot, không bị ảnh hưởng).";
                 }
                 
                 $reportStats = $this->checkExistingReports($maHangId);
-                if ($reportStats['locked_reports'] > 0 && !$isBlocked) {
-                    $hasWarning = true;
-                    $warningMessage = "Mã hàng {$maHang} có {$reportStats['locked_reports']} báo cáo đã chốt. Import routing mới có thể ảnh hưởng hiển thị báo cáo cũ nếu không có routing snapshot.";
-                }
                 $routingToDelete = $this->countRoutingToDelete($maHangId, []);
-                if ($routingToDelete > 0 && !$isBlocked) {
+                if ($routingToDelete > 0 && !$hasWarning) {
                     $hasWarning = true;
-                    $warningMessage = empty($warningMessage) ? 
-                        "Import sẽ xóa {$routingToDelete} công đoạn routing hiện tại của mã hàng {$maHang}" : 
-                        $warningMessage . " Import cũng sẽ xóa {$routingToDelete} công đoạn routing hiện tại.";
+                    $warningMessage = "Import sẽ xóa {$routingToDelete} công đoạn routing hiện tại của mã hàng {$maHang}";
+                } else if ($routingToDelete > 0 && $hasWarning) {
+                    $warningMessage .= " Import cũng sẽ xóa {$routingToDelete} công đoạn routing hiện tại.";
                 }
             }
             
@@ -144,8 +148,8 @@ class ImportService {
                 'ten_hang' => 'Mã hàng ' . $maHang,
                 'is_new' => $isNewMaHang,
                 'existing_id' => $isNewMaHang ? null : intval($existingMaHang['id']),
-                'is_blocked' => $isBlocked,
-                'blocking_check' => $blockingCheck,
+                'has_active_reports' => $hasActiveReportsForItem,
+                'active_reports_check' => $activeReportsCheck,
                 'report_stats' => $reportStats,
                 'has_warning' => $hasWarning,
                 'warning_message' => $warningMessage,
@@ -163,17 +167,26 @@ class ImportService {
             'data' => $data,
             'stats' => $stats,
             'errors' => $errors,
-            'has_blocking_reports' => $hasBlockingReports
+            'has_active_reports' => $hasActiveReports
         ];
     }
     
-    public function confirm($maHangList, $acknowledgeDeletion = false) {
+    /**
+     * Set preview data (called before confirm)
+     */
+    public function setPreviewData(array $previewResult) {
+        $this->lastPreviewStats = $previewResult['stats'] ?? [];
+        $this->lastPreviewErrors = $previewResult['errors'] ?? [];
+        $this->lastPreviewData = $previewResult['data'] ?? [];
+    }
+    
+    public function confirm($maHangList, $acknowledgeDeletion = false, $fileName = '', $fileSize = 0, $importedBy = '') {
+        $startTime = microtime(true);
         if (empty($maHangList)) {
             return ['success' => false, 'message' => 'Danh sách mã hàng không được rỗng', 'error_code' => 'VALIDATION_FAILED'];
         }
         
-        // Check for blocking reports BEFORE starting transaction
-        $blockedMaHangList = [];
+        // Check for existing ma_hang that need deletion acknowledgement
         $hasExistingMaHang = false;
         
         foreach ($maHangList as $maHangData) {
@@ -182,40 +195,9 @@ class ImportService {
                 $existing = $this->findMaHangByCode($maHang);
                 if ($existing !== null) {
                     $hasExistingMaHang = true;
-                    $maHangId = intval($existing['id']);
-                    
-                    // Check for blocking reports
-                    $blockingCheck = $this->checkBlockingReports($maHangId);
-                    if ($blockingCheck['is_blocked']) {
-                        $totalBlocking = $blockingCheck['summary']['locked_count'] + $blockingCheck['summary']['draft_with_data_count'];
-                        $blockedMaHangList[] = [
-                            'ma_hang' => $maHang,
-                            'ma_hang_id' => $maHangId,
-                            'blocking_count' => $totalBlocking,
-                            'blocking_check' => $blockingCheck
-                        ];
-                    }
+                    break;
                 }
             }
-        }
-        
-        // Block import if any ma_hang has blocking reports
-        if (!empty($blockedMaHangList)) {
-            $blockedMaHangCodes = array_column($blockedMaHangList, 'ma_hang');
-            $blockedCount = count($blockedMaHangList);
-            
-            $message = $blockedCount === 1 
-                ? "Không thể import: Mã hàng {$blockedMaHangList[0]['ma_hang']} đang có {$blockedMaHangList[0]['blocking_count']} báo cáo sử dụng."
-                : "Không thể import: {$blockedCount} mã hàng đang có báo cáo sử dụng (" . implode(', ', $blockedMaHangCodes) . ").";
-            
-            $message .= " Vui lòng hoàn thành hoặc xóa các báo cáo trước khi import.";
-            
-            return [
-                'success' => false,
-                'message' => $message,
-                'error_code' => 'IMPORT_BLOCKED',
-                'blocked_ma_hang' => $blockedMaHangList
-            ];
         }
         
         if ($hasExistingMaHang && !$acknowledgeDeletion) {
@@ -361,10 +343,32 @@ class ImportService {
             
             mysqli_commit($this->db);
             
+            // Calculate processing time
+            $processingTimeMs = (int)((microtime(true) - $startTime) * 1000);
+
+            // Build details for history
+            $details = $this->buildDetailsArray($maHangList, $createdCongDoanMap ?? []);
+
+            // Save to history if we have file info
+            $historyId = null;
+            if (!empty($fileName)) {
+                $historyId = $this->saveImportHistory(
+                    $fileName,
+                    $fileSize,
+                    $importedBy,
+                    $this->lastPreviewStats,
+                    $stats,
+                    $this->lastPreviewErrors,
+                    $details,
+                    $processingTimeMs
+                );
+            }
+
             return [
                 'success' => true,
                 'message' => 'Import thành công',
-                'stats' => $stats
+                'stats' => $stats,
+                'history_id' => $historyId
             ];
             
         } catch (Exception $e) {
@@ -644,5 +648,215 @@ class ImportService {
         mysqli_stmt_close($stmt);
         
         return intval($row['cnt']);
+    }
+    
+    /**
+     * Save import history record
+     */
+    public function saveImportHistory(
+        string $fileName,
+        int $fileSize,
+        string $importedBy,
+        array $previewStats,
+        array $confirmStats,
+        array $errors,
+        array $details,
+        int $processingTimeMs
+    ): int {
+        $status = 'success';
+        if (!empty($errors) && empty($confirmStats)) {
+            $status = 'failed';
+        } elseif (!empty($errors)) {
+            $status = 'partial';
+        }
+        
+        $stmt = mysqli_prepare($this->db,
+            "INSERT INTO import_history (
+                ten_file, kich_thuoc_file, import_boi,
+                so_sheets, so_ma_hang_moi, so_ma_hang_cu,
+                so_cong_doan_moi, so_cong_doan_cu, so_routing_moi, so_routing_xoa,
+                ma_hang_da_tao, ma_hang_da_cap_nhat, cong_doan_da_tao,
+                routing_da_tao, routing_da_xoa,
+                trang_thai, loi, chi_tiet, thoi_gian_xu_ly_ms
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
+        );
+        
+        $loiJson = !empty($errors) ? json_encode($errors, JSON_UNESCAPED_UNICODE) : null;
+        $chiTietJson = !empty($details) ? json_encode($details, JSON_UNESCAPED_UNICODE) : null;
+        
+        // Extract previewStats to variables (mysqli_stmt_bind_param requires variables, not expressions)
+        $totalSheets = $previewStats['total_sheets'] ?? 0;
+        $totalMaHangNew = $previewStats['total_ma_hang_new'] ?? 0;
+        $totalMaHangExisting = $previewStats['total_ma_hang_existing'] ?? 0;
+        $totalCongDoanNew = $previewStats['total_cong_doan_new'] ?? 0;
+        $totalCongDoanExisting = $previewStats['total_cong_doan_existing'] ?? 0;
+        $totalRoutingNew = $previewStats['total_routing_new'] ?? 0;
+        $routingToDelete = $previewStats['routing_to_delete'] ?? 0;
+        
+        // Extract confirmStats to variables
+        $maHangCreated = $confirmStats['ma_hang_created'] ?? 0;
+        $maHangUpdated = $confirmStats['ma_hang_updated'] ?? 0;
+        $congDoanCreated = $confirmStats['cong_doan_created'] ?? 0;
+        $routingCreated = $confirmStats['routing_created'] ?? 0;
+        $routingDeleted = $confirmStats['routing_deleted'] ?? 0;
+        
+        mysqli_stmt_bind_param($stmt, "sisiiiiiiiiiiiisssi",
+            $fileName,
+            $fileSize,
+            $importedBy,
+            $totalSheets,
+            $totalMaHangNew,
+            $totalMaHangExisting,
+            $totalCongDoanNew,
+            $totalCongDoanExisting,
+            $totalRoutingNew,
+            $routingToDelete,
+            $maHangCreated,
+            $maHangUpdated,
+            $congDoanCreated,
+            $routingCreated,
+            $routingDeleted,
+            $status,
+            $loiJson,
+            $chiTietJson,
+            $processingTimeMs
+        );
+        
+        mysqli_stmt_execute($stmt);
+        $historyId = mysqli_insert_id($this->db);
+        mysqli_stmt_close($stmt);
+        
+        return $historyId;
+    }
+
+    /**
+     * Get import history list with pagination
+     */
+    public function getImportHistoryList(int $page = 1, int $pageSize = 20, array $filters = []): array {
+        $offset = ($page - 1) * $pageSize;
+        
+        $whereConditions = [];
+        $params = [];
+        $types = "";
+        
+        if (!empty($filters['date_from'])) {
+            $whereConditions[] = "DATE(ih.import_luc) >= ?";
+            $params[] = $filters['date_from'];
+            $types .= "s";
+        }
+        
+        if (!empty($filters['date_to'])) {
+            $whereConditions[] = "DATE(ih.import_luc) <= ?";
+            $params[] = $filters['date_to'];
+            $types .= "s";
+        }
+        
+        if (!empty($filters['import_boi'])) {
+            $whereConditions[] = "ih.import_boi LIKE ?";
+            $params[] = "%" . $filters['import_boi'] . "%";
+            $types .= "s";
+        }
+        
+        if (!empty($filters['trang_thai'])) {
+            $whereConditions[] = "ih.trang_thai = ?";
+            $params[] = $filters['trang_thai'];
+            $types .= "s";
+        }
+        
+        $whereClause = !empty($whereConditions) ? "WHERE " . implode(" AND ", $whereConditions) : "";
+        
+        // Count total
+        $countSql = "SELECT COUNT(*) as total FROM import_history ih $whereClause";
+        if (!empty($params)) {
+            $countStmt = mysqli_prepare($this->db, $countSql);
+            mysqli_stmt_bind_param($countStmt, $types, ...$params);
+            mysqli_stmt_execute($countStmt);
+            $countResult = mysqli_stmt_get_result($countStmt);
+        } else {
+            $countResult = mysqli_query($this->db, $countSql);
+        }
+        $totalRow = mysqli_fetch_assoc($countResult);
+        $total = intval($totalRow['total']);
+        
+        // Get data
+        $sql = "SELECT ih.* FROM import_history ih $whereClause ORDER BY ih.import_luc DESC LIMIT ? OFFSET ?";
+        $params[] = $pageSize;
+        $params[] = $offset;
+        $types .= "ii";
+        
+        $stmt = mysqli_prepare($this->db, $sql);
+        mysqli_stmt_bind_param($stmt, $types, ...$params);
+        mysqli_stmt_execute($stmt);
+        $result = mysqli_stmt_get_result($stmt);
+        
+        $data = [];
+        while ($row = mysqli_fetch_assoc($result)) {
+            $data[] = $row;
+        }
+        mysqli_stmt_close($stmt);
+        
+        return [
+            'data' => $data,
+            'pagination' => [
+                'page' => $page,
+                'page_size' => $pageSize,
+                'total' => $total,
+                'total_pages' => ceil($total / $pageSize)
+            ]
+        ];
+    }
+
+    /**
+     * Get import history detail
+     */
+    public function getImportHistoryDetail(int $id): ?array {
+        $stmt = mysqli_prepare($this->db, "SELECT * FROM import_history WHERE id = ?");
+        mysqli_stmt_bind_param($stmt, "i", $id);
+        mysqli_stmt_execute($stmt);
+        $result = mysqli_stmt_get_result($stmt);
+        $row = mysqli_fetch_assoc($result);
+        mysqli_stmt_close($stmt);
+        
+        if ($row) {
+            // Decode JSON fields
+            if (!empty($row['loi'])) {
+                $row['loi'] = json_decode($row['loi'], true);
+            }
+            if (!empty($row['chi_tiet'])) {
+                $row['chi_tiet'] = json_decode($row['chi_tiet'], true);
+            }
+        }
+        
+        return $row;
+    }
+
+    /**
+     * Build details array from maHangList for history storage
+     */
+    private function buildDetailsArray(array $maHangList, array $createdCongDoan = []): array {
+        $details = [
+            'ma_hang' => [],
+            'cong_doan_moi' => []
+        ];
+        
+        foreach ($maHangList as $item) {
+            $details['ma_hang'][] = [
+                'ma_hang' => $item['ma_hang'] ?? '',
+                'ten_hang' => $item['ten_hang'] ?? '',
+                'is_new' => $item['is_new'] ?? false,
+                'existing_id' => $item['existing_id'] ?? null,
+                'cong_doan_count' => count($item['cong_doan_list'] ?? []),
+                'sheet_name' => $item['sheet_name'] ?? ''
+            ];
+        }
+        
+        foreach ($createdCongDoan as $name => $id) {
+            $details['cong_doan_moi'][] = [
+                'ten_cong_doan' => $name,
+                'created_id' => $id
+            ];
+        }
+        
+        return $details;
     }
 }
