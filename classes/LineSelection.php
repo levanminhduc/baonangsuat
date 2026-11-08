@@ -6,7 +6,7 @@
  */
 final class LineSelection
 {
-    public static function reconcile(?array $stored, int $userId, array $allowed, bool $isAdmin): ?array
+    public static function reconcile(?array $stored, int $userId, array $allowed): ?array
     {
         if ($stored !== null && isset($stored['id'], $stored['owner']) && (int)$stored['owner'] === $userId) {
             $line = self::find((int)$stored['id'], $allowed);
@@ -15,7 +15,7 @@ final class LineSelection
             }
         }
 
-        if (!$isAdmin && count($allowed) === 1) {
+        if (count($allowed) === 1) {
             return self::normalize(reset($allowed)) + ['owner' => $userId];
         }
 

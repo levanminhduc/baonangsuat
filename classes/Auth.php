@@ -51,8 +51,7 @@ class Auth {
         $line = LineSelection::reconcile(
             $_SESSION[self::SESSION_LINE_KEY] ?? null,
             (int)$user['id'],
-            $lines,
-            $role === 'admin'
+            $lines
         );
         if ($line === null) {
             unset($_SESSION[self::SESSION_LINE_KEY]);
