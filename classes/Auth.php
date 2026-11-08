@@ -1,71 +1,97 @@
 <?php
-if (session_status() === PHP_SESSION_NONE) {
-    session_start();
-}
+require_once __DIR__ . '/../../authV2/bootstrap.php';
 require_once __DIR__ . '/../config/Database.php';
+require_once __DIR__ . '/LineSelection.php';
 
-if (!defined('ALLOW_PLAINTEXT_PASSWORD')) {
-    define('ALLOW_PLAINTEXT_PASSWORD', true);
-}
+use Hoatho\SharedAuth\EnvConfig;
+use Hoatho\SharedAuth\Guard;
+use Hoatho\SharedAuth\SessionBootstrap;
+use Hoatho\SharedAuth\SessionContract;
 
 class Auth {
-    public static function login($username, $password) {
-        $mysqli = Database::getMysqli();
+    private const SESSION_LINE_KEY = 'bns_line';
+    
+    private static $booted = false;
+    private static $ctx = null;
+    
+    /**
+     * Dựng bối cảnh danh tính (role, nhân viên, LINE) từ DB, một lần/request.
+     * Chỉ LINE đã chọn (bns_line) nằm trong session; phần còn lại giữ trong bộ nhớ request.
+     */
+    private static function boot() {
+        if (self::$booted) {
+            return;
+        }
+        self::$booted = true;
+        self::$ctx = null;
         
-        $username = trim(strtoupper($username));
-        $stmt = mysqli_prepare($mysqli, "SELECT id, name, password, role FROM user WHERE UPPER(name) = ?");
-        mysqli_stmt_bind_param($stmt, "s", $username);
+        if (!SessionContract::isLoggedIn()) {
+            return;
+        }
+        $userId = SessionContract::userId();
+        
+        $mysqli = Database::getMysqli();
+        $stmt = mysqli_prepare($mysqli, "SELECT id, name, role FROM user WHERE id = ?");
+        mysqli_stmt_bind_param($stmt, "i", $userId);
         mysqli_stmt_execute($stmt);
         $result = mysqli_stmt_get_result($stmt);
         $user = mysqli_fetch_assoc($result);
         mysqli_stmt_close($stmt);
         
         if (!$user) {
-            return ['success' => false, 'message' => 'Tài khoản không tồn tại'];
+            unset($_SESSION[self::SESSION_LINE_KEY]);
+            return;
         }
         
-        if (!password_verify($password, $user['password'])) {
-            if (!ALLOW_PLAINTEXT_PASSWORD || $user['password'] !== $password) {
-                return ['success' => false, 'message' => 'Mật khẩu không đúng'];
-            }
-        }
-        
-        session_regenerate_id(true);
-        
-        $ma_nv = $user['name'];
+        $ma_nv = strtoupper(trim($user['name']));
         $nhanVienInfo = self::getNhanVienInfo($ma_nv);
+        $lines = self::getUserLines($ma_nv, $nhanVienInfo['phong_ban_ma'] ?? null)['lines'];
+        $role = (string)($user['role'] ?? '');
         
-        $_SESSION['user_id'] = $user['id'];
-        $_SESSION['ma_nv'] = $ma_nv;
-        $_SESSION['vai_tro'] = $user['role'];
-        $_SESSION['ho_ten'] = $nhanVienInfo['ho_ten'] ?? $ma_nv;
-        $_SESSION['phong_ban_ma'] = $nhanVienInfo['phong_ban_ma'] ?? null;
-        $_SESSION['phong_ban_ten'] = $nhanVienInfo['phong_ban_ten'] ?? null;
-        
-        $lineResult = self::getUserLines($ma_nv, $nhanVienInfo['phong_ban_ma'] ?? null);
-        
-        if (count($lineResult['lines']) === 0) {
-            return [
-                'success' => true, 
-                'message' => 'Đăng nhập thành công nhưng chưa được phân LINE',
-                'need_select_line' => false,
-                'no_line' => true
-            ];
+        $line = LineSelection::reconcile(
+            $_SESSION[self::SESSION_LINE_KEY] ?? null,
+            (int)$user['id'],
+            $lines,
+            $role === 'admin'
+        );
+        if ($line === null) {
+            unset($_SESSION[self::SESSION_LINE_KEY]);
+        } else {
+            $_SESSION[self::SESSION_LINE_KEY] = $line;
         }
         
-        if (count($lineResult['lines']) === 1) {
-            $_SESSION['line_id'] = $lineResult['lines'][0]['id'];
-            $_SESSION['line_ma'] = $lineResult['lines'][0]['ma_line'];
-            $_SESSION['line_ten'] = $lineResult['lines'][0]['ten_line'];
-            return ['success' => true, 'message' => 'Đăng nhập thành công'];
-        }
-        
-        return [
-            'success' => true,
-            'message' => 'Vui lòng chọn LINE',
-            'need_select_line' => true,
-            'lines' => $lineResult['lines']
+        self::$ctx = [
+            'user_id' => (int)$user['id'],
+            'ma_nv' => $ma_nv,
+            'vai_tro' => $role,
+            'ho_ten' => ($nhanVienInfo['ho_ten'] ?? '') !== '' ? $nhanVienInfo['ho_ten'] : $ma_nv,
+            'phong_ban_ma' => $nhanVienInfo['phong_ban_ma'] ?? null,
+            'phong_ban_ten' => $nhanVienInfo['phong_ban_ten'] ?? null,
+            'lines' => $lines,
+            'line' => $line
         ];
+    }
+    
+    public static function loginUrl($returnPath = '/baonangsuat/index.php') {
+        return EnvConfig::loginUrl() . '?redirect=' . rawurlencode($returnPath);
+    }
+    
+    public static function logoutUrl() {
+        return EnvConfig::logoutUrl('/baonangsuat/index.php');
+    }
+    
+    /**
+     * Dùng cho trang HTML: chưa đăng nhập thì Guard redirect sang login chung.
+     * Phiên chung có user nhưng user không còn trong bảng user thì huỷ phiên chung,
+     * tránh lặp vô hạn giữa trang này và authV2.
+     */
+    public static function requirePageLogin() {
+        (new Guard())->requireLogin();
+        if (!self::isLoggedIn()) {
+            SessionBootstrap::destroy();
+            header('Location: ' . self::loginUrl(), true, 302);
+            exit;
+        }
     }
     
     private static function getNhanVienInfo($ma_nv) {
@@ -128,60 +154,56 @@ class Auth {
     }
     
     public static function selectLine($line_id) {
-        if (!isset($_SESSION['ma_nv'])) {
+        self::boot();
+        if (self::$ctx === null) {
             return ['success' => false, 'message' => 'Chưa đăng nhập'];
         }
         
-        $nangSuat = Database::getNangSuat();
-        $stmt = mysqli_prepare($nangSuat, 
-            "SELECT id, ma_line, ten_line FROM line WHERE id = ? AND is_active = 1"
-        );
-        mysqli_stmt_bind_param($stmt, "i", $line_id);
-        mysqli_stmt_execute($stmt);
-        $result = mysqli_stmt_get_result($stmt);
-        $line = mysqli_fetch_assoc($result);
-        mysqli_stmt_close($stmt);
-        
-        if (!$line) {
+        $line = LineSelection::pick((int)$line_id, self::$ctx['user_id'], self::$ctx['lines']);
+        if ($line === null) {
             return ['success' => false, 'message' => 'LINE không hợp lệ'];
         }
         
-        $_SESSION['line_id'] = $line['id'];
-        $_SESSION['line_ma'] = $line['ma_line'];
-        $_SESSION['line_ten'] = $line['ten_line'];
+        $_SESSION[self::SESSION_LINE_KEY] = $line;
+        self::$ctx['line'] = $line;
         
         return ['success' => true, 'message' => 'Đã chọn LINE thành công'];
     }
     
-    public static function logout() {
-        session_destroy();
-        return ['success' => true, 'message' => 'Đã đăng xuất'];
-    }
-    
     public static function isLoggedIn() {
-        return isset($_SESSION['user_id']);
+        self::boot();
+        return self::$ctx !== null;
     }
     
     public static function hasLine() {
-        return isset($_SESSION['line_id']);
+        self::boot();
+        return self::$ctx !== null && self::$ctx['line'] !== null;
+    }
+    
+    public static function allowedLines() {
+        self::boot();
+        return self::$ctx['lines'] ?? [];
     }
     
     public static function getSession() {
+        self::boot();
+        $ctx = self::$ctx;
         return [
-            'user_id' => $_SESSION['user_id'] ?? null,
-            'ma_nv' => $_SESSION['ma_nv'] ?? null,
-            'ho_ten' => $_SESSION['ho_ten'] ?? null,
-            'vai_tro' => $_SESSION['vai_tro'] ?? null,
-            'phong_ban_ma' => $_SESSION['phong_ban_ma'] ?? null,
-            'phong_ban_ten' => $_SESSION['phong_ban_ten'] ?? null,
-            'line_id' => $_SESSION['line_id'] ?? null,
-            'line_ma' => $_SESSION['line_ma'] ?? null,
-            'line_ten' => $_SESSION['line_ten'] ?? null
+            'user_id' => $ctx['user_id'] ?? null,
+            'ma_nv' => $ctx['ma_nv'] ?? null,
+            'ho_ten' => $ctx['ho_ten'] ?? null,
+            'vai_tro' => $ctx['vai_tro'] ?? null,
+            'phong_ban_ma' => $ctx['phong_ban_ma'] ?? null,
+            'phong_ban_ten' => $ctx['phong_ban_ten'] ?? null,
+            'line_id' => $ctx['line']['id'] ?? null,
+            'line_ma' => $ctx['line']['ma_line'] ?? null,
+            'line_ten' => $ctx['line']['ten_line'] ?? null
         ];
     }
     
     public static function checkRole($allowedRoles) {
-        $currentRole = $_SESSION['vai_tro'] ?? '';
+        self::boot();
+        $currentRole = self::$ctx['vai_tro'] ?? '';
         if (is_string($allowedRoles)) {
             $allowedRoles = [$allowedRoles];
         }
@@ -199,6 +221,10 @@ class Auth {
         
         if (self::hasLine()) {
             return 'nhap-nang-suat.php';
+        }
+        
+        if (count(self::allowedLines()) >= 1) {
+            return 'index.php';
         }
         
         return 'no-line.php';
@@ -260,7 +286,7 @@ class Auth {
         }
         
         if ($userId === null) {
-            $userId = $_SESSION['user_id'] ?? null;
+            $userId = self::$ctx['user_id'] ?? null;
         }
         
         if ($userId === null) {

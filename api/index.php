@@ -788,7 +788,7 @@ function handleUserPermissions($segments, $method, $input) {
         }
         mysqli_stmt_close($stmt);
         
-        $nguoiTao = $_SESSION['ma_nv'] ?? null;
+        $nguoiTao = Auth::getSession()['ma_nv'];
         $stmt = mysqli_prepare($mysqli, "INSERT INTO user_permissions (nguoi_dung_id, quyen, nguoi_tao) VALUES (?, ?, ?)");
         mysqli_stmt_bind_param($stmt, "iss", $userId, $permissionKey, $nguoiTao);
         
