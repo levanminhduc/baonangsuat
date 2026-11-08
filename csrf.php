@@ -1,13 +1,11 @@
 <?php
-if (session_status() === PHP_SESSION_NONE) {
-    session_start();
-}
+require_once __DIR__ . '/../authV2/bootstrap.php';
 
 function generateCsrfToken() {
-    if (empty($_SESSION['csrf_token'])) {
-        $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
+    if (empty($_SESSION['bns_csrf_token'])) {
+        $_SESSION['bns_csrf_token'] = bin2hex(random_bytes(32));
     }
-    return $_SESSION['csrf_token'];
+    return $_SESSION['bns_csrf_token'];
 }
 
 function getCsrfToken() {
@@ -15,10 +13,10 @@ function getCsrfToken() {
 }
 
 function validateCsrfToken($token) {
-    if (empty($_SESSION['csrf_token']) || empty($token)) {
+    if (empty($_SESSION['bns_csrf_token']) || empty($token)) {
         return false;
     }
-    return hash_equals($_SESSION['csrf_token'], $token);
+    return hash_equals($_SESSION['bns_csrf_token'], $token);
 }
 
 function verifyCsrfToken() {

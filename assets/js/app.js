@@ -165,11 +165,6 @@ class NangSuatApp {
     }
     
     bindEvents() {
-        const logoutBtn = document.getElementById('logoutBtn');
-        if (logoutBtn) {
-            logoutBtn.addEventListener('click', () => this.logout());
-        }
-        
         const createBtn = document.getElementById('createReportBtn');
         if (createBtn) {
             createBtn.addEventListener('click', () => this.showCreateModal());
@@ -807,15 +802,6 @@ class NangSuatApp {
             if (this.modifiedEntries.size > 0) {
                 this.saveChanges();
             }
-        }
-    }
-    
-    async logout() {
-        try {
-            await api('GET', '/auth/logout');
-            window.location.href = 'index.php';
-        } catch (error) {
-            window.location.href = 'index.php';
         }
     }
 }

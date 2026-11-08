@@ -46,42 +46,6 @@ function response($data, $code = 200) {
     exit;
 }
 
-function checkRateLimit($identifier) {
-    $key = 'rate_limit_' . md5($identifier);
-    $maxAttempts = 5;
-    $lockoutTime = 900;
-    
-    if (!isset($_SESSION[$key])) {
-        $_SESSION[$key] = ['attempts' => 0, 'first_attempt' => time()];
-    }
-    
-    $data = $_SESSION[$key];
-    
-    if (time() - $data['first_attempt'] > $lockoutTime) {
-        $_SESSION[$key] = ['attempts' => 0, 'first_attempt' => time()];
-        return true;
-    }
-    
-    if ($data['attempts'] >= $maxAttempts) {
-        return false;
-    }
-    
-    return true;
-}
-
-function incrementRateLimit($identifier) {
-    $key = 'rate_limit_' . md5($identifier);
-    if (!isset($_SESSION[$key])) {
-        $_SESSION[$key] = ['attempts' => 0, 'first_attempt' => time()];
-    }
-    $_SESSION[$key]['attempts']++;
-}
-
-function resetRateLimit($identifier) {
-    $key = 'rate_limit_' . md5($identifier);
-    unset($_SESSION[$key]);
-}
-
 function requireLogin() {
     if (!Auth::isLoggedIn()) {
         response(['success' => false, 'message' => 'Chưa đăng nhập'], 401);
@@ -170,33 +134,6 @@ function handleAuth($segments, $method, $input) {
     $action = $segments[1] ?? '';
     
     switch ($action) {
-        case 'login':
-            if ($method !== 'POST') {
-                response(['success' => false, 'message' => 'Method not allowed'], 405);
-            }
-            $clientIp = $_SERVER['REMOTE_ADDR'] ?? 'unknown';
-            if (!checkRateLimit($clientIp)) {
-                response(['success' => false, 'message' => 'Quá nhiều lần thử. Vui lòng đợi 15 phút'], 429);
-            }
-            $username = trim($input['username'] ?? '');
-            $password = $input['password'] ?? '';
-            if (empty($username) || empty($password)) {
-                response(['success' => false, 'message' => 'Vui lòng nhập đầy đủ thông tin']);
-            }
-            $result = Auth::login($username, $password);
-            if ($result['success']) {
-                resetRateLimit($clientIp);
-                if (isset($result['no_line']) && $result['no_line']) {
-                    $result['redirect_url'] = 'no-line.php';
-                } elseif (!isset($result['need_select_line']) || !$result['need_select_line']) {
-                    $result['redirect_url'] = Auth::getDefaultPage();
-                }
-            } else {
-                incrementRateLimit($clientIp);
-            }
-            response($result);
-            break;
-            
         case 'select-line':
             if ($method !== 'POST') {
                 response(['success' => false, 'message' => 'Method not allowed'], 405);
@@ -208,11 +145,7 @@ function handleAuth($segments, $method, $input) {
             if ($result['success']) {
                 $result['redirect_url'] = Auth::getDefaultPage();
             }
-            response($result);
-            break;
-            
-        case 'logout':
-            response(Auth::logout());
+            response($result, $result['success'] ? 200 : 403);
             break;
             
         case 'session':
@@ -768,6 +701,10 @@ function handleBaoCaoHistory($segments, $method) {
         response(['success' => false, 'message' => 'Không có quyền xem lịch sử'], 403);
     }
     
+    if (!$isAdmin && !Auth::canCreateReportForAnyLine()) {
+        requireLine();
+    }
+    
     $historyService = new HistoryService();
     
     $reportId = isset($segments[1]) && is_numeric($segments[1]) ? intval($segments[1]) : null;
@@ -1009,7 +946,7 @@ function handleUserPermissions($segments, $method, $input) {
         }
         mysqli_stmt_close($stmt);
         
-        $nguoiTao = $_SESSION['ma_nv'] ?? null;
+        $nguoiTao = Auth::getSession()['ma_nv'];
         $stmt = mysqli_prepare($mysqli, "INSERT INTO user_permissions (nguoi_dung_id, quyen, nguoi_tao) VALUES (?, ?, ?)");
         mysqli_stmt_bind_param($stmt, "iss", $userId, $permissionKey, $nguoiTao);
         

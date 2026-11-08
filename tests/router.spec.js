@@ -16,8 +16,8 @@ test.describe('Router Navigation', () => {
     
     // Bypass login if needed (manual step usually, but here we assume session or mock)
     // For now, let's assume we are logged in or can see the page.
-    // If redirected to index.php (login), we might need to login.
-    if (page.url().includes('index.php')) {
+    // If redirected to the shared authV2 login page, log in there (it redirects back).
+    if (page.url().includes('/authV2/public/index.php')) {
         await page.fill('#username', 'admin'); // Adjust credential
         await page.fill('#password', '123456');
         await page.click('button[type="submit"]');

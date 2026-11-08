@@ -1,38 +1,5 @@
-document.addEventListener('DOMContentLoaded', function() {
-    const togglePassword = document.getElementById('togglePassword');
-    const passwordInput = document.getElementById('password');
-    const rememberCheckbox = document.getElementById('remember');
-    const usernameInput = document.getElementById('username');
-    const alertBox = document.querySelector('.alert-danger');
-
-    // Toggle password visibility
-    if (togglePassword && passwordInput) {
-        togglePassword.addEventListener('click', function() {
-            const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
-            passwordInput.setAttribute('type', type);
-            const icon = this.querySelector('i');
-            icon.classList.toggle('fa-eye');
-            icon.classList.toggle('fa-eye-slash');
-        });
-    }
-
-    const savedUsername = localStorage.getItem('rememberedUsername');
-    if (savedUsername) {
-        if (usernameInput) usernameInput.value = savedUsername;
-        if (rememberCheckbox) rememberCheckbox.checked = true;
-    }
-
-    // Handle alert box fade out
-    if (alertBox && alertBox.textContent.trim() !== '') {
-        setTimeout(function() {
-            alertBox.style.transition = 'opacity 0.5s';
-            alertBox.style.opacity = '0';
-            setTimeout(function() {
-                alertBox.style.display = 'none';
-            }, 500);
-        }, 5000);
-    }
-});
+// Dọn khoá "ghi nhớ tên đăng nhập" của form login cũ
+localStorage.removeItem('rememberedUsername');
 
 const API_BASE = '/baonangsuat/api';
 let loginCsrfToken = null;
@@ -53,142 +20,70 @@ async function fetchLoginCsrfToken() {
     return loginCsrfToken;
 }
 
-class LoginApp {
-    constructor() {
-        this.bindEvents();
+function notifyError(message) {
+    if (window.toast && typeof window.toast.error === 'function') {
+        window.toast.error(message);
+    } else {
+        alert(message);
     }
-    
-    bindEvents() {
-        const form = document.getElementById('loginForm');
-        if (form) {
-            form.addEventListener('submit', (e) => this.handleLogin(e));
-        }
-    }
-    
-    async handleLogin(e) {
-        e.preventDefault();
-        
-        const usernameInput = document.getElementById('username');
-        const passwordInput = document.getElementById('password');
-        const rememberCheckbox = document.getElementById('remember');
-        const loginBtn = document.getElementById('loginBtn');
-        const alertBox = document.getElementById('loginAlert');
-        
-        const username = usernameInput.value.trim();
-        const password = passwordInput.value;
-        
-        if (!username || !password) {
-            this.showError('Vui lòng nhập đầy đủ thông tin');
-            return;
-        }
+}
 
-        if (rememberCheckbox && rememberCheckbox.checked) {
-            localStorage.setItem('rememberedUsername', username);
-        } else {
-            localStorage.removeItem('rememberedUsername');
-        }
-        
-        // Show loading state
-        const originalBtnText = loginBtn.innerHTML;
-        loginBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Đang xử lý...';
-        loginBtn.disabled = true;
-        if (alertBox) alertBox.classList.add('d-none');
-        
-        try {
-            const response = await fetch('/baonangsuat/api/auth/login', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ username, password })
-            });
-            
-            const result = await response.json();
-            
-            if (result.success) {
-                if (result.need_select_line) {
-                    this.showLineSelect(result.lines);
-                } else if (result.redirect_url) {
-                    window.location.href = result.redirect_url;
+async function showLineSelect(lines) {
+    const modalEl = document.getElementById('lineSelectModal');
+    const list = document.getElementById('lineList');
+
+    if (!modalEl || !list) return;
+
+    await fetchLoginCsrfToken();
+
+    list.textContent = '';
+    lines.forEach(line => {
+        const li = document.createElement('li');
+        li.dataset.id = line.id;
+        li.textContent = `${line.ma_line} - ${line.ten_line}`;
+        list.appendChild(li);
+    });
+
+    list.querySelectorAll('li').forEach(li => {
+        li.addEventListener('click', async () => {
+            const lineId = li.dataset.id;
+            try {
+                const headers = { 'Content-Type': 'application/json' };
+                if (loginCsrfToken) {
+                    headers['X-CSRF-Token'] = loginCsrfToken;
+                }
+                const response = await fetch(API_BASE + '/auth/select-line', {
+                    method: 'POST',
+                    headers: headers,
+                    credentials: 'include',
+                    body: JSON.stringify({ line_id: parseInt(lineId) })
+                });
+                const result = await response.json();
+                if (result.success) {
+                    window.location.href = result.redirect_url || 'nhap-nang-suat.php';
                 } else {
-                    window.location.href = 'index.php';
+                    notifyError(result.message);
                 }
-            } else {
-                this.showError(result.message);
-                loginBtn.innerHTML = originalBtnText;
-                loginBtn.disabled = false;
+            } catch (error) {
+                notifyError('Lỗi chọn LINE');
             }
-        } catch (error) {
-            console.error(error);
-            this.showError('Lỗi kết nối server');
-            loginBtn.innerHTML = originalBtnText;
-            loginBtn.disabled = false;
-        }
-    }
-    
-    showError(message) {
-        const alertBox = document.getElementById('loginAlert');
-        if (alertBox) {
-            alertBox.textContent = message;
-            alertBox.classList.remove('d-none');
-            alertBox.classList.add('d-block');
-        } else if (window.toast && typeof window.toast.show === 'function') {
-            window.toast.error(message);
-        } else {
-            alert(message);
-        }
-    }
-    
-    async showLineSelect(lines) {
-        const modalEl = document.getElementById('lineSelectModal');
-        const list = document.getElementById('lineList');
-        
-        if (!modalEl || !list) return;
-
-        await fetchLoginCsrfToken();
-        
-        list.innerHTML = lines.map(line =>
-            `<li data-id="${line.id}">${line.ma_line} - ${line.ten_line}</li>`
-        ).join('');
-        
-        list.querySelectorAll('li').forEach(li => {
-            li.addEventListener('click', async () => {
-                const lineId = li.dataset.id;
-                try {
-                    const headers = { 'Content-Type': 'application/json' };
-                    if (loginCsrfToken) {
-                        headers['X-CSRF-Token'] = loginCsrfToken;
-                    }
-                    const response = await fetch('/baonangsuat/api/auth/select-line', {
-                        method: 'POST',
-                        headers: headers,
-                        credentials: 'include',
-                        body: JSON.stringify({ line_id: parseInt(lineId) })
-                    });
-                    const result = await response.json();
-                    if (result.success) {
-                        window.location.href = result.redirect_url || 'nhap-nang-suat.php';
-                    } else {
-                        if (window.toast && typeof window.toast.error === 'function') {
-                            window.toast.error(result.message);
-                        } else {
-                            alert(result.message);
-                        }
-                    }
-                } catch (error) {
-                    if (window.toast && typeof window.toast.error === 'function') {
-                        window.toast.error('Lỗi chọn LINE');
-                    } else {
-                        alert('Lỗi chọn LINE');
-                    }
-                }
-            });
         });
-        
-        const modal = new bootstrap.Modal(modalEl);
-        modal.show();
-    }
+    });
+
+    const modal = new bootstrap.Modal(modalEl);
+    modal.show();
 }
 
-// Initialize LoginApp if login form exists
-if (document.getElementById('loginForm')) {
-    new LoginApp();
-}
+document.addEventListener('DOMContentLoaded', function() {
+    const dataEl = document.getElementById('allowedLines');
+    if (!dataEl) return;
+    let lines = [];
+    try {
+        lines = JSON.parse(dataEl.textContent);
+    } catch (error) {
+        console.error('Invalid allowedLines data:', error);
+    }
+    if (lines.length > 0) {
+        showLineSelect(lines);
+    }
+});

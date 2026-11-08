@@ -1,10 +1,22 @@
 <?php
 require_once __DIR__ . '/includes/security-headers.php';
 require_once __DIR__ . '/classes/Auth.php';
-require_once __DIR__ . '/csrf.php';
 
-if (Auth::isLoggedIn()) {
-    header('Location: ' . Auth::getDefaultPage());
+Auth::requirePageLogin();
+
+if (Auth::checkRole(['admin'])) {
+    header('Location: admin.php');
+    exit;
+}
+
+if (Auth::hasLine()) {
+    header('Location: nhap-nang-suat.php');
+    exit;
+}
+
+$allowedLines = Auth::allowedLines();
+if (count($allowedLines) === 0) {
+    header('Location: no-line.php');
     exit;
 }
 ?>
@@ -13,7 +25,7 @@ if (Auth::isLoggedIn()) {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Đăng nhập - Hệ thống Báo Năng Suất</title>
+    <title>Chọn LINE - Hệ thống Báo Năng Suất</title>
     
     <!-- Dependencies -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -32,43 +44,9 @@ if (Auth::isLoggedIn()) {
                 <h3 class="login-title">HỆ THỐNG BÁO NĂNG SUẤT</h3>
             </div>
 
-            <div class="login-body">
-                <div id="loginAlert" class="alert alert-danger d-none" role="alert"></div>
-
-                <form method="post" action="" id="loginForm">
-                    <input type="hidden" name="csrf_token" value="<?php echo generateCsrfToken(); ?>">
-
-                    <div class="form-group mb-3">
-                        <label for="username"><i class="fas fa-user me-2"></i>Mã nhân viên</label>
-                        <input type="text" class="form-control" id="username" name="username" required autocomplete="username" autofocus>
-                    </div>
-
-                    <div class="form-group mb-3">
-                        <label for="password"><i class="fas fa-lock me-2"></i>Mật khẩu</label>
-                        <div class="input-group">
-                            <input type="password" class="form-control" id="password" name="password" required autocomplete="current-password">
-                            <button class="btn btn-outline-secondary" type="button" id="togglePassword">
-                                <i class="far fa-eye"></i>
-                            </button>
-                        </div>
-                    </div>
-
-                    <div class="login-options">
-                        <div class="remember-me">
-                            <input type="checkbox" id="remember" name="remember">
-                            <label for="remember">Ghi nhớ đăng nhập</label>
-                        </div>
-                        <div class="forgot-password">
-                            <a href="#">Quên mật khẩu?</a>
-                        </div>
-                    </div>
-
-                    <div class="login-button">
-                        <button type="submit" id="loginBtn" class="btn btn-primary">
-                            <i class="fas fa-sign-in-alt me-2"></i>Đăng nhập
-                        </button>
-                    </div>
-                </form>
+            <div class="login-body text-center">
+                <p class="mb-3">Vui lòng chọn LINE làm việc</p>
+                <a href="<?php echo htmlspecialchars(Auth::logoutUrl()); ?>" id="logoutLink">Đăng xuất</a>
             </div>
 
             <footer class="login-footer text-center">
@@ -90,6 +68,8 @@ if (Auth::isLoggedIn()) {
             </div>
         </div>
     </div>
+
+    <script id="allowedLines" type="application/json"><?php echo json_encode($allowedLines, JSON_HEX_TAG | JSON_HEX_AMP | JSON_UNESCAPED_UNICODE); ?></script>
 
     <?php include __DIR__ . '/includes/components/toast.php'; ?>
 

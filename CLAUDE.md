@@ -23,7 +23,7 @@ build-css.bat
 
 ### Entry Points
 
-- [`index.php`](index.php) - Login page
+- [`index.php`](index.php) - Entry point after SSO login (LINE picker; login itself is in authV2)
 - [`nhap-nang-suat.php`](nhap-nang-suat.php) - Main data entry page (requires LINE)
 - [`admin.php`](admin.php) - Admin dashboard (requires admin role)
 - [`no-line.php`](no-line.php) - Fallback for users without LINE assignment
@@ -155,25 +155,13 @@ $newVersion = intval($version) + 1;
 ### CSRF Protection
 
 - Token generated once per session, reused until expiry
-- Required for all POST/PUT/DELETE except login
+- Required for all POST/PUT/DELETE; stored in session key `bns_csrf_token`
 - Header: `X-CSRF-Token`
 - Fetch via: `GET /api/csrf-token`
 
-### Rate Limiting
+### Authentication (authV2 SSO)
 
-5 failed login attempts per IP in 15 minutes → HTTP 429
-
-### Password Authentication
-
-```php
-if (!password_verify($password, $user['password'])) {
-    if (!ALLOW_PLAINTEXT_PASSWORD || $user['password'] !== $password) {
-        return ['success' => false, 'message' => 'Mật khẩu không đúng'];
-    }
-}
-```
-
-`ALLOW_PLAINTEXT_PASSWORD` constant controls plaintext fallback.
+Login, logout, password check and brute-force throttling live in authV2 (`../authV2`). `Auth.php` opens the shared session via `authV2/bootstrap.php`, rebuilds role/employee/LINE context from DB each request, and only writes `bns_line` and `bns_csrf_token` to the session. Pages call `Auth::requirePageLogin()`; API returns JSON 401.
 
 ## Data Normalization Rules
 
@@ -185,13 +173,6 @@ Always uppercase before any operation:
 $ma_nv = strtoupper(trim($ma_nv));
 ```
 
-### Username Login
-
-Case-insensitive query:
-
-```php
-"SELECT ... FROM user WHERE UPPER(name) = ?"
-```
 
 ## Frontend State Management
 
