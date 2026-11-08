@@ -631,6 +631,10 @@ function handleBaoCaoHistory($segments, $method) {
         response(['success' => false, 'message' => 'Không có quyền xem lịch sử'], 403);
     }
     
+    if (!$isAdmin) {
+        requireLine();
+    }
+    
     $historyService = new HistoryService();
     
     $reportId = isset($segments[1]) && is_numeric($segments[1]) ? intval($segments[1]) : null;
