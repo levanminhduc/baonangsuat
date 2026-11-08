@@ -2,10 +2,7 @@
 require_once __DIR__ . '/includes/security-headers.php';
 require_once __DIR__ . '/classes/Auth.php';
 
-if (!Auth::isLoggedIn()) {
-    header('Location: index.php');
-    exit;
-}
+Auth::requirePageLogin();
 
 if (Auth::checkRole(['admin'])) {
     header('Location: admin.php');
@@ -14,6 +11,11 @@ if (Auth::checkRole(['admin'])) {
 
 if (Auth::hasLine()) {
     header('Location: nhap-nang-suat.php');
+    exit;
+}
+
+if (count(Auth::allowedLines()) > 0) {
+    header('Location: index.php');
     exit;
 }
 
@@ -66,20 +68,8 @@ $session = Auth::getSession();
                 Vui lòng liên hệ quản trị viên để được hỗ trợ.
             </p>
             
-            <button onclick="logout()" class="btn btn-primary">Đăng xuất</button>
+            <a href="<?= htmlspecialchars(Auth::logoutUrl()) ?>" class="btn btn-primary">Đăng xuất</a>
         </div>
     </div>
-    
-    <script>
-        function logout() {
-            fetch('/baonangsuat/api/auth/logout', { method: 'POST' })
-                .then(() => {
-                    window.location.href = 'index.php';
-                })
-                .catch(() => {
-                    window.location.href = 'index.php';
-                });
-        }
-    </script>
 </body>
 </html>

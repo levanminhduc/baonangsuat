@@ -2,13 +2,10 @@
 require_once __DIR__ . '/includes/security-headers.php';
 require_once __DIR__ . '/classes/Auth.php';
 
-if (!Auth::isLoggedIn()) {
-    header('Location: index.php');
-    exit;
-}
+Auth::requirePageLogin();
 
 if (!Auth::checkRole(['admin']) && !Auth::hasLine()) {
-    header('Location: no-line.php');
+    header('Location: ' . Auth::getDefaultPage());
     exit;
 }
 

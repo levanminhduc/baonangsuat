@@ -206,8 +206,6 @@ async function switchTab(tabName, updateHistory = true) {
 }
 
 function bindGlobalEvents() {
-    document.getElementById('logoutBtn').addEventListener('click', logout);
-    
     document.querySelectorAll('.admin-tab').forEach(tab => {
         tab.addEventListener('click', (e) => {
             e.preventDefault();
@@ -220,11 +218,6 @@ function bindGlobalEvents() {
             }
         });
     });
-}
-
-async function logout() {
-    await api('GET', '/auth/logout');
-    window.location.href = 'index.php';
 }
 
 document.addEventListener('DOMContentLoaded', () => {

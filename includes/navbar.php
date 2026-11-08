@@ -100,7 +100,7 @@ if ($isLoggedIn) {
     ?>
     
     <span class="sub-bar-separator">|</span>
-    <a href="#" id="logoutBtn" class="sub-bar-link">Đăng xuất</a>
+    <a href="<?php echo htmlspecialchars(Auth::logoutUrl()); ?>" id="logoutBtn" class="sub-bar-link">Đăng xuất</a>
 </div>
 
 <script>
