@@ -21,7 +21,8 @@
 
 - [ ] `composer install --no-dev --optimize-autoloader` (`vendor/` không nằm trong git; PhpSpreadsheet
       + autoload `App\`).
-- [ ] `tools\build-css.bat` (`public/assets/tailwind/dist/` không nằm trong git).
+- [ ] (Tuỳ chọn) `tools\build-css.bat` (`public/assets/tailwind/dist/` không nằm trong git). Hiện các
+      trang vẫn nạp Tailwind CDN, chưa trang nào link `dist/`, nên bước này chưa ảnh hưởng giao diện.
 - [ ] Xoá trên server các file/thư mục cũ không còn trong repo nếu chép đè: `classes/`, `includes/`,
       `api/`, `csrf.php`, `config/Database.php`, các trang `*.php` ở gốc. File trang cũ còn sót ở
       gốc vẫn bị `.htaccess` đưa vào front controller, nhưng nên dọn.
