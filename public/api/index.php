@@ -33,7 +33,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     exit(0);
 }
 
-require_once __DIR__ . '/../bootstrap/app.php';
+require_once __DIR__ . '/../../bootstrap/app.php';
 
 $requestUri = $_SERVER['REQUEST_URI'];
 $basePath = '/baonangsuat/api/';

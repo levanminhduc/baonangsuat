@@ -1,6 +1,6 @@
 <?php
-require_once __DIR__ . '/includes/security-headers.php';
-require_once __DIR__ . '/bootstrap/app.php';
+require_once __DIR__ . '/../includes/security-headers.php';
+require_once __DIR__ . '/../bootstrap/app.php';
 
 use App\Auth\Auth;
 
@@ -85,7 +85,7 @@ $isAdmin = Auth::checkRole(['admin']);
     $navTitle = 'BIỂU ĐỒ NĂNG SUẤT';
     $showAddBtn = false;
     $showHomeBtn = true;
-    include __DIR__ . '/includes/navbar.php';
+    include __DIR__ . '/../includes/navbar.php';
     ?>
     
     <div class="app-container">
@@ -392,7 +392,7 @@ $isAdmin = Auth::checkRole(['admin']);
         </div>
     </div>
     
-    <?php include __DIR__ . '/includes/components/toast.php'; ?>
+    <?php include __DIR__ . '/../includes/components/toast.php'; ?>
     
     <script>
         window.appConfig = {

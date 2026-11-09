@@ -1,6 +1,6 @@
 <?php
-require_once __DIR__ . '/includes/security-headers.php';
-require_once __DIR__ . '/bootstrap/app.php';
+require_once __DIR__ . '/../includes/security-headers.php';
+require_once __DIR__ . '/../bootstrap/app.php';
 
 use App\Auth\Auth;
 
@@ -52,7 +52,7 @@ $session = Auth::getSession();
     $navTitle = 'HỆ THỐNG NHẬP NĂNG SUẤT';
     $showAddBtn = false;
     $showHomeBtn = false;
-    include __DIR__ . '/includes/navbar.php';
+    include __DIR__ . '/../includes/navbar.php';
     ?>
     <div class="login-container">
         <div class="login-box text-center">

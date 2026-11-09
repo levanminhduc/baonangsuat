@@ -57,7 +57,7 @@ try:
     candidate = result["candidates"][0]
     parts = candidate.get("content", {}).get("parts", [])
     
-    output_dir = Path('./img')
+    output_dir = Path('./public/img')
     output_dir.mkdir(parents=True, exist_ok=True)
     
     image_count = 0

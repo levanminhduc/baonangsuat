@@ -1,6 +1,6 @@
 <?php
-require_once __DIR__ . '/includes/security-headers.php';
-require_once __DIR__ . '/bootstrap/app.php';
+require_once __DIR__ . '/../includes/security-headers.php';
+require_once __DIR__ . '/../bootstrap/app.php';
 
 use App\Auth\Auth;
 
@@ -45,7 +45,7 @@ $session = Auth::getSession();
     $addBtnUrl = '#';
     $addBtnId = 'navCreateReportBtn';
     $showHomeBtn = true;
-    include __DIR__ . '/includes/navbar.php';
+    include __DIR__ . '/../includes/navbar.php';
     ?>
     <div class="app-container">
         
@@ -216,8 +216,8 @@ $session = Auth::getSession();
         </div>
     </div>
     
-    <?php include __DIR__ . '/includes/components/confirm-modal.php'; ?>
-    <?php include __DIR__ . '/includes/components/loading-overlay.php'; ?>
+    <?php include __DIR__ . '/../includes/components/confirm-modal.php'; ?>
+    <?php include __DIR__ . '/../includes/components/loading-overlay.php'; ?>
     
     <script>
         function closeModal(id) { document.getElementById(id).classList.add('hidden'); }
