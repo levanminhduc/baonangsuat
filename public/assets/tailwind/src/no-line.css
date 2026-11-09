@@ -1,7 +1,8 @@
 @import "tailwindcss";
 
-@source "../../../no-line.php";
-@source "../../../includes/**/*.php";
+@source "../../../../views/no-line.php";
+@source "../../../../views/partials/**/*.php";
+@source "../../../../components/**/*.php";
 
 @theme {
   --color-primary: #2196F3;

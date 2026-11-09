@@ -1,8 +1,8 @@
 @import "tailwindcss";
 
-@source "../../../*.php";
-@source "../../../includes/**/*.php";
-@source "../../../assets/js/**/*.js";
+@source "../../../../views/**/*.php";
+@source "../../../../components/**/*.php";
+@source "../../js/**/*.js";
 
 @theme {
   --color-primary: #143583;

@@ -2,11 +2,15 @@
 
 ## Tailwind
 
-- Tailwind 3 offline, không npm: `tools\build-css.bat` dùng binary trong repo, input/output ở
-  `public/assets/tailwind/`.
-- Content glob (`tailwind.config.js`): `views/**`, `components/**`, `public/assets/js/**`, `app/**`.
-  Thêm thư mục chứa class Tailwind → thêm vào glob, build lại, kiểm CSS không mất class.
-- Màu dùng token trong config (`primary`, `success`, `warning`...), không hard-code hex trong view.
+- Hiện các trang nạp Tailwind Play CDN (`<script src="https://cdn.tailwindcss.com">` + `tailwind.config`
+  inline trong view); không trang nào link `public/assets/tailwind/dist/`. Bản build offline đang chuẩn
+  bị cho việc bỏ CDN (`docs/tailwind-offline-design.md`).
+- Build offline: `tools\build-css.bat` chạy `tools\tailwindcss.exe` (v4) với
+  `public/assets/tailwind/src/{main,no-line}.css` → `dist/` (gitignored).
+- v4 quét class theo các dòng `@source` trong file src (đường dẫn tính từ `src/`): `views/`,
+  `components/`, `public/assets/js/`. `tailwind.config.js` ở gốc là cấu hình v3 cũ, v4 không đọc.
+  Thêm thư mục chứa class → thêm `@source`, build lại, so CSS trước/sau không mất class.
+- Màu dùng token (`primary`, `success`, `warning`...), không hard-code hex trong view.
 
 ## JavaScript
 
