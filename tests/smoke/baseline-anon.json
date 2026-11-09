@@ -1,0 +1,1804 @@
+{
+    "GET /": {
+        "status": 302,
+        "headers": {
+            "content-type": "text/html; charset=UTF-8",
+            "location": "/authV2/public/index.php?redirect=%2Fbaonangsuat%2F",
+            "cache-control": "no-store, no-cache, must-revalidate",
+            "x-frame-options": "DENY",
+            "x-content-type-options": "nosniff",
+            "x-xss-protection": "1; mode=block",
+            "content-security-policy": "default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://cdn.tailwindcss.com; style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com https://cdn.jsdelivr.net; img-src 'self' data:;",
+            "referrer-policy": "strict-origin-when-cross-origin"
+        },
+        "body": {
+            "html": "no-title"
+        }
+    },
+    "GET /index.php": {
+        "status": 302,
+        "headers": {
+            "content-type": "text/html; charset=UTF-8",
+            "location": "/authV2/public/index.php?redirect=%2Fbaonangsuat%2Findex.php",
+            "cache-control": "no-store, no-cache, must-revalidate",
+            "x-frame-options": "DENY",
+            "x-content-type-options": "nosniff",
+            "x-xss-protection": "1; mode=block",
+            "content-security-policy": "default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://cdn.tailwindcss.com; style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com https://cdn.jsdelivr.net; img-src 'self' data:;",
+            "referrer-policy": "strict-origin-when-cross-origin"
+        },
+        "body": {
+            "html": "no-title"
+        }
+    },
+    "GET /nhap-nang-suat.php": {
+        "status": 302,
+        "headers": {
+            "content-type": "text/html; charset=UTF-8",
+            "location": "/authV2/public/index.php?redirect=%2Fbaonangsuat%2Fnhap-nang-suat.php",
+            "cache-control": "no-store, no-cache, must-revalidate",
+            "x-frame-options": "DENY",
+            "x-content-type-options": "nosniff",
+            "x-xss-protection": "1; mode=block",
+            "content-security-policy": "default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://cdn.tailwindcss.com; style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com https://cdn.jsdelivr.net; img-src 'self' data:;",
+            "referrer-policy": "strict-origin-when-cross-origin"
+        },
+        "body": {
+            "html": "no-title"
+        }
+    },
+    "GET /admin.php": {
+        "status": 302,
+        "headers": {
+            "content-type": "text/html; charset=UTF-8",
+            "location": "/authV2/public/index.php?redirect=%2Fbaonangsuat%2Fadmin.php",
+            "cache-control": "no-store, no-cache, must-revalidate",
+            "x-frame-options": "DENY",
+            "x-content-type-options": "nosniff",
+            "x-xss-protection": "1; mode=block",
+            "content-security-policy": "default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://cdn.tailwindcss.com; style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com https://cdn.jsdelivr.net; img-src 'self' data:;",
+            "referrer-policy": "strict-origin-when-cross-origin"
+        },
+        "body": {
+            "html": "no-title"
+        }
+    },
+    "GET /bieu-do.php": {
+        "status": 302,
+        "headers": {
+            "content-type": "text/html; charset=UTF-8",
+            "location": "/authV2/public/index.php?redirect=%2Fbaonangsuat%2Fbieu-do.php",
+            "cache-control": "no-store, no-cache, must-revalidate",
+            "x-frame-options": "DENY",
+            "x-content-type-options": "nosniff",
+            "x-xss-protection": "1; mode=block",
+            "content-security-policy": "default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://cdn.tailwindcss.com; style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com https://cdn.jsdelivr.net; img-src 'self' data:;",
+            "referrer-policy": "strict-origin-when-cross-origin"
+        },
+        "body": {
+            "html": "no-title"
+        }
+    },
+    "GET /huong-dan.php": {
+        "status": 302,
+        "headers": {
+            "content-type": "text/html; charset=UTF-8",
+            "location": "/authV2/public/index.php?redirect=%2Fbaonangsuat%2Fhuong-dan.php",
+            "cache-control": "no-store, no-cache, must-revalidate",
+            "x-frame-options": "DENY",
+            "x-content-type-options": "nosniff",
+            "x-xss-protection": "1; mode=block",
+            "content-security-policy": "default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://cdn.tailwindcss.com; style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com https://cdn.jsdelivr.net; img-src 'self' data:;",
+            "referrer-policy": "strict-origin-when-cross-origin"
+        },
+        "body": {
+            "html": "no-title"
+        }
+    },
+    "GET /no-line.php": {
+        "status": 302,
+        "headers": {
+            "content-type": "text/html; charset=UTF-8",
+            "location": "/authV2/public/index.php?redirect=%2Fbaonangsuat%2Fno-line.php",
+            "cache-control": "no-store, no-cache, must-revalidate",
+            "x-frame-options": "DENY",
+            "x-content-type-options": "nosniff",
+            "x-xss-protection": "1; mode=block",
+            "content-security-policy": "default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://cdn.tailwindcss.com; style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com https://cdn.jsdelivr.net; img-src 'self' data:;",
+            "referrer-policy": "strict-origin-when-cross-origin"
+        },
+        "body": {
+            "html": "no-title"
+        }
+    },
+    "GET /assets/css/style.css": {
+        "status": 200,
+        "headers": {
+            "content-type": "text/css"
+        },
+        "body": {
+            "sha1": "3f36e702520a4c22425762c0f69d3dccc9d3876f"
+        }
+    },
+    "GET /assets/css/admin.css": {
+        "status": 200,
+        "headers": {
+            "content-type": "text/css"
+        },
+        "body": {
+            "sha1": "a75747a4e4432c666bcbc01255a0d4466aade6f4"
+        }
+    },
+    "GET /assets/js/app.js": {
+        "status": 200,
+        "headers": {
+            "content-type": "text/javascript"
+        },
+        "body": {
+            "sha1": "b2f19d0436acb2901ef94455bb783357ef3156e7"
+        }
+    },
+    "GET /assets/js/modules/api.js": {
+        "status": 200,
+        "headers": {
+            "content-type": "text/javascript"
+        },
+        "body": {
+            "sha1": "66c44be5deaa7165ec675a706af3bd84a3bb3f1f"
+        }
+    },
+    "GET /assets/js/workers/realtime-worker.js": {
+        "status": 200,
+        "headers": {
+            "content-type": "text/javascript"
+        },
+        "body": {
+            "sha1": "7144276c20796af35dda6e267bd26f4b9d122782"
+        }
+    },
+    "GET /assets/tailwind/dist/main.css": {
+        "status": 200,
+        "headers": {
+            "content-type": "text/css"
+        },
+        "body": {
+            "sha1": "e50588edf36f9c4b81edcd3937e51570a91a1be3"
+        }
+    },
+    "GET /img/logoht.svg": {
+        "status": 200,
+        "headers": {
+            "content-type": "image/svg+xml"
+        },
+        "body": {
+            "sha1": "084bdcd4d913e5fb441fe27d64b08561fad1c916"
+        }
+    },
+    "GET /classes/Auth.php": {
+        "status": 404,
+        "headers": {
+            "content-type": "text/html; charset=iso-8859-1"
+        },
+        "body": {
+            "html_title": "404 Not Found"
+        }
+    },
+    "GET /app/Auth/Auth.php": {
+        "status": 403,
+        "headers": {
+            "content-type": "text/html; charset=iso-8859-1"
+        },
+        "body": {
+            "html_title": "403 Forbidden"
+        }
+    },
+    "GET /app/Support/Database.php": {
+        "status": 403,
+        "headers": {
+            "content-type": "text/html; charset=iso-8859-1"
+        },
+        "body": {
+            "html_title": "403 Forbidden"
+        }
+    },
+    "GET /bootstrap/app.php": {
+        "status": 403,
+        "headers": {
+            "content-type": "text/html; charset=iso-8859-1"
+        },
+        "body": {
+            "html_title": "403 Forbidden"
+        }
+    },
+    "GET /includes/navbar.php": {
+        "status": 403,
+        "headers": {
+            "content-type": "text/html; charset=iso-8859-1"
+        },
+        "body": {
+            "html_title": "403 Forbidden"
+        }
+    },
+    "GET /tools/smoke.php": {
+        "status": 403,
+        "headers": {
+            "content-type": "text/html; charset=iso-8859-1"
+        },
+        "body": {
+            "html_title": "403 Forbidden"
+        }
+    },
+    "GET /.htaccess": {
+        "status": 403,
+        "headers": {
+            "content-type": "text/html; charset=iso-8859-1"
+        },
+        "body": {
+            "html_title": "403 Forbidden"
+        }
+    },
+    "GET /.scratch/folder-structure/spec.md": {
+        "status": 403,
+        "headers": {
+            "content-type": "text/html; charset=iso-8859-1"
+        },
+        "body": {
+            "html_title": "403 Forbidden"
+        }
+    },
+    "GET /config/Database.php": {
+        "status": 403,
+        "headers": {
+            "content-type": "text/html; charset=iso-8859-1"
+        },
+        "body": {
+            "html_title": "403 Forbidden"
+        }
+    },
+    "GET /database/schema.sql": {
+        "status": 403,
+        "headers": {
+            "content-type": "text/html; charset=iso-8859-1"
+        },
+        "body": {
+            "html_title": "403 Forbidden"
+        }
+    },
+    "GET /docs/huong-dan-su-dung.md": {
+        "status": 403,
+        "headers": {
+            "content-type": "text/html; charset=iso-8859-1"
+        },
+        "body": {
+            "html_title": "403 Forbidden"
+        }
+    },
+    "GET /tests/php/run.php": {
+        "status": 403,
+        "headers": {
+            "content-type": "text/html; charset=iso-8859-1"
+        },
+        "body": {
+            "html_title": "403 Forbidden"
+        }
+    },
+    "GET /vendor/autoload.php": {
+        "status": 403,
+        "headers": {
+            "content-type": "text/html; charset=iso-8859-1"
+        },
+        "body": {
+            "html_title": "403 Forbidden"
+        }
+    },
+    "GET /composer.json": {
+        "status": 404,
+        "headers": {
+            "content-type": "text/html; charset=iso-8859-1"
+        },
+        "body": {
+            "html_title": "404 Not Found"
+        }
+    },
+    "GET /.gitignore": {
+        "status": 403,
+        "headers": {
+            "content-type": "text/html; charset=iso-8859-1"
+        },
+        "body": {
+            "html_title": "403 Forbidden"
+        }
+    },
+    "GET /api/csrf-token": {
+        "status": 200,
+        "headers": {
+            "content-type": "application/json; charset=utf-8",
+            "cache-control": "no-store, no-cache, must-revalidate",
+            "x-frame-options": "DENY",
+            "x-content-type-options": "nosniff",
+            "access-control-allow-origin": "*",
+            "access-control-allow-credentials": "true",
+            "access-control-allow-methods": "GET, POST, PUT, DELETE, OPTIONS",
+            "access-control-allow-headers": "Content-Type"
+        },
+        "body": {
+            "success": true,
+            "token": "<hex64>"
+        }
+    },
+    "POST /api/csrf-token": {
+        "status": 405,
+        "headers": {
+            "content-type": "application/json; charset=utf-8",
+            "cache-control": "no-store, no-cache, must-revalidate",
+            "x-frame-options": "DENY",
+            "x-content-type-options": "nosniff",
+            "access-control-allow-origin": "*",
+            "access-control-allow-credentials": "true",
+            "access-control-allow-methods": "GET, POST, PUT, DELETE, OPTIONS",
+            "access-control-allow-headers": "Content-Type"
+        },
+        "body": {
+            "success": false,
+            "message": "Method not allowed"
+        }
+    },
+    "OPTIONS /api/csrf-token": {
+        "status": 200,
+        "headers": {
+            "content-type": "application/json; charset=utf-8",
+            "x-frame-options": "DENY",
+            "x-content-type-options": "nosniff",
+            "access-control-allow-origin": "*",
+            "access-control-allow-credentials": "true",
+            "access-control-allow-methods": "GET, POST, PUT, DELETE, OPTIONS",
+            "access-control-allow-headers": "Content-Type"
+        },
+        "body": {
+            "invalid_json": "da39a3ee5e6b4b0d3255bfef95601890afd80709"
+        }
+    },
+    "OPTIONS /api/bao-cao/2": {
+        "status": 200,
+        "headers": {
+            "content-type": "application/json; charset=utf-8",
+            "x-frame-options": "DENY",
+            "x-content-type-options": "nosniff",
+            "access-control-allow-origin": "*",
+            "access-control-allow-credentials": "true",
+            "access-control-allow-methods": "GET, POST, PUT, DELETE, OPTIONS",
+            "access-control-allow-headers": "Content-Type"
+        },
+        "body": {
+            "invalid_json": "da39a3ee5e6b4b0d3255bfef95601890afd80709"
+        }
+    },
+    "GET /api/auth/session": {
+        "status": 401,
+        "headers": {
+            "content-type": "application/json; charset=utf-8",
+            "cache-control": "no-store, no-cache, must-revalidate",
+            "x-frame-options": "DENY",
+            "x-content-type-options": "nosniff",
+            "access-control-allow-origin": "*",
+            "access-control-allow-credentials": "true",
+            "access-control-allow-methods": "GET, POST, PUT, DELETE, OPTIONS",
+            "access-control-allow-headers": "Content-Type"
+        },
+        "body": {
+            "success": false,
+            "message": "Chưa đăng nhập"
+        }
+    },
+    "POST /api/auth/select-line": {
+        "status": 401,
+        "headers": {
+            "content-type": "application/json; charset=utf-8",
+            "cache-control": "no-store, no-cache, must-revalidate",
+            "x-frame-options": "DENY",
+            "x-content-type-options": "nosniff",
+            "access-control-allow-origin": "*",
+            "access-control-allow-credentials": "true",
+            "access-control-allow-methods": "GET, POST, PUT, DELETE, OPTIONS",
+            "access-control-allow-headers": "Content-Type"
+        },
+        "body": {
+            "success": false,
+            "message": "Chưa đăng nhập"
+        }
+    },
+    "GET /api/context": {
+        "status": 401,
+        "headers": {
+            "content-type": "application/json; charset=utf-8",
+            "cache-control": "no-store, no-cache, must-revalidate",
+            "x-frame-options": "DENY",
+            "x-content-type-options": "nosniff",
+            "access-control-allow-origin": "*",
+            "access-control-allow-credentials": "true",
+            "access-control-allow-methods": "GET, POST, PUT, DELETE, OPTIONS",
+            "access-control-allow-headers": "Content-Type"
+        },
+        "body": {
+            "success": false,
+            "message": "Chưa đăng nhập"
+        }
+    },
+    "GET /api/context?ca_id=1": {
+        "status": 401,
+        "headers": {
+            "content-type": "application/json; charset=utf-8",
+            "cache-control": "no-store, no-cache, must-revalidate",
+            "x-frame-options": "DENY",
+            "x-content-type-options": "nosniff",
+            "access-control-allow-origin": "*",
+            "access-control-allow-credentials": "true",
+            "access-control-allow-methods": "GET, POST, PUT, DELETE, OPTIONS",
+            "access-control-allow-headers": "Content-Type"
+        },
+        "body": {
+            "success": false,
+            "message": "Chưa đăng nhập"
+        }
+    },
+    "GET /api/bao-cao": {
+        "status": 401,
+        "headers": {
+            "content-type": "application/json; charset=utf-8",
+            "cache-control": "no-store, no-cache, must-revalidate",
+            "x-frame-options": "DENY",
+            "x-content-type-options": "nosniff",
+            "access-control-allow-origin": "*",
+            "access-control-allow-credentials": "true",
+            "access-control-allow-methods": "GET, POST, PUT, DELETE, OPTIONS",
+            "access-control-allow-headers": "Content-Type"
+        },
+        "body": {
+            "success": false,
+            "message": "Chưa đăng nhập"
+        }
+    },
+    "GET /api/bao-cao?include_completed=1": {
+        "status": 401,
+        "headers": {
+            "content-type": "application/json; charset=utf-8",
+            "cache-control": "no-store, no-cache, must-revalidate",
+            "x-frame-options": "DENY",
+            "x-content-type-options": "nosniff",
+            "access-control-allow-origin": "*",
+            "access-control-allow-credentials": "true",
+            "access-control-allow-methods": "GET, POST, PUT, DELETE, OPTIONS",
+            "access-control-allow-headers": "Content-Type"
+        },
+        "body": {
+            "success": false,
+            "message": "Chưa đăng nhập"
+        }
+    },
+    "POST /api/bao-cao": {
+        "status": 401,
+        "headers": {
+            "content-type": "application/json; charset=utf-8",
+            "cache-control": "no-store, no-cache, must-revalidate",
+            "x-frame-options": "DENY",
+            "x-content-type-options": "nosniff",
+            "access-control-allow-origin": "*",
+            "access-control-allow-credentials": "true",
+            "access-control-allow-methods": "GET, POST, PUT, DELETE, OPTIONS",
+            "access-control-allow-headers": "Content-Type"
+        },
+        "body": {
+            "success": false,
+            "message": "Chưa đăng nhập"
+        }
+    },
+    "GET /api/bao-cao/2": {
+        "status": 401,
+        "headers": {
+            "content-type": "application/json; charset=utf-8",
+            "cache-control": "no-store, no-cache, must-revalidate",
+            "x-frame-options": "DENY",
+            "x-content-type-options": "nosniff",
+            "access-control-allow-origin": "*",
+            "access-control-allow-credentials": "true",
+            "access-control-allow-methods": "GET, POST, PUT, DELETE, OPTIONS",
+            "access-control-allow-headers": "Content-Type"
+        },
+        "body": {
+            "success": false,
+            "message": "Chưa đăng nhập"
+        }
+    },
+    "GET /api/bao-cao/2/routing": {
+        "status": 401,
+        "headers": {
+            "content-type": "application/json; charset=utf-8",
+            "cache-control": "no-store, no-cache, must-revalidate",
+            "x-frame-options": "DENY",
+            "x-content-type-options": "nosniff",
+            "access-control-allow-origin": "*",
+            "access-control-allow-credentials": "true",
+            "access-control-allow-methods": "GET, POST, PUT, DELETE, OPTIONS",
+            "access-control-allow-headers": "Content-Type"
+        },
+        "body": {
+            "success": false,
+            "message": "Chưa đăng nhập"
+        }
+    },
+    "PUT /api/bao-cao/2/entries": {
+        "status": 401,
+        "headers": {
+            "content-type": "application/json; charset=utf-8",
+            "cache-control": "no-store, no-cache, must-revalidate",
+            "x-frame-options": "DENY",
+            "x-content-type-options": "nosniff",
+            "access-control-allow-origin": "*",
+            "access-control-allow-credentials": "true",
+            "access-control-allow-methods": "GET, POST, PUT, DELETE, OPTIONS",
+            "access-control-allow-headers": "Content-Type"
+        },
+        "body": {
+            "success": false,
+            "message": "Chưa đăng nhập"
+        }
+    },
+    "PUT /api/bao-cao/2/header": {
+        "status": 401,
+        "headers": {
+            "content-type": "application/json; charset=utf-8",
+            "cache-control": "no-store, no-cache, must-revalidate",
+            "x-frame-options": "DENY",
+            "x-content-type-options": "nosniff",
+            "access-control-allow-origin": "*",
+            "access-control-allow-credentials": "true",
+            "access-control-allow-methods": "GET, POST, PUT, DELETE, OPTIONS",
+            "access-control-allow-headers": "Content-Type"
+        },
+        "body": {
+            "success": false,
+            "message": "Chưa đăng nhập"
+        }
+    },
+    "POST /api/bao-cao/2/submit": {
+        "status": 401,
+        "headers": {
+            "content-type": "application/json; charset=utf-8",
+            "cache-control": "no-store, no-cache, must-revalidate",
+            "x-frame-options": "DENY",
+            "x-content-type-options": "nosniff",
+            "access-control-allow-origin": "*",
+            "access-control-allow-credentials": "true",
+            "access-control-allow-methods": "GET, POST, PUT, DELETE, OPTIONS",
+            "access-control-allow-headers": "Content-Type"
+        },
+        "body": {
+            "success": false,
+            "message": "Chưa đăng nhập"
+        }
+    },
+    "POST /api/bao-cao/2/approve": {
+        "status": 401,
+        "headers": {
+            "content-type": "application/json; charset=utf-8",
+            "cache-control": "no-store, no-cache, must-revalidate",
+            "x-frame-options": "DENY",
+            "x-content-type-options": "nosniff",
+            "access-control-allow-origin": "*",
+            "access-control-allow-credentials": "true",
+            "access-control-allow-methods": "GET, POST, PUT, DELETE, OPTIONS",
+            "access-control-allow-headers": "Content-Type"
+        },
+        "body": {
+            "success": false,
+            "message": "Chưa đăng nhập"
+        }
+    },
+    "POST /api/bao-cao/2/unlock": {
+        "status": 401,
+        "headers": {
+            "content-type": "application/json; charset=utf-8",
+            "cache-control": "no-store, no-cache, must-revalidate",
+            "x-frame-options": "DENY",
+            "x-content-type-options": "nosniff",
+            "access-control-allow-origin": "*",
+            "access-control-allow-credentials": "true",
+            "access-control-allow-methods": "GET, POST, PUT, DELETE, OPTIONS",
+            "access-control-allow-headers": "Content-Type"
+        },
+        "body": {
+            "success": false,
+            "message": "Chưa đăng nhập"
+        }
+    },
+    "POST /api/bao-cao/2/complete": {
+        "status": 401,
+        "headers": {
+            "content-type": "application/json; charset=utf-8",
+            "cache-control": "no-store, no-cache, must-revalidate",
+            "x-frame-options": "DENY",
+            "x-content-type-options": "nosniff",
+            "access-control-allow-origin": "*",
+            "access-control-allow-credentials": "true",
+            "access-control-allow-methods": "GET, POST, PUT, DELETE, OPTIONS",
+            "access-control-allow-headers": "Content-Type"
+        },
+        "body": {
+            "success": false,
+            "message": "Chưa đăng nhập"
+        }
+    },
+    "POST /api/bao-cao/2/reopen": {
+        "status": 401,
+        "headers": {
+            "content-type": "application/json; charset=utf-8",
+            "cache-control": "no-store, no-cache, must-revalidate",
+            "x-frame-options": "DENY",
+            "x-content-type-options": "nosniff",
+            "access-control-allow-origin": "*",
+            "access-control-allow-credentials": "true",
+            "access-control-allow-methods": "GET, POST, PUT, DELETE, OPTIONS",
+            "access-control-allow-headers": "Content-Type"
+        },
+        "body": {
+            "success": false,
+            "message": "Chưa đăng nhập"
+        }
+    },
+    "DELETE /api/bao-cao/2": {
+        "status": 401,
+        "headers": {
+            "content-type": "application/json; charset=utf-8",
+            "cache-control": "no-store, no-cache, must-revalidate",
+            "x-frame-options": "DENY",
+            "x-content-type-options": "nosniff",
+            "access-control-allow-origin": "*",
+            "access-control-allow-credentials": "true",
+            "access-control-allow-methods": "GET, POST, PUT, DELETE, OPTIONS",
+            "access-control-allow-headers": "Content-Type"
+        },
+        "body": {
+            "success": false,
+            "message": "Chưa đăng nhập"
+        }
+    },
+    "GET /api/danh-muc/ca": {
+        "status": 401,
+        "headers": {
+            "content-type": "application/json; charset=utf-8",
+            "cache-control": "no-store, no-cache, must-revalidate",
+            "x-frame-options": "DENY",
+            "x-content-type-options": "nosniff",
+            "access-control-allow-origin": "*",
+            "access-control-allow-credentials": "true",
+            "access-control-allow-methods": "GET, POST, PUT, DELETE, OPTIONS",
+            "access-control-allow-headers": "Content-Type"
+        },
+        "body": {
+            "success": false,
+            "message": "Chưa đăng nhập"
+        }
+    },
+    "GET /api/danh-muc/ma-hang": {
+        "status": 401,
+        "headers": {
+            "content-type": "application/json; charset=utf-8",
+            "cache-control": "no-store, no-cache, must-revalidate",
+            "x-frame-options": "DENY",
+            "x-content-type-options": "nosniff",
+            "access-control-allow-origin": "*",
+            "access-control-allow-credentials": "true",
+            "access-control-allow-methods": "GET, POST, PUT, DELETE, OPTIONS",
+            "access-control-allow-headers": "Content-Type"
+        },
+        "body": {
+            "success": false,
+            "message": "Chưa đăng nhập"
+        }
+    },
+    "GET /api/danh-muc/moc-gio?ca_id=1": {
+        "status": 401,
+        "headers": {
+            "content-type": "application/json; charset=utf-8",
+            "cache-control": "no-store, no-cache, must-revalidate",
+            "x-frame-options": "DENY",
+            "x-content-type-options": "nosniff",
+            "access-control-allow-origin": "*",
+            "access-control-allow-credentials": "true",
+            "access-control-allow-methods": "GET, POST, PUT, DELETE, OPTIONS",
+            "access-control-allow-headers": "Content-Type"
+        },
+        "body": {
+            "success": false,
+            "message": "Chưa đăng nhập"
+        }
+    },
+    "GET /api/danh-muc/routing?ma_hang_id=1": {
+        "status": 401,
+        "headers": {
+            "content-type": "application/json; charset=utf-8",
+            "cache-control": "no-store, no-cache, must-revalidate",
+            "x-frame-options": "DENY",
+            "x-content-type-options": "nosniff",
+            "access-control-allow-origin": "*",
+            "access-control-allow-credentials": "true",
+            "access-control-allow-methods": "GET, POST, PUT, DELETE, OPTIONS",
+            "access-control-allow-headers": "Content-Type"
+        },
+        "body": {
+            "success": false,
+            "message": "Chưa đăng nhập"
+        }
+    },
+    "GET /api/danh-muc/routing?ma_hang_id=1&line_id=6": {
+        "status": 401,
+        "headers": {
+            "content-type": "application/json; charset=utf-8",
+            "cache-control": "no-store, no-cache, must-revalidate",
+            "x-frame-options": "DENY",
+            "x-content-type-options": "nosniff",
+            "access-control-allow-origin": "*",
+            "access-control-allow-credentials": "true",
+            "access-control-allow-methods": "GET, POST, PUT, DELETE, OPTIONS",
+            "access-control-allow-headers": "Content-Type"
+        },
+        "body": {
+            "success": false,
+            "message": "Chưa đăng nhập"
+        }
+    },
+    "GET /api/admin/lines": {
+        "status": 401,
+        "headers": {
+            "content-type": "application/json; charset=utf-8",
+            "cache-control": "no-store, no-cache, must-revalidate",
+            "x-frame-options": "DENY",
+            "x-content-type-options": "nosniff",
+            "access-control-allow-origin": "*",
+            "access-control-allow-credentials": "true",
+            "access-control-allow-methods": "GET, POST, PUT, DELETE, OPTIONS",
+            "access-control-allow-headers": "Content-Type"
+        },
+        "body": {
+            "success": false,
+            "message": "Chưa đăng nhập"
+        }
+    },
+    "GET /api/admin/lines/1": {
+        "status": 401,
+        "headers": {
+            "content-type": "application/json; charset=utf-8",
+            "cache-control": "no-store, no-cache, must-revalidate",
+            "x-frame-options": "DENY",
+            "x-content-type-options": "nosniff",
+            "access-control-allow-origin": "*",
+            "access-control-allow-credentials": "true",
+            "access-control-allow-methods": "GET, POST, PUT, DELETE, OPTIONS",
+            "access-control-allow-headers": "Content-Type"
+        },
+        "body": {
+            "success": false,
+            "message": "Chưa đăng nhập"
+        }
+    },
+    "POST /api/admin/lines": {
+        "status": 401,
+        "headers": {
+            "content-type": "application/json; charset=utf-8",
+            "cache-control": "no-store, no-cache, must-revalidate",
+            "x-frame-options": "DENY",
+            "x-content-type-options": "nosniff",
+            "access-control-allow-origin": "*",
+            "access-control-allow-credentials": "true",
+            "access-control-allow-methods": "GET, POST, PUT, DELETE, OPTIONS",
+            "access-control-allow-headers": "Content-Type"
+        },
+        "body": {
+            "success": false,
+            "message": "Chưa đăng nhập"
+        }
+    },
+    "PUT /api/admin/lines/1": {
+        "status": 401,
+        "headers": {
+            "content-type": "application/json; charset=utf-8",
+            "cache-control": "no-store, no-cache, must-revalidate",
+            "x-frame-options": "DENY",
+            "x-content-type-options": "nosniff",
+            "access-control-allow-origin": "*",
+            "access-control-allow-credentials": "true",
+            "access-control-allow-methods": "GET, POST, PUT, DELETE, OPTIONS",
+            "access-control-allow-headers": "Content-Type"
+        },
+        "body": {
+            "success": false,
+            "message": "Chưa đăng nhập"
+        }
+    },
+    "DELETE /api/admin/lines/1": {
+        "status": 401,
+        "headers": {
+            "content-type": "application/json; charset=utf-8",
+            "cache-control": "no-store, no-cache, must-revalidate",
+            "x-frame-options": "DENY",
+            "x-content-type-options": "nosniff",
+            "access-control-allow-origin": "*",
+            "access-control-allow-credentials": "true",
+            "access-control-allow-methods": "GET, POST, PUT, DELETE, OPTIONS",
+            "access-control-allow-headers": "Content-Type"
+        },
+        "body": {
+            "success": false,
+            "message": "Chưa đăng nhập"
+        }
+    },
+    "GET /api/admin/users": {
+        "status": 401,
+        "headers": {
+            "content-type": "application/json; charset=utf-8",
+            "cache-control": "no-store, no-cache, must-revalidate",
+            "x-frame-options": "DENY",
+            "x-content-type-options": "nosniff",
+            "access-control-allow-origin": "*",
+            "access-control-allow-credentials": "true",
+            "access-control-allow-methods": "GET, POST, PUT, DELETE, OPTIONS",
+            "access-control-allow-headers": "Content-Type"
+        },
+        "body": {
+            "success": false,
+            "message": "Chưa đăng nhập"
+        }
+    },
+    "GET /api/admin/user-lines": {
+        "status": 401,
+        "headers": {
+            "content-type": "application/json; charset=utf-8",
+            "cache-control": "no-store, no-cache, must-revalidate",
+            "x-frame-options": "DENY",
+            "x-content-type-options": "nosniff",
+            "access-control-allow-origin": "*",
+            "access-control-allow-credentials": "true",
+            "access-control-allow-methods": "GET, POST, PUT, DELETE, OPTIONS",
+            "access-control-allow-headers": "Content-Type"
+        },
+        "body": {
+            "success": false,
+            "message": "Chưa đăng nhập"
+        }
+    },
+    "POST /api/admin/user-lines": {
+        "status": 401,
+        "headers": {
+            "content-type": "application/json; charset=utf-8",
+            "cache-control": "no-store, no-cache, must-revalidate",
+            "x-frame-options": "DENY",
+            "x-content-type-options": "nosniff",
+            "access-control-allow-origin": "*",
+            "access-control-allow-credentials": "true",
+            "access-control-allow-methods": "GET, POST, PUT, DELETE, OPTIONS",
+            "access-control-allow-headers": "Content-Type"
+        },
+        "body": {
+            "success": false,
+            "message": "Chưa đăng nhập"
+        }
+    },
+    "DELETE /api/admin/user-lines": {
+        "status": 401,
+        "headers": {
+            "content-type": "application/json; charset=utf-8",
+            "cache-control": "no-store, no-cache, must-revalidate",
+            "x-frame-options": "DENY",
+            "x-content-type-options": "nosniff",
+            "access-control-allow-origin": "*",
+            "access-control-allow-credentials": "true",
+            "access-control-allow-methods": "GET, POST, PUT, DELETE, OPTIONS",
+            "access-control-allow-headers": "Content-Type"
+        },
+        "body": {
+            "success": false,
+            "message": "Chưa đăng nhập"
+        }
+    },
+    "GET /api/admin/ma-hang": {
+        "status": 401,
+        "headers": {
+            "content-type": "application/json; charset=utf-8",
+            "cache-control": "no-store, no-cache, must-revalidate",
+            "x-frame-options": "DENY",
+            "x-content-type-options": "nosniff",
+            "access-control-allow-origin": "*",
+            "access-control-allow-credentials": "true",
+            "access-control-allow-methods": "GET, POST, PUT, DELETE, OPTIONS",
+            "access-control-allow-headers": "Content-Type"
+        },
+        "body": {
+            "success": false,
+            "message": "Chưa đăng nhập"
+        }
+    },
+    "GET /api/admin/ma-hang/1": {
+        "status": 401,
+        "headers": {
+            "content-type": "application/json; charset=utf-8",
+            "cache-control": "no-store, no-cache, must-revalidate",
+            "x-frame-options": "DENY",
+            "x-content-type-options": "nosniff",
+            "access-control-allow-origin": "*",
+            "access-control-allow-credentials": "true",
+            "access-control-allow-methods": "GET, POST, PUT, DELETE, OPTIONS",
+            "access-control-allow-headers": "Content-Type"
+        },
+        "body": {
+            "success": false,
+            "message": "Chưa đăng nhập"
+        }
+    },
+    "POST /api/admin/ma-hang": {
+        "status": 401,
+        "headers": {
+            "content-type": "application/json; charset=utf-8",
+            "cache-control": "no-store, no-cache, must-revalidate",
+            "x-frame-options": "DENY",
+            "x-content-type-options": "nosniff",
+            "access-control-allow-origin": "*",
+            "access-control-allow-credentials": "true",
+            "access-control-allow-methods": "GET, POST, PUT, DELETE, OPTIONS",
+            "access-control-allow-headers": "Content-Type"
+        },
+        "body": {
+            "success": false,
+            "message": "Chưa đăng nhập"
+        }
+    },
+    "PUT /api/admin/ma-hang/1": {
+        "status": 401,
+        "headers": {
+            "content-type": "application/json; charset=utf-8",
+            "cache-control": "no-store, no-cache, must-revalidate",
+            "x-frame-options": "DENY",
+            "x-content-type-options": "nosniff",
+            "access-control-allow-origin": "*",
+            "access-control-allow-credentials": "true",
+            "access-control-allow-methods": "GET, POST, PUT, DELETE, OPTIONS",
+            "access-control-allow-headers": "Content-Type"
+        },
+        "body": {
+            "success": false,
+            "message": "Chưa đăng nhập"
+        }
+    },
+    "DELETE /api/admin/ma-hang/1": {
+        "status": 401,
+        "headers": {
+            "content-type": "application/json; charset=utf-8",
+            "cache-control": "no-store, no-cache, must-revalidate",
+            "x-frame-options": "DENY",
+            "x-content-type-options": "nosniff",
+            "access-control-allow-origin": "*",
+            "access-control-allow-credentials": "true",
+            "access-control-allow-methods": "GET, POST, PUT, DELETE, OPTIONS",
+            "access-control-allow-headers": "Content-Type"
+        },
+        "body": {
+            "success": false,
+            "message": "Chưa đăng nhập"
+        }
+    },
+    "GET /api/admin/cong-doan": {
+        "status": 401,
+        "headers": {
+            "content-type": "application/json; charset=utf-8",
+            "cache-control": "no-store, no-cache, must-revalidate",
+            "x-frame-options": "DENY",
+            "x-content-type-options": "nosniff",
+            "access-control-allow-origin": "*",
+            "access-control-allow-credentials": "true",
+            "access-control-allow-methods": "GET, POST, PUT, DELETE, OPTIONS",
+            "access-control-allow-headers": "Content-Type"
+        },
+        "body": {
+            "success": false,
+            "message": "Chưa đăng nhập"
+        }
+    },
+    "GET /api/admin/cong-doan/1": {
+        "status": 401,
+        "headers": {
+            "content-type": "application/json; charset=utf-8",
+            "cache-control": "no-store, no-cache, must-revalidate",
+            "x-frame-options": "DENY",
+            "x-content-type-options": "nosniff",
+            "access-control-allow-origin": "*",
+            "access-control-allow-credentials": "true",
+            "access-control-allow-methods": "GET, POST, PUT, DELETE, OPTIONS",
+            "access-control-allow-headers": "Content-Type"
+        },
+        "body": {
+            "success": false,
+            "message": "Chưa đăng nhập"
+        }
+    },
+    "POST /api/admin/cong-doan": {
+        "status": 401,
+        "headers": {
+            "content-type": "application/json; charset=utf-8",
+            "cache-control": "no-store, no-cache, must-revalidate",
+            "x-frame-options": "DENY",
+            "x-content-type-options": "nosniff",
+            "access-control-allow-origin": "*",
+            "access-control-allow-credentials": "true",
+            "access-control-allow-methods": "GET, POST, PUT, DELETE, OPTIONS",
+            "access-control-allow-headers": "Content-Type"
+        },
+        "body": {
+            "success": false,
+            "message": "Chưa đăng nhập"
+        }
+    },
+    "PUT /api/admin/cong-doan/1": {
+        "status": 401,
+        "headers": {
+            "content-type": "application/json; charset=utf-8",
+            "cache-control": "no-store, no-cache, must-revalidate",
+            "x-frame-options": "DENY",
+            "x-content-type-options": "nosniff",
+            "access-control-allow-origin": "*",
+            "access-control-allow-credentials": "true",
+            "access-control-allow-methods": "GET, POST, PUT, DELETE, OPTIONS",
+            "access-control-allow-headers": "Content-Type"
+        },
+        "body": {
+            "success": false,
+            "message": "Chưa đăng nhập"
+        }
+    },
+    "DELETE /api/admin/cong-doan/1": {
+        "status": 401,
+        "headers": {
+            "content-type": "application/json; charset=utf-8",
+            "cache-control": "no-store, no-cache, must-revalidate",
+            "x-frame-options": "DENY",
+            "x-content-type-options": "nosniff",
+            "access-control-allow-origin": "*",
+            "access-control-allow-credentials": "true",
+            "access-control-allow-methods": "GET, POST, PUT, DELETE, OPTIONS",
+            "access-control-allow-headers": "Content-Type"
+        },
+        "body": {
+            "success": false,
+            "message": "Chưa đăng nhập"
+        }
+    },
+    "GET /api/admin/routing?ma_hang_id=1": {
+        "status": 401,
+        "headers": {
+            "content-type": "application/json; charset=utf-8",
+            "cache-control": "no-store, no-cache, must-revalidate",
+            "x-frame-options": "DENY",
+            "x-content-type-options": "nosniff",
+            "access-control-allow-origin": "*",
+            "access-control-allow-credentials": "true",
+            "access-control-allow-methods": "GET, POST, PUT, DELETE, OPTIONS",
+            "access-control-allow-headers": "Content-Type"
+        },
+        "body": {
+            "success": false,
+            "message": "Chưa đăng nhập"
+        }
+    },
+    "GET /api/admin/routing/1": {
+        "status": 401,
+        "headers": {
+            "content-type": "application/json; charset=utf-8",
+            "cache-control": "no-store, no-cache, must-revalidate",
+            "x-frame-options": "DENY",
+            "x-content-type-options": "nosniff",
+            "access-control-allow-origin": "*",
+            "access-control-allow-credentials": "true",
+            "access-control-allow-methods": "GET, POST, PUT, DELETE, OPTIONS",
+            "access-control-allow-headers": "Content-Type"
+        },
+        "body": {
+            "success": false,
+            "message": "Chưa đăng nhập"
+        }
+    },
+    "POST /api/admin/routing": {
+        "status": 401,
+        "headers": {
+            "content-type": "application/json; charset=utf-8",
+            "cache-control": "no-store, no-cache, must-revalidate",
+            "x-frame-options": "DENY",
+            "x-content-type-options": "nosniff",
+            "access-control-allow-origin": "*",
+            "access-control-allow-credentials": "true",
+            "access-control-allow-methods": "GET, POST, PUT, DELETE, OPTIONS",
+            "access-control-allow-headers": "Content-Type"
+        },
+        "body": {
+            "success": false,
+            "message": "Chưa đăng nhập"
+        }
+    },
+    "PUT /api/admin/routing/1": {
+        "status": 401,
+        "headers": {
+            "content-type": "application/json; charset=utf-8",
+            "cache-control": "no-store, no-cache, must-revalidate",
+            "x-frame-options": "DENY",
+            "x-content-type-options": "nosniff",
+            "access-control-allow-origin": "*",
+            "access-control-allow-credentials": "true",
+            "access-control-allow-methods": "GET, POST, PUT, DELETE, OPTIONS",
+            "access-control-allow-headers": "Content-Type"
+        },
+        "body": {
+            "success": false,
+            "message": "Chưa đăng nhập"
+        }
+    },
+    "DELETE /api/admin/routing/1": {
+        "status": 401,
+        "headers": {
+            "content-type": "application/json; charset=utf-8",
+            "cache-control": "no-store, no-cache, must-revalidate",
+            "x-frame-options": "DENY",
+            "x-content-type-options": "nosniff",
+            "access-control-allow-origin": "*",
+            "access-control-allow-credentials": "true",
+            "access-control-allow-methods": "GET, POST, PUT, DELETE, OPTIONS",
+            "access-control-allow-headers": "Content-Type"
+        },
+        "body": {
+            "success": false,
+            "message": "Chưa đăng nhập"
+        }
+    },
+    "GET /api/admin/moc-gio/ca-list": {
+        "status": 401,
+        "headers": {
+            "content-type": "application/json; charset=utf-8",
+            "cache-control": "no-store, no-cache, must-revalidate",
+            "x-frame-options": "DENY",
+            "x-content-type-options": "nosniff",
+            "access-control-allow-origin": "*",
+            "access-control-allow-credentials": "true",
+            "access-control-allow-methods": "GET, POST, PUT, DELETE, OPTIONS",
+            "access-control-allow-headers": "Content-Type"
+        },
+        "body": {
+            "success": false,
+            "message": "Chưa đăng nhập"
+        }
+    },
+    "GET /api/admin/moc-gio?ca_id=1": {
+        "status": 401,
+        "headers": {
+            "content-type": "application/json; charset=utf-8",
+            "cache-control": "no-store, no-cache, must-revalidate",
+            "x-frame-options": "DENY",
+            "x-content-type-options": "nosniff",
+            "access-control-allow-origin": "*",
+            "access-control-allow-credentials": "true",
+            "access-control-allow-methods": "GET, POST, PUT, DELETE, OPTIONS",
+            "access-control-allow-headers": "Content-Type"
+        },
+        "body": {
+            "success": false,
+            "message": "Chưa đăng nhập"
+        }
+    },
+    "GET /api/admin/moc-gio/1": {
+        "status": 401,
+        "headers": {
+            "content-type": "application/json; charset=utf-8",
+            "cache-control": "no-store, no-cache, must-revalidate",
+            "x-frame-options": "DENY",
+            "x-content-type-options": "nosniff",
+            "access-control-allow-origin": "*",
+            "access-control-allow-credentials": "true",
+            "access-control-allow-methods": "GET, POST, PUT, DELETE, OPTIONS",
+            "access-control-allow-headers": "Content-Type"
+        },
+        "body": {
+            "success": false,
+            "message": "Chưa đăng nhập"
+        }
+    },
+    "POST /api/admin/moc-gio/copy-default": {
+        "status": 401,
+        "headers": {
+            "content-type": "application/json; charset=utf-8",
+            "cache-control": "no-store, no-cache, must-revalidate",
+            "x-frame-options": "DENY",
+            "x-content-type-options": "nosniff",
+            "access-control-allow-origin": "*",
+            "access-control-allow-credentials": "true",
+            "access-control-allow-methods": "GET, POST, PUT, DELETE, OPTIONS",
+            "access-control-allow-headers": "Content-Type"
+        },
+        "body": {
+            "success": false,
+            "message": "Chưa đăng nhập"
+        }
+    },
+    "POST /api/admin/moc-gio": {
+        "status": 401,
+        "headers": {
+            "content-type": "application/json; charset=utf-8",
+            "cache-control": "no-store, no-cache, must-revalidate",
+            "x-frame-options": "DENY",
+            "x-content-type-options": "nosniff",
+            "access-control-allow-origin": "*",
+            "access-control-allow-credentials": "true",
+            "access-control-allow-methods": "GET, POST, PUT, DELETE, OPTIONS",
+            "access-control-allow-headers": "Content-Type"
+        },
+        "body": {
+            "success": false,
+            "message": "Chưa đăng nhập"
+        }
+    },
+    "PUT /api/admin/moc-gio/1": {
+        "status": 401,
+        "headers": {
+            "content-type": "application/json; charset=utf-8",
+            "cache-control": "no-store, no-cache, must-revalidate",
+            "x-frame-options": "DENY",
+            "x-content-type-options": "nosniff",
+            "access-control-allow-origin": "*",
+            "access-control-allow-credentials": "true",
+            "access-control-allow-methods": "GET, POST, PUT, DELETE, OPTIONS",
+            "access-control-allow-headers": "Content-Type"
+        },
+        "body": {
+            "success": false,
+            "message": "Chưa đăng nhập"
+        }
+    },
+    "DELETE /api/admin/moc-gio/1": {
+        "status": 401,
+        "headers": {
+            "content-type": "application/json; charset=utf-8",
+            "cache-control": "no-store, no-cache, must-revalidate",
+            "x-frame-options": "DENY",
+            "x-content-type-options": "nosniff",
+            "access-control-allow-origin": "*",
+            "access-control-allow-credentials": "true",
+            "access-control-allow-methods": "GET, POST, PUT, DELETE, OPTIONS",
+            "access-control-allow-headers": "Content-Type"
+        },
+        "body": {
+            "success": false,
+            "message": "Chưa đăng nhập"
+        }
+    },
+    "POST /api/admin/bao-cao/bulk-create": {
+        "status": 401,
+        "headers": {
+            "content-type": "application/json; charset=utf-8",
+            "cache-control": "no-store, no-cache, must-revalidate",
+            "x-frame-options": "DENY",
+            "x-content-type-options": "nosniff",
+            "access-control-allow-origin": "*",
+            "access-control-allow-credentials": "true",
+            "access-control-allow-methods": "GET, POST, PUT, DELETE, OPTIONS",
+            "access-control-allow-headers": "Content-Type"
+        },
+        "body": {
+            "success": false,
+            "message": "Chưa đăng nhập"
+        }
+    },
+    "GET /api/moc-gio-sets": {
+        "status": 401,
+        "headers": {
+            "content-type": "application/json; charset=utf-8",
+            "cache-control": "no-store, no-cache, must-revalidate",
+            "x-frame-options": "DENY",
+            "x-content-type-options": "nosniff",
+            "access-control-allow-origin": "*",
+            "access-control-allow-credentials": "true",
+            "access-control-allow-methods": "GET, POST, PUT, DELETE, OPTIONS",
+            "access-control-allow-headers": "Content-Type"
+        },
+        "body": {
+            "success": false,
+            "message": "Chưa đăng nhập"
+        }
+    },
+    "GET /api/moc-gio-sets?ca_id=1": {
+        "status": 401,
+        "headers": {
+            "content-type": "application/json; charset=utf-8",
+            "cache-control": "no-store, no-cache, must-revalidate",
+            "x-frame-options": "DENY",
+            "x-content-type-options": "nosniff",
+            "access-control-allow-origin": "*",
+            "access-control-allow-credentials": "true",
+            "access-control-allow-methods": "GET, POST, PUT, DELETE, OPTIONS",
+            "access-control-allow-headers": "Content-Type"
+        },
+        "body": {
+            "success": false,
+            "message": "Chưa đăng nhập"
+        }
+    },
+    "GET /api/moc-gio-sets/1": {
+        "status": 401,
+        "headers": {
+            "content-type": "application/json; charset=utf-8",
+            "cache-control": "no-store, no-cache, must-revalidate",
+            "x-frame-options": "DENY",
+            "x-content-type-options": "nosniff",
+            "access-control-allow-origin": "*",
+            "access-control-allow-credentials": "true",
+            "access-control-allow-methods": "GET, POST, PUT, DELETE, OPTIONS",
+            "access-control-allow-headers": "Content-Type"
+        },
+        "body": {
+            "success": false,
+            "message": "Chưa đăng nhập"
+        }
+    },
+    "POST /api/moc-gio-sets": {
+        "status": 401,
+        "headers": {
+            "content-type": "application/json; charset=utf-8",
+            "cache-control": "no-store, no-cache, must-revalidate",
+            "x-frame-options": "DENY",
+            "x-content-type-options": "nosniff",
+            "access-control-allow-origin": "*",
+            "access-control-allow-credentials": "true",
+            "access-control-allow-methods": "GET, POST, PUT, DELETE, OPTIONS",
+            "access-control-allow-headers": "Content-Type"
+        },
+        "body": {
+            "success": false,
+            "message": "Chưa đăng nhập"
+        }
+    },
+    "POST /api/moc-gio-sets/copy": {
+        "status": 401,
+        "headers": {
+            "content-type": "application/json; charset=utf-8",
+            "cache-control": "no-store, no-cache, must-revalidate",
+            "x-frame-options": "DENY",
+            "x-content-type-options": "nosniff",
+            "access-control-allow-origin": "*",
+            "access-control-allow-credentials": "true",
+            "access-control-allow-methods": "GET, POST, PUT, DELETE, OPTIONS",
+            "access-control-allow-headers": "Content-Type"
+        },
+        "body": {
+            "success": false,
+            "message": "Chưa đăng nhập"
+        }
+    },
+    "PUT /api/moc-gio-sets/1": {
+        "status": 401,
+        "headers": {
+            "content-type": "application/json; charset=utf-8",
+            "cache-control": "no-store, no-cache, must-revalidate",
+            "x-frame-options": "DENY",
+            "x-content-type-options": "nosniff",
+            "access-control-allow-origin": "*",
+            "access-control-allow-credentials": "true",
+            "access-control-allow-methods": "GET, POST, PUT, DELETE, OPTIONS",
+            "access-control-allow-headers": "Content-Type"
+        },
+        "body": {
+            "success": false,
+            "message": "Chưa đăng nhập"
+        }
+    },
+    "DELETE /api/moc-gio-sets/1": {
+        "status": 401,
+        "headers": {
+            "content-type": "application/json; charset=utf-8",
+            "cache-control": "no-store, no-cache, must-revalidate",
+            "x-frame-options": "DENY",
+            "x-content-type-options": "nosniff",
+            "access-control-allow-origin": "*",
+            "access-control-allow-credentials": "true",
+            "access-control-allow-methods": "GET, POST, PUT, DELETE, OPTIONS",
+            "access-control-allow-headers": "Content-Type"
+        },
+        "body": {
+            "success": false,
+            "message": "Chưa đăng nhập"
+        }
+    },
+    "GET /api/moc-gio-sets/1/lines": {
+        "status": 401,
+        "headers": {
+            "content-type": "application/json; charset=utf-8",
+            "cache-control": "no-store, no-cache, must-revalidate",
+            "x-frame-options": "DENY",
+            "x-content-type-options": "nosniff",
+            "access-control-allow-origin": "*",
+            "access-control-allow-credentials": "true",
+            "access-control-allow-methods": "GET, POST, PUT, DELETE, OPTIONS",
+            "access-control-allow-headers": "Content-Type"
+        },
+        "body": {
+            "success": false,
+            "message": "Chưa đăng nhập"
+        }
+    },
+    "POST /api/moc-gio-sets/1/lines": {
+        "status": 401,
+        "headers": {
+            "content-type": "application/json; charset=utf-8",
+            "cache-control": "no-store, no-cache, must-revalidate",
+            "x-frame-options": "DENY",
+            "x-content-type-options": "nosniff",
+            "access-control-allow-origin": "*",
+            "access-control-allow-credentials": "true",
+            "access-control-allow-methods": "GET, POST, PUT, DELETE, OPTIONS",
+            "access-control-allow-headers": "Content-Type"
+        },
+        "body": {
+            "success": false,
+            "message": "Chưa đăng nhập"
+        }
+    },
+    "DELETE /api/moc-gio-sets/1/lines": {
+        "status": 401,
+        "headers": {
+            "content-type": "application/json; charset=utf-8",
+            "cache-control": "no-store, no-cache, must-revalidate",
+            "x-frame-options": "DENY",
+            "x-content-type-options": "nosniff",
+            "access-control-allow-origin": "*",
+            "access-control-allow-credentials": "true",
+            "access-control-allow-methods": "GET, POST, PUT, DELETE, OPTIONS",
+            "access-control-allow-headers": "Content-Type"
+        },
+        "body": {
+            "success": false,
+            "message": "Chưa đăng nhập"
+        }
+    },
+    "GET /api/moc-gio-sets/unassigned-lines?ca_id=1": {
+        "status": 401,
+        "headers": {
+            "content-type": "application/json; charset=utf-8",
+            "cache-control": "no-store, no-cache, must-revalidate",
+            "x-frame-options": "DENY",
+            "x-content-type-options": "nosniff",
+            "access-control-allow-origin": "*",
+            "access-control-allow-credentials": "true",
+            "access-control-allow-methods": "GET, POST, PUT, DELETE, OPTIONS",
+            "access-control-allow-headers": "Content-Type"
+        },
+        "body": {
+            "success": false,
+            "message": "Chưa đăng nhập"
+        }
+    },
+    "GET /api/moc-gio-sets/resolve?ca_id=1&line_id=6": {
+        "status": 401,
+        "headers": {
+            "content-type": "application/json; charset=utf-8",
+            "cache-control": "no-store, no-cache, must-revalidate",
+            "x-frame-options": "DENY",
+            "x-content-type-options": "nosniff",
+            "access-control-allow-origin": "*",
+            "access-control-allow-credentials": "true",
+            "access-control-allow-methods": "GET, POST, PUT, DELETE, OPTIONS",
+            "access-control-allow-headers": "Content-Type"
+        },
+        "body": {
+            "success": false,
+            "message": "Chưa đăng nhập"
+        }
+    },
+    "GET /api/bao-cao-history": {
+        "status": 401,
+        "headers": {
+            "content-type": "application/json; charset=utf-8",
+            "cache-control": "no-store, no-cache, must-revalidate",
+            "x-frame-options": "DENY",
+            "x-content-type-options": "nosniff",
+            "access-control-allow-origin": "*",
+            "access-control-allow-credentials": "true",
+            "access-control-allow-methods": "GET, POST, PUT, DELETE, OPTIONS",
+            "access-control-allow-headers": "Content-Type"
+        },
+        "body": {
+            "success": false,
+            "message": "Chưa đăng nhập"
+        }
+    },
+    "GET /api/bao-cao-history?page=1&page_size=5": {
+        "status": 401,
+        "headers": {
+            "content-type": "application/json; charset=utf-8",
+            "cache-control": "no-store, no-cache, must-revalidate",
+            "x-frame-options": "DENY",
+            "x-content-type-options": "nosniff",
+            "access-control-allow-origin": "*",
+            "access-control-allow-credentials": "true",
+            "access-control-allow-methods": "GET, POST, PUT, DELETE, OPTIONS",
+            "access-control-allow-headers": "Content-Type"
+        },
+        "body": {
+            "success": false,
+            "message": "Chưa đăng nhập"
+        }
+    },
+    "GET /api/bao-cao-history/2": {
+        "status": 401,
+        "headers": {
+            "content-type": "application/json; charset=utf-8",
+            "cache-control": "no-store, no-cache, must-revalidate",
+            "x-frame-options": "DENY",
+            "x-content-type-options": "nosniff",
+            "access-control-allow-origin": "*",
+            "access-control-allow-credentials": "true",
+            "access-control-allow-methods": "GET, POST, PUT, DELETE, OPTIONS",
+            "access-control-allow-headers": "Content-Type"
+        },
+        "body": {
+            "success": false,
+            "message": "Chưa đăng nhập"
+        }
+    },
+    "POST /api/import/preview": {
+        "status": 401,
+        "headers": {
+            "content-type": "application/json; charset=utf-8",
+            "cache-control": "no-store, no-cache, must-revalidate",
+            "x-frame-options": "DENY",
+            "x-content-type-options": "nosniff",
+            "access-control-allow-origin": "*",
+            "access-control-allow-credentials": "true",
+            "access-control-allow-methods": "GET, POST, PUT, DELETE, OPTIONS",
+            "access-control-allow-headers": "Content-Type"
+        },
+        "body": {
+            "success": false,
+            "message": "Chưa đăng nhập"
+        }
+    },
+    "POST /api/import/confirm": {
+        "status": 401,
+        "headers": {
+            "content-type": "application/json; charset=utf-8",
+            "cache-control": "no-store, no-cache, must-revalidate",
+            "x-frame-options": "DENY",
+            "x-content-type-options": "nosniff",
+            "access-control-allow-origin": "*",
+            "access-control-allow-credentials": "true",
+            "access-control-allow-methods": "GET, POST, PUT, DELETE, OPTIONS",
+            "access-control-allow-headers": "Content-Type"
+        },
+        "body": {
+            "success": false,
+            "message": "Chưa đăng nhập"
+        }
+    },
+    "GET /api/import-history": {
+        "status": 401,
+        "headers": {
+            "content-type": "application/json; charset=utf-8",
+            "cache-control": "no-store, no-cache, must-revalidate",
+            "x-frame-options": "DENY",
+            "x-content-type-options": "nosniff",
+            "access-control-allow-origin": "*",
+            "access-control-allow-credentials": "true",
+            "access-control-allow-methods": "GET, POST, PUT, DELETE, OPTIONS",
+            "access-control-allow-headers": "Content-Type"
+        },
+        "body": {
+            "success": false,
+            "message": "Chưa đăng nhập"
+        }
+    },
+    "GET /api/import-history/1": {
+        "status": 401,
+        "headers": {
+            "content-type": "application/json; charset=utf-8",
+            "cache-control": "no-store, no-cache, must-revalidate",
+            "x-frame-options": "DENY",
+            "x-content-type-options": "nosniff",
+            "access-control-allow-origin": "*",
+            "access-control-allow-credentials": "true",
+            "access-control-allow-methods": "GET, POST, PUT, DELETE, OPTIONS",
+            "access-control-allow-headers": "Content-Type"
+        },
+        "body": {
+            "success": false,
+            "message": "Chưa đăng nhập"
+        }
+    },
+    "POST /api/user-permissions/bulk": {
+        "status": 401,
+        "headers": {
+            "content-type": "application/json; charset=utf-8",
+            "cache-control": "no-store, no-cache, must-revalidate",
+            "x-frame-options": "DENY",
+            "x-content-type-options": "nosniff",
+            "access-control-allow-origin": "*",
+            "access-control-allow-credentials": "true",
+            "access-control-allow-methods": "GET, POST, PUT, DELETE, OPTIONS",
+            "access-control-allow-headers": "Content-Type"
+        },
+        "body": {
+            "success": false,
+            "message": "Chưa đăng nhập"
+        }
+    },
+    "GET /api/user-permissions/1": {
+        "status": 401,
+        "headers": {
+            "content-type": "application/json; charset=utf-8",
+            "cache-control": "no-store, no-cache, must-revalidate",
+            "x-frame-options": "DENY",
+            "x-content-type-options": "nosniff",
+            "access-control-allow-origin": "*",
+            "access-control-allow-credentials": "true",
+            "access-control-allow-methods": "GET, POST, PUT, DELETE, OPTIONS",
+            "access-control-allow-headers": "Content-Type"
+        },
+        "body": {
+            "success": false,
+            "message": "Chưa đăng nhập"
+        }
+    },
+    "POST /api/user-permissions": {
+        "status": 401,
+        "headers": {
+            "content-type": "application/json; charset=utf-8",
+            "cache-control": "no-store, no-cache, must-revalidate",
+            "x-frame-options": "DENY",
+            "x-content-type-options": "nosniff",
+            "access-control-allow-origin": "*",
+            "access-control-allow-credentials": "true",
+            "access-control-allow-methods": "GET, POST, PUT, DELETE, OPTIONS",
+            "access-control-allow-headers": "Content-Type"
+        },
+        "body": {
+            "success": false,
+            "message": "Chưa đăng nhập"
+        }
+    },
+    "DELETE /api/user-permissions/1/can_view_history": {
+        "status": 401,
+        "headers": {
+            "content-type": "application/json; charset=utf-8",
+            "cache-control": "no-store, no-cache, must-revalidate",
+            "x-frame-options": "DENY",
+            "x-content-type-options": "nosniff",
+            "access-control-allow-origin": "*",
+            "access-control-allow-credentials": "true",
+            "access-control-allow-methods": "GET, POST, PUT, DELETE, OPTIONS",
+            "access-control-allow-headers": "Content-Type"
+        },
+        "body": {
+            "success": false,
+            "message": "Chưa đăng nhập"
+        }
+    },
+    "GET /api/bieu-do/ca-list": {
+        "status": 401,
+        "headers": {
+            "content-type": "application/json; charset=utf-8",
+            "cache-control": "no-store, no-cache, must-revalidate",
+            "x-frame-options": "DENY",
+            "x-content-type-options": "nosniff",
+            "access-control-allow-origin": "*",
+            "access-control-allow-credentials": "true",
+            "access-control-allow-methods": "GET, POST, PUT, DELETE, OPTIONS",
+            "access-control-allow-headers": "Content-Type"
+        },
+        "body": {
+            "success": false,
+            "message": "Chưa đăng nhập"
+        }
+    },
+    "GET /api/bieu-do/lines": {
+        "status": 401,
+        "headers": {
+            "content-type": "application/json; charset=utf-8",
+            "cache-control": "no-store, no-cache, must-revalidate",
+            "x-frame-options": "DENY",
+            "x-content-type-options": "nosniff",
+            "access-control-allow-origin": "*",
+            "access-control-allow-credentials": "true",
+            "access-control-allow-methods": "GET, POST, PUT, DELETE, OPTIONS",
+            "access-control-allow-headers": "Content-Type"
+        },
+        "body": {
+            "success": false,
+            "message": "Chưa đăng nhập"
+        }
+    },
+    "GET /api/bieu-do/ma-hang-list?line_id=6&ngay=2026-11-07": {
+        "status": 401,
+        "headers": {
+            "content-type": "application/json; charset=utf-8",
+            "cache-control": "no-store, no-cache, must-revalidate",
+            "x-frame-options": "DENY",
+            "x-content-type-options": "nosniff",
+            "access-control-allow-origin": "*",
+            "access-control-allow-credentials": "true",
+            "access-control-allow-methods": "GET, POST, PUT, DELETE, OPTIONS",
+            "access-control-allow-headers": "Content-Type"
+        },
+        "body": {
+            "success": false,
+            "message": "Chưa đăng nhập"
+        }
+    },
+    "GET /api/bieu-do/so-sanh?line_id=6&ma_hang_id=1&ngay=2026-11-07&ca_id=1": {
+        "status": 401,
+        "headers": {
+            "content-type": "application/json; charset=utf-8",
+            "cache-control": "no-store, no-cache, must-revalidate",
+            "x-frame-options": "DENY",
+            "x-content-type-options": "nosniff",
+            "access-control-allow-origin": "*",
+            "access-control-allow-credentials": "true",
+            "access-control-allow-methods": "GET, POST, PUT, DELETE, OPTIONS",
+            "access-control-allow-headers": "Content-Type"
+        },
+        "body": {
+            "success": false,
+            "message": "Chưa đăng nhập"
+        }
+    },
+    "GET /api/bieu-do/so-sanh-chi-tiet?line_id=6&ma_hang_id=1&ngay=2026-11-07&ca_id=1": {
+        "status": 401,
+        "headers": {
+            "content-type": "application/json; charset=utf-8",
+            "cache-control": "no-store, no-cache, must-revalidate",
+            "x-frame-options": "DENY",
+            "x-content-type-options": "nosniff",
+            "access-control-allow-origin": "*",
+            "access-control-allow-credentials": "true",
+            "access-control-allow-methods": "GET, POST, PUT, DELETE, OPTIONS",
+            "access-control-allow-headers": "Content-Type"
+        },
+        "body": {
+            "success": false,
+            "message": "Chưa đăng nhập"
+        }
+    },
+    "GET /api/bieu-do/so-sanh-matrix?line_id=6&ma_hang_id=1&ngay=2026-11-07&ca_id=1": {
+        "status": 401,
+        "headers": {
+            "content-type": "application/json; charset=utf-8",
+            "cache-control": "no-store, no-cache, must-revalidate",
+            "x-frame-options": "DENY",
+            "x-content-type-options": "nosniff",
+            "access-control-allow-origin": "*",
+            "access-control-allow-credentials": "true",
+            "access-control-allow-methods": "GET, POST, PUT, DELETE, OPTIONS",
+            "access-control-allow-headers": "Content-Type"
+        },
+        "body": {
+            "success": false,
+            "message": "Chưa đăng nhập"
+        }
+    },
+    "GET /api/khong-ton-tai": {
+        "status": 404,
+        "headers": {
+            "content-type": "application/json; charset=utf-8",
+            "cache-control": "no-store, no-cache, must-revalidate",
+            "x-frame-options": "DENY",
+            "x-content-type-options": "nosniff",
+            "access-control-allow-origin": "*",
+            "access-control-allow-credentials": "true",
+            "access-control-allow-methods": "GET, POST, PUT, DELETE, OPTIONS",
+            "access-control-allow-headers": "Content-Type"
+        },
+        "body": {
+            "success": false,
+            "message": "API không tồn tại"
+        }
+    }
+}

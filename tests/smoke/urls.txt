@@ -1,0 +1,147 @@
+# Danh sách URL cho tools/smoke.php — mỗi dòng: METHOD PATH
+# PATH tương đối với base URL (mặc định http://localhost/baonangsuat).
+# Chế độ cookie chỉ gọi dòng GET; chế độ ẩn danh gọi tất cả (mọi endpoint ghi đều chặn
+# đăng nhập trước khi xử lý nên không ghi dữ liệu).
+
+# --- Trang ---
+GET /
+GET /index.php
+GET /nhap-nang-suat.php
+GET /admin.php
+GET /bieu-do.php
+GET /huong-dan.php
+GET /no-line.php
+
+# --- Asset ---
+GET /assets/css/style.css
+GET /assets/css/admin.css
+GET /assets/js/app.js
+GET /assets/js/modules/api.js
+GET /assets/js/workers/realtime-worker.js
+GET /assets/tailwind/dist/main.css
+GET /img/logoht.svg
+
+# --- Thư mục code: sau refactor phải 403 ---
+GET /classes/Auth.php
+GET /app/Auth/Auth.php
+GET /app/Support/Database.php
+GET /bootstrap/app.php
+GET /includes/navbar.php
+GET /tools/smoke.php
+GET /.htaccess
+GET /.scratch/folder-structure/spec.md
+GET /config/Database.php
+GET /database/schema.sql
+GET /docs/huong-dan-su-dung.md
+GET /tests/php/run.php
+GET /vendor/autoload.php
+GET /composer.json
+GET /.gitignore
+
+# --- API: csrf-token / auth / context ---
+GET /api/csrf-token
+POST /api/csrf-token
+OPTIONS /api/csrf-token
+OPTIONS /api/bao-cao/2
+GET /api/auth/session
+POST /api/auth/select-line
+GET /api/context
+GET /api/context?ca_id=1
+
+# --- API: bao-cao ---
+GET /api/bao-cao
+GET /api/bao-cao?include_completed=1
+POST /api/bao-cao
+GET /api/bao-cao/2
+GET /api/bao-cao/2/routing
+PUT /api/bao-cao/2/entries
+PUT /api/bao-cao/2/header
+POST /api/bao-cao/2/submit
+POST /api/bao-cao/2/approve
+POST /api/bao-cao/2/unlock
+POST /api/bao-cao/2/complete
+POST /api/bao-cao/2/reopen
+DELETE /api/bao-cao/2
+
+# --- API: danh-muc ---
+GET /api/danh-muc/ca
+GET /api/danh-muc/ma-hang
+GET /api/danh-muc/moc-gio?ca_id=1
+GET /api/danh-muc/routing?ma_hang_id=1
+GET /api/danh-muc/routing?ma_hang_id=1&line_id=6
+
+# --- API: admin ---
+GET /api/admin/lines
+GET /api/admin/lines/1
+POST /api/admin/lines
+PUT /api/admin/lines/1
+DELETE /api/admin/lines/1
+GET /api/admin/users
+GET /api/admin/user-lines
+POST /api/admin/user-lines
+DELETE /api/admin/user-lines
+GET /api/admin/ma-hang
+GET /api/admin/ma-hang/1
+POST /api/admin/ma-hang
+PUT /api/admin/ma-hang/1
+DELETE /api/admin/ma-hang/1
+GET /api/admin/cong-doan
+GET /api/admin/cong-doan/1
+POST /api/admin/cong-doan
+PUT /api/admin/cong-doan/1
+DELETE /api/admin/cong-doan/1
+GET /api/admin/routing?ma_hang_id=1
+GET /api/admin/routing/1
+POST /api/admin/routing
+PUT /api/admin/routing/1
+DELETE /api/admin/routing/1
+GET /api/admin/moc-gio/ca-list
+GET /api/admin/moc-gio?ca_id=1
+GET /api/admin/moc-gio/1
+POST /api/admin/moc-gio/copy-default
+POST /api/admin/moc-gio
+PUT /api/admin/moc-gio/1
+DELETE /api/admin/moc-gio/1
+POST /api/admin/bao-cao/bulk-create
+
+# --- API: moc-gio-sets ---
+GET /api/moc-gio-sets
+GET /api/moc-gio-sets?ca_id=1
+GET /api/moc-gio-sets/1
+POST /api/moc-gio-sets
+POST /api/moc-gio-sets/copy
+PUT /api/moc-gio-sets/1
+DELETE /api/moc-gio-sets/1
+GET /api/moc-gio-sets/1/lines
+POST /api/moc-gio-sets/1/lines
+DELETE /api/moc-gio-sets/1/lines
+GET /api/moc-gio-sets/unassigned-lines?ca_id=1
+GET /api/moc-gio-sets/resolve?ca_id=1&line_id=6
+
+# --- API: bao-cao-history ---
+GET /api/bao-cao-history
+GET /api/bao-cao-history?page=1&page_size=5
+GET /api/bao-cao-history/2
+
+# --- API: import / import-history ---
+POST /api/import/preview
+POST /api/import/confirm
+GET /api/import-history
+GET /api/import-history/1
+
+# --- API: user-permissions ---
+POST /api/user-permissions/bulk
+GET /api/user-permissions/1
+POST /api/user-permissions
+DELETE /api/user-permissions/1/can_view_history
+
+# --- API: bieu-do ---
+GET /api/bieu-do/ca-list
+GET /api/bieu-do/lines
+GET /api/bieu-do/ma-hang-list?line_id=6&ngay=2026-11-07
+GET /api/bieu-do/so-sanh?line_id=6&ma_hang_id=1&ngay=2026-11-07&ca_id=1
+GET /api/bieu-do/so-sanh-chi-tiet?line_id=6&ma_hang_id=1&ngay=2026-11-07&ca_id=1
+GET /api/bieu-do/so-sanh-matrix?line_id=6&ma_hang_id=1&ngay=2026-11-07&ca_id=1
+
+# --- API: không tồn tại ---
+GET /api/khong-ton-tai

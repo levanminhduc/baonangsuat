@@ -1,0 +1,26 @@
+# Rewrite mọi request vào public/, giữ nguyên URL cũ (theo mẫu lichkehoach).
+# Chạy được cả dưới http://localhost/baonangsuat/ lẫn vhost trỏ thẳng thư mục này.
+# KHÔNG thêm RewriteBase: nó gắn cứng tiền tố URL và làm hỏng một trong hai bối cảnh.
+
+Options -Indexes -MultiViews
+DirectoryIndex index.php
+
+# KHÔNG bọc <IfModule mod_rewrite.c>: cố ý fail-closed. Nếu mod_rewrite tắt, Apache trả 500
+# ngay thay vì phục vụ thẳng app/, bootstrap/, vendor/... qua web.
+RewriteEngine On
+
+# (1) Chặn truy cập trực tiếp thư mục code/dữ liệu ngoài web root → 403
+RewriteRule ^(app|bootstrap|components|config|database|docs|includes|tests|tools|vendor|views)(/.*)?$ - [F,L]
+
+# (2) Chặn mọi dotfile/dot-dir: .git/, .gitignore, .htaccess, .claude/, .scratch/ ...
+RewriteRule (^|/)\. - [F,L]
+
+# (3) API và trang `*.php` ở gốc → front controller (bảng route ở config/routes.php)
+RewriteRule ^api(/.*)?$ public/index.php [L]
+RewriteRule ^[^/]+\.php$ public/index.php [L]
+
+# (4) Request đã nằm trong public/ → phục vụ trực tiếp (điểm dừng của internal rewrite, chống loop)
+RewriteRule ^public(/.*)?$ - [L]
+
+# (5) Còn lại → public/ (query string và body POST giữ nguyên)
+RewriteRule ^(.*)$ public/$1 [L]

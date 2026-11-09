@@ -1,10 +1,9 @@
 module.exports = {
   content: [
-    "./*.php",
-    "./includes/**/*.php",
-    "./assets/js/**/*.js",
-    "./api/**/*.php",
-    "./classes/**/*.php"
+    "./views/**/*.php",
+    "./components/**/*.php",
+    "./public/assets/js/**/*.js",
+    "./app/**/*.php"
   ],
   theme: {
     extend: {

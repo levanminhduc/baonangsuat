@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nhập Năng Suất - <?php echo htmlspecialchars($session['line_ten'] ?? ''); ?></title>
+    <link rel="stylesheet" href="assets/css/style.css">
+    <link rel="stylesheet" href="assets/css/luy-ke-status.css">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            colors: {
+              primary: '#143583',
+              'primary-dark': '#0f2a66',
+              success: '#4CAF50',
+              warning: '#ff9800',
+              danger: '#f44336',
+            }
+          }
+        }
+      }
+    </script>
+</head>
+<body>
+    <?php
+    $navTitle = 'NHẬP NĂNG SUẤT THEO GIỜ';
+    $showAddBtn = true;
+    $addBtnUrl = '#';
+    $addBtnId = 'navCreateReportBtn';
+    $showHomeBtn = true;
+    include __DIR__ . '/partials/navbar.php';
+    ?>
+    <div class="app-container">
+        
+        <!-- Main Tabs -->
+        <div class="main-tabs-container px-4 sm:px-6 pt-4 hidden" id="mainTabs">
+            <nav class="flex space-x-4 border-b border-gray-200" aria-label="Tabs">
+                <button
+                    type="button"
+                    id="tabInput"
+                    class="tab-btn active border-primary text-primary whitespace-nowrap py-3 px-1 border-b-2 font-medium text-sm transition-colors focus:outline-none"
+                    aria-current="page"
+                >
+                    Nhập báo cáo
+                </button>
+                <button
+                    type="button"
+                    id="tabHistory"
+                    class="tab-btn border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 whitespace-nowrap py-3 px-1 border-b-2 font-medium text-sm transition-colors focus:outline-none hidden"
+                >
+                    Lịch sử
+                </button>
+            </nav>
+        </div>
+
+        <!-- Tab Content: Input -->
+        <div id="tabContentInput" class="tab-content block">
+            <div id="reportListContainer" class="report-list">
+                <div class="report-list-header">
+                    <h2>Danh sách báo cáo hôm nay</h2>
+                    <button id="createReportBtn" class="btn btn-primary">+ Tạo báo cáo mới</button>
+                </div>
+                <table class="report-table">
+                    <thead>
+                        <tr>
+                            <th>Ngày</th>
+                            <th>Mã hàng</th>
+                            <th>Lao động</th>
+                            <th>CTNS</th>
+                            <th>CT/Giờ</th>
+                            <th>Trạng thái</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+            
+            <div id="editorContainer" class="hidden">
+                <div class="report-header"></div>
+                <div id="gridContainer" class="grid-container"></div>
+            </div>
+        </div>
+
+        <!-- Tab Content: History -->
+        <div id="tabContentHistory" class="tab-content hidden p-4">
+            <!-- History Filter -->
+            <div class="bg-white p-4 rounded-lg shadow-sm mb-4">
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Từ ngày</label>
+                        <input type="date" id="historyDateFrom" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-primary focus:border-primary">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Đến ngày</label>
+                        <input type="date" id="historyDateTo" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-primary focus:border-primary">
+                    </div>
+                    <div>
+                        <button id="historyFilterBtn" class="btn btn-primary w-full md:w-auto">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 inline-block mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                            </svg>
+                            Tìm kiếm
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- History List -->
+            <div id="historyListContainer" class="bg-white rounded-lg shadow-sm overflow-hidden">
+                <div class="overflow-x-auto">
+                    <table class="min-w-full divide-y divide-gray-200" id="historyTable">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Ngày</th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Ca</th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Mã hàng</th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">SL LĐ</th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">CTNS</th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Thực tế</th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Hiệu suất</th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Trạng thái</th>
+                            </tr>
+                        </thead>
+                        <tbody class="bg-white divide-y divide-gray-200">
+                            <!-- Data will be populated here -->
+                        </tbody>
+                    </table>
+                </div>
+                <!-- Pagination -->
+                <div class="bg-white px-4 py-3 border-t border-gray-200 flex items-center justify-between sm:px-6" id="historyPagination">
+                    <!-- Pagination controls -->
+                </div>
+            </div>
+            
+            <!-- History Detail (Drill-down) -->
+            <div id="historyDetailContainer" class="hidden mt-4">
+                 <div class="flex justify-between items-center mb-4">
+                    <h3 class="text-lg font-medium text-gray-900">Chi tiết báo cáo</h3>
+                    <button id="closeHistoryDetailBtn" class="text-gray-500 hover:text-gray-700">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                    </button>
+                 </div>
+                 <div class="report-header history-report-header mb-4"></div>
+                 <div id="historyGridContainer" class="grid-container history-grid-container"></div>
+            </div>
+        </div>
+        
+        <footer class="status-bar hidden">
+            <div class="status-message">
+                <span class="status-indicator"></span>
+                <span>Sẵn sàng</span>
+            </div>
+            <div class="status-info">
+                Phím tắt: Enter/Tab (di chuyển), Ctrl+S (lưu)
+            </div>
+        </footer>
+    </div>
+    
+    <div id="createModal" class="modal hidden fixed inset-0 z-50 flex items-center justify-center bg-gray-900/50 backdrop-blur-sm" onclick="window.app.closeModal()">
+        <div class="modal-content bg-white rounded-xl shadow-2xl w-full max-w-lg p-0 overflow-hidden" onclick="event.stopPropagation()">
+            <div class="px-6 py-4 border-b border-gray-100 bg-gray-50 flex justify-between items-center">
+                <h2 class="text-xl font-bold text-gray-800 m-0">Tạo báo cáo mới</h2>
+                <button type="button" class="w-8 h-8 flex items-center justify-center bg-red-500 hover:bg-red-700 rounded text-white transition-colors" onclick="window.app.closeModal()">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                </button>
+            </div>
+            <form id="createForm" onsubmit="event.preventDefault(); window.app.createReport();" class="p-6 space-y-4">
+                <div class="form-group space-y-1" id="modalLineGroup" style="display: none;">
+                    <label for="modalLine" class="block text-sm font-medium text-gray-700">Chọn LINE</label>
+                    <select id="modalLine" required class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary transition-colors outline-none bg-white"></select>
+                </div>
+                <div class="form-group space-y-1">
+                    <label for="modalNgay" class="block text-sm font-medium text-gray-700">Ngày báo cáo</label>
+                    <input type="date" id="modalNgay" value="<?php echo date('Y-m-d'); ?>" required class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary transition-colors outline-none">
+                </div>
+                <div class="form-group" style="display: none;">
+                    <label for="modalCa">Ca làm việc</label>
+                    <select id="modalCa" required></select>
+                </div>
+                <div class="form-group space-y-1">
+                    <label for="modalMaHang" class="block text-sm font-medium text-gray-700">Mã hàng</label>
+                    <select id="modalMaHang" required class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary transition-colors outline-none bg-white"></select>
+                </div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div class="form-group space-y-1">
+                        <label for="modalLaoDong" class="block text-sm font-medium text-gray-700">Số lao động</label>
+                        <input type="number" id="modalLaoDong" value="0" min="0" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary transition-colors outline-none">
+                    </div>
+                    <div class="form-group space-y-1">
+                        <label for="modalCtns" class="block text-sm font-medium text-gray-700">Chỉ tiêu năng suất (CTNS)</label>
+                        <input type="number" id="modalCtns" value="0" min="0" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary transition-colors outline-none">
+                    </div>
+                </div>
+                <div class="modal-actions flex justify-end gap-3 pt-4 border-t border-gray-100 mt-6">
+                    <button type="button" class="btn px-4 py-2 rounded-lg bg-red-500 hover:bg-red-700 text-white transition-colors font-medium" onclick="window.app.closeModal()">Hủy</button>
+                    <button type="submit" class="btn btn-primary px-4 py-2 rounded-lg bg-primary hover:bg-primary-dark text-white shadow-md hover:shadow-lg transition-all font-medium">Tạo báo cáo</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    <?php include BNS_ROOT . '/components/confirm-modal.php'; ?>
+    <?php include BNS_ROOT . '/components/loading-overlay.php'; ?>
+    
+    <script>
+        function closeModal(id) { document.getElementById(id).classList.add('hidden'); }
+        window.initialParams = {
+            line: "<?php echo isset($_GET['line']) ? htmlspecialchars($_GET['line']) : ''; ?>",
+            ma_hang: "<?php echo isset($_GET['ma_hang']) ? htmlspecialchars($_GET['ma_hang']) : ''; ?>",
+            ngay: "<?php echo isset($_GET['ngay']) ? htmlspecialchars($_GET['ngay']) : ''; ?>"
+        };
+    </script>
+    <script type="module" src="assets/js/app.js"></script>
+</body>
+</html>
