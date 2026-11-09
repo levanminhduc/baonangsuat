@@ -1,8 +1,9 @@
 <?php
-require_once __DIR__ . '/../../authV2/bootstrap.php';
-require_once __DIR__ . '/../config/Database.php';
-require_once __DIR__ . '/LineSelection.php';
 
+namespace App\Auth;
+
+use App\Support\Database;
+use Exception;
 use Hoatho\SharedAuth\EnvConfig;
 use Hoatho\SharedAuth\Guard;
 use Hoatho\SharedAuth\SessionBootstrap;

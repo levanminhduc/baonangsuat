@@ -1,5 +1,7 @@
 <?php
 
+namespace App\Auth;
+
 /**
  * Logic chọn/đối chiếu LINE thuần (không đụng DB/session) để test được.
  * $line = ['id' => int, 'ma_line' => string, 'ten_line' => string]; $stored = $line + ['owner' => int].

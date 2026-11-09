@@ -38,3 +38,4 @@ nul
 
 # Baseline smoke đăng nhập chứa dữ liệu nhân viên thật — chỉ giữ local
 tests/smoke/baseline-auth.json
+.php-cs-fixer.cache

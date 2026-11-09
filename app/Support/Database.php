@@ -1,5 +1,9 @@
 <?php
 
+namespace App\Support;
+
+use Exception;
+
 class Database {
     private static $instances = [];
     

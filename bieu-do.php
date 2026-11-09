@@ -1,6 +1,8 @@
 <?php
 require_once __DIR__ . '/includes/security-headers.php';
-require_once __DIR__ . '/classes/Auth.php';
+require_once __DIR__ . '/bootstrap/app.php';
+
+use App\Auth\Auth;
 
 // Auth guards - require login
 Auth::requirePageLogin();

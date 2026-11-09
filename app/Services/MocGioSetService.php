@@ -1,5 +1,9 @@
 <?php
-require_once __DIR__ . '/../../config/Database.php';
+
+namespace App\Services;
+
+use App\Support\Database;
+use Exception;
 
 class MocGioSetService {
     private $db;

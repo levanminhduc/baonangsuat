@@ -23,6 +23,9 @@ GET /img/logoht.svg
 
 # --- Thư mục code: sau refactor phải 403 ---
 GET /classes/Auth.php
+GET /app/Auth/Auth.php
+GET /app/Support/Database.php
+GET /bootstrap/app.php
 GET /config/Database.php
 GET /database/schema.sql
 GET /docs/huong-dan-su-dung.md

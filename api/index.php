@@ -1,4 +1,14 @@
 <?php
+use App\Auth\Auth;
+use App\Http\CsrfToken;
+use App\Services\AdminService;
+use App\Services\ChartService;
+use App\Services\HistoryService;
+use App\Services\ImportService;
+use App\Services\MocGioSetService;
+use App\Services\NangSuatService;
+use App\Support\Database;
+
 header('Content-Type: application/json; charset=utf-8');
 
 $allowedOrigins = [
@@ -23,13 +33,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     exit(0);
 }
 
-require_once __DIR__ . '/../classes/Auth.php';
-require_once __DIR__ . '/../classes/NangSuatService.php';
-require_once __DIR__ . '/../classes/AdminService.php';
-require_once __DIR__ . '/../classes/services/MocGioSetService.php';
-require_once __DIR__ . '/../classes/services/HistoryService.php';
-require_once __DIR__ . '/../classes/services/ImportService.php';
-require_once __DIR__ . '/../csrf.php';
+require_once __DIR__ . '/../bootstrap/app.php';
 
 $requestUri = $_SERVER['REQUEST_URI'];
 $basePath = '/baonangsuat/api/';
@@ -71,7 +75,7 @@ function validateCsrf() {
     if (empty($token)) {
         return false;
     }
-    return validateCsrfToken($token);
+    return CsrfToken::validate($token);
 }
 
 function requireCsrf() {
@@ -84,7 +88,7 @@ try {
     switch ($segments[0]) {
         case 'csrf-token':
             if ($method === 'GET') {
-                response(['success' => true, 'token' => getCsrfToken()]);
+                response(['success' => true, 'token' => CsrfToken::get()]);
             }
             response(['success' => false, 'message' => 'Method not allowed'], 405);
             break;
@@ -851,8 +855,6 @@ function handleImport($segments, $method, $input) {
 }
 
 function handleImportHistory($method, $segments, $input) {
-    require_once __DIR__ . '/../classes/services/ImportService.php';
-    
     $importService = new ImportService();
     $id = isset($segments[0]) && is_numeric($segments[0]) ? intval($segments[0]) : null;
     
@@ -989,7 +991,6 @@ function handleBieuDo($segments, $method) {
     $session = Auth::getSession();
     $isAdmin = Auth::checkRole(['admin']);
     
-    require_once __DIR__ . '/../classes/services/ChartService.php';
     $service = new ChartService();
     
     // GET /bieu-do/so-sanh - Get productivity comparison chart data

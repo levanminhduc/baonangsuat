@@ -4,7 +4,7 @@ module.exports = {
     "./includes/**/*.php",
     "./assets/js/**/*.js",
     "./api/**/*.php",
-    "./classes/**/*.php"
+    "./app/**/*.php"
   ],
   theme: {
     extend: {

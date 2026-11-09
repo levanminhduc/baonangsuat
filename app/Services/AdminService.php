@@ -1,11 +1,6 @@
 <?php
-require_once __DIR__ . '/../config/Database.php';
-require_once __DIR__ . '/services/LineService.php';
-require_once __DIR__ . '/services/UserService.php';
-require_once __DIR__ . '/services/MaHangService.php';
-require_once __DIR__ . '/services/CongDoanService.php';
-require_once __DIR__ . '/services/RoutingService.php';
-require_once __DIR__ . '/services/MocGioService.php';
+
+namespace App\Services;
 
 class AdminService {
     private $lineService;

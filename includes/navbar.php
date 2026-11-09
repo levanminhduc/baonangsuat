@@ -1,5 +1,5 @@
 <?php
-require_once __DIR__ . '/../classes/Auth.php';
+use App\Auth\Auth;
 
 // Set timezone to Asia/Bangkok
 date_default_timezone_set('Asia/Bangkok');

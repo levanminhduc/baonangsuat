@@ -1,7 +1,8 @@
 <?php
-require_once __DIR__ . '/../vendor/autoload.php';
-require_once __DIR__ . '/../classes/services/ImportService.php';
-require_once __DIR__ . '/../config/Database.php';
+require_once __DIR__ . '/../bootstrap/app.php';
+
+use App\Services\ImportService;
+use App\Support\Database;
 
 $db = Database::getNangSuat();
 

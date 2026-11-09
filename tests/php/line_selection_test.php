@@ -1,5 +1,5 @@
 <?php
-require_once __DIR__ . '/../../classes/LineSelection.php';
+use App\Auth\LineSelection;
 
 $l1 = ['id' => 1, 'ma_line' => 'L1', 'ten_line' => 'Line 1'];
 $l2 = ['id' => 2, 'ma_line' => 'L2', 'ten_line' => 'Line 2'];
