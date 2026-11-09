@@ -27,10 +27,4 @@ class AuthController
 
         return new JsonResponse(['success' => true, 'data' => $sessionData]);
     }
-
-    // `/api/auth/<khác>`: router cũ trả 404 với message riêng của nhóm auth.
-    public function unknownAction(Request $request)
-    {
-        return JsonResponse::error('Action không hợp lệ', 404);
-    }
 }

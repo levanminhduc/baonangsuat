@@ -5,20 +5,27 @@ declare(strict_types=1);
 namespace App\Http;
 
 use App\Http\Middleware\MiddlewareInterface;
+use App\Http\Middleware\RequireHistoryAccess;
+use App\Http\Middleware\RequireImportAccess;
 use App\Http\Middleware\RequireLine;
 use App\Http\Middleware\RequireLogin;
+use App\Http\Middleware\RequireReportScope;
 use App\Http\Middleware\RequireRole;
 use App\Http\Middleware\VerifyCsrfToken;
 use Exception;
 
 /**
- * Chép từ nhansuhtdb rồi chỉnh theo ADR 0001: khớp theo METHOD + đường dẫn (có tham số
- * `{name}` cho một đoạn) thay cho key `?action=`. Khi đồng bộ với nhansuhtdb, đừng đổi
- * phần khớp đường dẫn về `?action=`.
+ * Chép từ nhansuhtdb rồi chỉnh theo ADR 0001: khớp theo METHOD + đường dẫn thay cho key
+ * `?action=`. Khi đồng bộ với nhansuhtdb, đừng đổi phần khớp đường dẫn về `?action=`.
  *
- * Route: [METHODS, path, Controller::class, method, [middleware...]], METHODS dạng 'GET|POST'
- * hoặc '*' (mọi method, cho endpoint cũ không kiểm method).
- * Route khai trước được ưu tiên: đường dẫn khớp route đầu tiên nhưng sai method → 405.
+ * Route: [METHODS, path, Controller::class, method, [middleware...]]
+ *   - METHODS dạng 'GET|POST' hoặc '*' (mọi method, cho endpoint cũ không kiểm method).
+ *   - path có tham số một đoạn `{name}` hoặc kèm regex `{id:\d+}`.
+ *   - route khai trước được ưu tiên; đường dẫn khớp nhưng không route nào nhận method → 405.
+ *
+ * Nhóm (`/api/<group>`): middleware của nhóm chạy TRƯỚC khi khớp route — handler cũ kiểm
+ * đăng nhập/quyền trước rồi mới xét đường dẫn, nên request sai đường dẫn khi chưa đăng nhập
+ * vẫn nhận 401. `not_found` / `method_not_allowed` = [mã HTTP, message] của nhóm đó.
  */
 final class Router
 {
@@ -27,7 +34,13 @@ final class Router
         'line' => RequireLine::class,
         'role' => RequireRole::class,
         'csrf' => VerifyCsrfToken::class,
+        'report' => RequireReportScope::class,
+        'history' => RequireHistoryAccess::class,
+        'import' => RequireImportAccess::class,
     ];
+
+    private const NOT_FOUND = [404, 'API không tồn tại'];
+    private const METHOD_NOT_ALLOWED = [405, 'Method not allowed'];
 
     public function __construct(private readonly array $config)
     {
@@ -36,7 +49,7 @@ final class Router
     // Nhóm `/api/<group>` đã chuyển sang Router; nhóm khác front controller nhường router cũ.
     public function owns(Request $request): bool
     {
-        return in_array($request->apiGroup(), $this->config['groups'] ?? [], true);
+        return isset($this->config['groups'][$request->apiGroup()]);
     }
 
     /**
@@ -44,34 +57,43 @@ final class Router
      */
     public function match(string $method, string $path): array
     {
+        $pathMatched = false;
         foreach ($this->config['routes'] ?? [] as $route) {
             $params = self::matchPath($route[1], $path);
             if ($params === null) {
                 continue;
             }
-            if ($route[0] !== '*' && !in_array($method, explode('|', $route[0]), true)) {
-                return [405, null, []];
+            $pathMatched = true;
+            if ($route[0] === '*' || in_array($method, explode('|', $route[0]), true)) {
+                return [200, $route, $params];
             }
-
-            return [200, $route, $params];
         }
 
-        return [404, null, []];
+        return [$pathMatched ? 405 : 404, null, []];
     }
 
     public function dispatch(Request $request): ResponseInterface
     {
-        [$status, $route, $params] = $this->match($request->method(), $request->path());
-        if ($status === 404) {
-            return JsonResponse::error('API không tồn tại', 404);
-        }
-        if ($status === 405) {
-            return JsonResponse::error('Method not allowed', 405);
-        }
-
-        $request = $request->withParams($params);
+        $group = $this->config['groups'][$request->apiGroup()] ?? [];
         // Router cũ bọc mọi handler trong try/catch (Exception) → 500 kèm message.
         try {
+            foreach ($group['middleware'] ?? [] as $name) {
+                $denied = $this->runMiddleware($name, $request);
+                if ($denied !== null) {
+                    return $denied;
+                }
+            }
+
+            [$status, $route, $params] = $this->match($request->method(), $request->path());
+            if ($status !== 200) {
+                [$code, $message] = $status === 404
+                    ? ($group['not_found'] ?? self::NOT_FOUND)
+                    : ($group['method_not_allowed'] ?? self::METHOD_NOT_ALLOWED);
+
+                return JsonResponse::error($message, $code);
+            }
+
+            $request = $request->withParams($params);
             foreach ($route[4] ?? [] as $name) {
                 $denied = $this->runMiddleware($name, $request);
                 if ($denied !== null) {
@@ -97,8 +119,9 @@ final class Router
 
         $params = [];
         foreach ($patternParts as $i => $part) {
-            if (preg_match('/^\{(\w+)\}$/', $part, $m) === 1) {
-                if ($pathParts[$i] === '') {
+            if (preg_match('/^\{(\w+)(?::(.+))?\}$/', $part, $m) === 1) {
+                $regex = $m[2] ?? '[^/]+';
+                if (preg_match('#^(?:' . $regex . ')$#', $pathParts[$i]) !== 1) {
                     return null;
                 }
                 $params[$m[1]] = $pathParts[$i];
