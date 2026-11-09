@@ -1,28 +1,4 @@
-<?php
-require_once __DIR__ . '/../includes/security-headers.php';
-require_once __DIR__ . '/../bootstrap/app.php';
-
-use App\Auth\Auth;
-
-Auth::requirePageLogin();
-
-if (Auth::checkRole(['admin'])) {
-    header('Location: admin.php');
-    exit;
-}
-
-if (Auth::hasLine() || Auth::canCreateReportForAnyLine()) {
-    header('Location: nhap-nang-suat.php');
-    exit;
-}
-
-if (count(Auth::allowedLines()) > 0) {
-    header('Location: index.php');
-    exit;
-}
-
-$session = Auth::getSession();
-?>
+<?php use App\Auth\Auth; ?>
 <!DOCTYPE html>
 <html lang="vi">
 <head>
@@ -52,7 +28,7 @@ $session = Auth::getSession();
     $navTitle = 'HỆ THỐNG NHẬP NĂNG SUẤT';
     $showAddBtn = false;
     $showHomeBtn = false;
-    include __DIR__ . '/../includes/navbar.php';
+    include __DIR__ . '/partials/navbar.php';
     ?>
     <div class="login-container">
         <div class="login-box text-center">

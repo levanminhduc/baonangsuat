@@ -1,8 +1,7 @@
 module.exports = {
   content: [
-    "./public/*.php",
-    "./includes/**/*.php",
     "./views/**/*.php",
+    "./components/**/*.php",
     "./public/assets/js/**/*.js",
     "./app/**/*.php"
   ],

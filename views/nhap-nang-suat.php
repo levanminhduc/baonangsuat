@@ -1,18 +1,3 @@
-<?php
-require_once __DIR__ . '/../includes/security-headers.php';
-require_once __DIR__ . '/../bootstrap/app.php';
-
-use App\Auth\Auth;
-
-Auth::requirePageLogin();
-
-if (!Auth::checkRole(['admin']) && !Auth::canCreateReportForAnyLine() && !Auth::hasLine()) {
-    header('Location: ' . Auth::getDefaultPage());
-    exit;
-}
-
-$session = Auth::getSession();
-?>
 <!DOCTYPE html>
 <html lang="vi">
 <head>
@@ -45,7 +30,7 @@ $session = Auth::getSession();
     $addBtnUrl = '#';
     $addBtnId = 'navCreateReportBtn';
     $showHomeBtn = true;
-    include __DIR__ . '/../includes/navbar.php';
+    include __DIR__ . '/partials/navbar.php';
     ?>
     <div class="app-container">
         
@@ -216,8 +201,8 @@ $session = Auth::getSession();
         </div>
     </div>
     
-    <?php include __DIR__ . '/../includes/components/confirm-modal.php'; ?>
-    <?php include __DIR__ . '/../includes/components/loading-overlay.php'; ?>
+    <?php include BNS_ROOT . '/components/confirm-modal.php'; ?>
+    <?php include BNS_ROOT . '/components/loading-overlay.php'; ?>
     
     <script>
         function closeModal(id) { document.getElementById(id).classList.add('hidden'); }

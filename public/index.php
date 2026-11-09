@@ -1,7 +1,7 @@
 <?php
 
-// Front controller duy nhất. `.htaccess` gốc đưa `/api/...` và `/` về đây; URL không đổi (ADR 0001).
-// Mọi API đi qua bảng route config/routes.php.
+// Front controller duy nhất. `.htaccess` gốc đưa `/`, các trang `*.php` và `/api/...` về đây;
+// URL không đổi (ADR 0001). Trang và API đều đi qua bảng route config/routes.php.
 // Chỉ nạp autoload trước: preflight OPTIONS của API trả về khi chưa mở phiên, như router cũ.
 require_once __DIR__ . '/../bootstrap/autoload.php';
 
@@ -11,16 +11,11 @@ use App\Http\Router;
 
 $bnsRequest = Request::fromGlobals();
 
-if (!$bnsRequest->isApi()) {
-    // `/` và `/index.php`: trang chọn LINE (tự nạp bootstrap/app.php).
-    require BNS_ROOT . '/views/index.php';
-
-    return;
-}
-
-Cors::send($bnsRequest);
-if ($bnsRequest->method() === 'OPTIONS') {
-    exit(0);
+if ($bnsRequest->isApi()) {
+    Cors::send($bnsRequest);
+    if ($bnsRequest->method() === 'OPTIONS') {
+        exit(0);
+    }
 }
 
 require_once BNS_ROOT . '/bootstrap/app.php';

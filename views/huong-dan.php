@@ -1,13 +1,3 @@
-<?php
-require_once __DIR__ . '/../includes/security-headers.php';
-require_once __DIR__ . '/../bootstrap/app.php';
-
-use App\Auth\Auth;
-
-Auth::requirePageLogin();
-
-$session = Auth::getSession();
-?>
 <!DOCTYPE html>
 <html lang="vi">
 <head>
@@ -57,7 +47,7 @@ $session = Auth::getSession();
     $navTitle = 'HƯỚNG DẪN SỬ DỤNG';
     $showAddBtn = false;
     $showHomeBtn = true;
-    include __DIR__ . '/../includes/navbar.php';
+    include __DIR__ . '/partials/navbar.php';
     ?>
 
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -418,7 +408,7 @@ $session = Auth::getSession();
             ];
 
             // Use the tabs component
-            include __DIR__ . '/../includes/components/tabs.php';
+            include BNS_ROOT . '/components/tabs.php';
             ?>
         </div>
     </div>

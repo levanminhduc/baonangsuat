@@ -10,13 +10,14 @@ DirectoryIndex index.php
 RewriteEngine On
 
 # (1) Chặn truy cập trực tiếp thư mục code/dữ liệu ngoài web root → 403
-RewriteRule ^(app|bootstrap|config|database|docs|includes|tests|tools|vendor|views)(/.*)?$ - [F,L]
+RewriteRule ^(app|bootstrap|components|config|database|docs|includes|tests|tools|vendor|views)(/.*)?$ - [F,L]
 
 # (2) Chặn mọi dotfile/dot-dir: .git/, .gitignore, .htaccess, .claude/, .scratch/ ...
 RewriteRule (^|/)\. - [F,L]
 
-# (3) API → front controller (Router + router cũ cho nhóm chưa chuyển)
+# (3) API và trang `*.php` ở gốc → front controller (bảng route ở config/routes.php)
 RewriteRule ^api(/.*)?$ public/index.php [L]
+RewriteRule ^[^/]+\.php$ public/index.php [L]
 
 # (4) Request đã nằm trong public/ → phục vụ trực tiếp (điểm dừng của internal rewrite, chống loop)
 RewriteRule ^public(/.*)?$ - [L]

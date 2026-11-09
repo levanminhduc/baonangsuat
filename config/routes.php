@@ -1,16 +1,22 @@
 <?php
 
 use App\Controllers\AdminController;
+use App\Controllers\AdminPageController;
 use App\Controllers\AuthController;
 use App\Controllers\BaoCaoController;
 use App\Controllers\BaoCaoHistoryController;
 use App\Controllers\BieuDoController;
+use App\Controllers\BieuDoPageController;
 use App\Controllers\ContextController;
 use App\Controllers\CsrfTokenController;
 use App\Controllers\DanhMucController;
+use App\Controllers\HuongDanPageController;
 use App\Controllers\ImportController;
 use App\Controllers\ImportHistoryController;
+use App\Controllers\IndexPageController;
 use App\Controllers\MocGioSetsController;
+use App\Controllers\NhapNangSuatPageController;
+use App\Controllers\NoLinePageController;
 use App\Controllers\UserPermissionsController;
 
 // Bảng route API (ADR 0001: URL giữ nguyên, khớp METHOD + đường dẫn). Xem App\Http\Router.
@@ -22,6 +28,20 @@ $endpointNotFound = [404, 'Endpoint không hợp lệ'];
 $methodNotAllowed = [405, 'Method not allowed'];
 
 return [
+    // Trang HTML: URL `*.php` giữ nguyên (ADR 0001). Mọi trang cần đăng nhập; method nào cũng nhận như trang cũ.
+    'pages' => [
+        'middleware' => ['security-headers', 'auth'],
+        'routes' => [
+            ['*', '/', IndexPageController::class, 'show'],
+            ['*', '/index.php', IndexPageController::class, 'show'],
+            ['*', '/nhap-nang-suat.php', NhapNangSuatPageController::class, 'show'],
+            ['*', '/admin.php', AdminPageController::class, 'show'],
+            ['*', '/bieu-do.php', BieuDoPageController::class, 'show'],
+            ['*', '/huong-dan.php', HuongDanPageController::class, 'show'],
+            ['*', '/no-line.php', NoLinePageController::class, 'show'],
+        ],
+    ],
+
     // `/api/<group>` không có ở đây → 404 'API không tồn tại'.
     // middleware nhóm chạy trước khi khớp route; not_found / method_not_allowed giữ message cũ của handler.
     'groups' => [

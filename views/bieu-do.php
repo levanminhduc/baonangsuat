@@ -1,21 +1,3 @@
-<?php
-require_once __DIR__ . '/../includes/security-headers.php';
-require_once __DIR__ . '/../bootstrap/app.php';
-
-use App\Auth\Auth;
-
-// Auth guards - require login
-Auth::requirePageLogin();
-
-// Allow access if user has LINE or is admin
-if (!Auth::checkRole(['admin']) && !Auth::hasLine()) {
-    header('Location: ' . Auth::getDefaultPage());
-    exit;
-}
-
-$session = Auth::getSession();
-$isAdmin = Auth::checkRole(['admin']);
-?>
 <!DOCTYPE html>
 <html lang="vi">
 <head>
@@ -85,7 +67,7 @@ $isAdmin = Auth::checkRole(['admin']);
     $navTitle = 'BIỂU ĐỒ NĂNG SUẤT';
     $showAddBtn = false;
     $showHomeBtn = true;
-    include __DIR__ . '/../includes/navbar.php';
+    include __DIR__ . '/partials/navbar.php';
     ?>
     
     <div class="app-container">
@@ -392,7 +374,7 @@ $isAdmin = Auth::checkRole(['admin']);
         </div>
     </div>
     
-    <?php include __DIR__ . '/../includes/components/toast.php'; ?>
+    <?php include BNS_ROOT . '/components/toast.php'; ?>
     
     <script>
         window.appConfig = {

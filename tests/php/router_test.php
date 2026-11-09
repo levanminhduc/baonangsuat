@@ -124,6 +124,17 @@ test('router_dispatch_keeps_legacy_json_shape', function () {
     assertSame([500, ['success' => false, 'message' => 'Lỗi thử']], [$error->status(), $error->body()]);
 });
 
+test('router_dispatches_pages_separately_from_api', function () {
+    $router = new Router(['pages' => ['routes' => [
+        ['*', '/', RouterTestController::class, 'show'],
+        ['*', '/trang.php', RouterTestController::class, 'show'],
+    ]], 'routes' => []]);
+    assertSame(200, $router->dispatch(Request::fake('POST', '/trang.php'))->status());
+    assertSame(200, $router->dispatch(Request::fake('GET', '/'))->status());
+    $missing = $router->dispatch(Request::fake('GET', '/khong-co.php'));
+    assertSame([true, 404], [$missing instanceof App\Http\HtmlResponse, $missing->status()]);
+});
+
 test('request_json_body_like_legacy', function () {
     assertSame(['line_id' => 3], Request::fake('POST', '/api/x', [], [], '{"line_id":3}')->jsonBody());
     assertSame([], Request::fake('POST', '/api/x', [], [], 'hỏng')->jsonBody());

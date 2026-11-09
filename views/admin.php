@@ -1,23 +1,3 @@
-<?php
-require_once __DIR__ . '/../includes/security-headers.php';
-require_once __DIR__ . '/../bootstrap/app.php';
-
-use App\Auth\Auth;
-
-Auth::requirePageLogin();
-
-if (!Auth::checkRole(['admin'])) {
-    header('Location: ' . Auth::getDefaultPage());
-    exit;
-}
-
-if (!Auth::canAccessAdminPanel()) {
-    header('Location: nhap-nang-suat.php');
-    exit;
-}
-
-$session = Auth::getSession();
-?>
 <!DOCTYPE html>
 <html lang="vi">
 <head>
@@ -48,7 +28,7 @@ $session = Auth::getSession();
     $navTitle = 'QUẢN LÝ HỆ THỐNG NĂNG SUẤT';
     $showAddBtn = false;
     $showHomeBtn = true;
-    include __DIR__ . '/../includes/navbar.php';
+    include __DIR__ . '/partials/navbar.php';
     ?>
     <div class="app-container">
 
@@ -604,10 +584,10 @@ $session = Auth::getSession();
     </div>
     
     <!-- Confirm Modal -->
-    <?php include __DIR__ . '/../includes/components/confirm-modal.php'; ?>
+    <?php include BNS_ROOT . '/components/confirm-modal.php'; ?>
     
     <!-- Loading Overlay -->
-    <?php include __DIR__ . '/../includes/components/loading-overlay.php'; ?>
+    <?php include BNS_ROOT . '/components/loading-overlay.php'; ?>
 
     <!-- Ma Hang Modal -->
     <div id="maHangModal" class="modal hidden fixed inset-0 z-50 flex items-center justify-center bg-gray-900/50 backdrop-blur-sm" onclick="closeModal('maHangModal')">

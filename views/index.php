@@ -1,27 +1,4 @@
-<?php
-require_once __DIR__ . '/../includes/security-headers.php';
-require_once __DIR__ . '/../bootstrap/app.php';
-
-use App\Auth\Auth;
-
-Auth::requirePageLogin();
-
-if (Auth::checkRole(['admin'])) {
-    header('Location: admin.php');
-    exit;
-}
-
-if (Auth::hasLine()) {
-    header('Location: nhap-nang-suat.php');
-    exit;
-}
-
-$allowedLines = Auth::allowedLines();
-if (count($allowedLines) === 0) {
-    header('Location: no-line.php');
-    exit;
-}
-?>
+<?php use App\Auth\Auth; ?>
 <!DOCTYPE html>
 <html lang="vi">
 <head>
@@ -73,7 +50,7 @@ if (count($allowedLines) === 0) {
 
     <script id="allowedLines" type="application/json"><?php echo json_encode($allowedLines, JSON_HEX_TAG | JSON_HEX_AMP | JSON_UNESCAPED_UNICODE); ?></script>
 
-    <?php include __DIR__ . '/../includes/components/toast.php'; ?>
+    <?php include BNS_ROOT . '/components/toast.php'; ?>
 
     <!-- Scripts -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>

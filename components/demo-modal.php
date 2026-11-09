@@ -29,5 +29,5 @@ ob_start();
 <?php
 $content = ob_get_clean();
 
-include 'includes/components/modal-base.php';
+include __DIR__ . '/modal-base.php';
 ?>

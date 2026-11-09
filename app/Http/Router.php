@@ -11,6 +11,7 @@ use App\Http\Middleware\RequireLine;
 use App\Http\Middleware\RequireLogin;
 use App\Http\Middleware\RequireReportScope;
 use App\Http\Middleware\RequireRole;
+use App\Http\Middleware\SecurityHeaders;
 use App\Http\Middleware\VerifyCsrfToken;
 use Exception;
 
@@ -26,6 +27,9 @@ use Exception;
  * Nhóm (`/api/<group>`): middleware của nhóm chạy TRƯỚC khi khớp route — handler cũ kiểm
  * đăng nhập/quyền trước rồi mới xét đường dẫn, nên request sai đường dẫn khi chưa đăng nhập
  * vẫn nhận 401. `not_found` / `method_not_allowed` = [mã HTTP, message] của nhóm đó.
+ *
+ * Trang HTML (đường dẫn không bắt đầu bằng `/api`): bảng `pages` riêng, middleware của
+ * `pages` chạy sau khi khớp trang; không có trang → 404 HTML.
  */
 final class Router
 {
@@ -37,6 +41,7 @@ final class Router
         'report' => RequireReportScope::class,
         'history' => RequireHistoryAccess::class,
         'import' => RequireImportAccess::class,
+        'security-headers' => SecurityHeaders::class,
     ];
 
     private const NOT_FOUND = [404, 'API không tồn tại'];
@@ -51,8 +56,13 @@ final class Router
      */
     public function match(string $method, string $path): array
     {
+        return self::matchIn($this->config['routes'] ?? [], $method, $path);
+    }
+
+    private static function matchIn(array $routes, string $method, string $path): array
+    {
         $pathMatched = false;
-        foreach ($this->config['routes'] ?? [] as $route) {
+        foreach ($routes as $route) {
             $params = self::matchPath($route[1], $path);
             if ($params === null) {
                 continue;
@@ -68,6 +78,10 @@ final class Router
 
     public function dispatch(Request $request): ResponseInterface
     {
+        if (!$request->isApi()) {
+            return $this->dispatchPage($request);
+        }
+
         $group = $this->config['groups'][$request->apiGroup()] ?? [];
         // Router cũ bọc mọi handler trong try/catch (Exception) → 500 kèm message.
         try {
@@ -103,6 +117,28 @@ final class Router
         }
     }
 
+    // Trang cũ không bọc try/catch: lỗi PHP nổi lên như trước, không đổi thành JSON.
+    private function dispatchPage(Request $request): ResponseInterface
+    {
+        $pages = $this->config['pages'] ?? [];
+        [$status, $route, $params] = self::matchIn($pages['routes'] ?? [], $request->method(), $request->path());
+        if ($status !== 200) {
+            return new HtmlResponse('Not Found', 404);
+        }
+
+        $request = $request->withParams($params);
+        foreach (array_merge($pages['middleware'] ?? [], $route[4] ?? []) as $name) {
+            $denied = $this->runMiddleware($name, $request);
+            if ($denied !== null) {
+                return $denied;
+            }
+        }
+
+        [, , $class, $verb] = $route;
+
+        return (new $class())->{$verb}($request);
+    }
+
     private static function matchPath(string $pattern, string $path): ?array
     {
         $patternParts = explode('/', trim($pattern, '/'));
@@ -128,7 +164,7 @@ final class Router
         return $params;
     }
 
-    private function runMiddleware(string $name, Request $request): ?JsonResponse
+    private function runMiddleware(string $name, Request $request): ?ResponseInterface
     {
         [$key, $rest] = array_pad(explode(':', $name, 2), 2, '');
         $class = self::MIDDLEWARE[$key] ?? null;

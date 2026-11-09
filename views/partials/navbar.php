@@ -153,4 +153,4 @@ realtimeService.startClock('server-clock');
 <?php endif; ?>
 </div>
 
-<?php include __DIR__ . '/components/toast.php'; ?>
+<?php include BNS_ROOT . '/components/toast.php'; ?>
