@@ -87,8 +87,11 @@ function bodySignature(string $contentType, string $body, int $status)
             return ['invalid_json' => sha1($body)];
         }
         // Token CSRF ngẫu nhiên theo phiên: chỉ so định dạng, không so giá trị.
-        array_walk_recursive($decoded, function (&$v) {
-            if (is_string($v) && preg_match('/^[0-9a-f]{64}$/', $v)) {
+        // generated_at của kết quả lũy kế fallback tính lại mỗi request.
+        array_walk_recursive($decoded, function (&$v, $k) {
+            if ($k === 'generated_at') {
+                $v = '<timestamp>';
+            } elseif (is_string($v) && preg_match('/^[0-9a-f]{64}$/', $v)) {
                 $v = '<hex64>';
             }
         });
