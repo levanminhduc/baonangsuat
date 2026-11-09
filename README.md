@@ -44,7 +44,8 @@ return [
 ```
 
 ### Bước 3: Cấu hình Web Server
-Đảm bảo thư mục dự án `baonangsuat` nằm trong thư mục gốc của Web Server (ví dụ: `C:/xampp/htdocs/baonangsuat`).
+Đảm bảo thư mục dự án `baonangsuat` nằm trong thư mục gốc của Web Server (ví dụ: `C:/xampp/htdocs/baonangsuat`), cạnh `authV2`.
+Apache cần `mod_rewrite` và `AllowOverride All`; chạy `composer install` và `tools\build-css.bat`. Xem `docs/deploy-checklist.md`.
 
 Truy cập hệ thống qua địa chỉ: `http://localhost/baonangsuat/`
 
@@ -54,14 +55,18 @@ Truy cập hệ thống qua địa chỉ: `http://localhost/baonangsuat/`
 
 | File | Mô tả |
 | :--- | :--- |
-| [`config/Database.php`](config/Database.php) | Multi-DB singleton với 3 kết nối database |
-| [`classes/Auth.php`](classes/Auth.php) | Xác thực + ánh xạ người dùng LINE |
-| [`api/index.php`](api/index.php) | Single-file API router |
-| [`classes/NangSuatService.php`](classes/NangSuatService.php) | Logic nghiệp vụ chính |
-| [`classes/AdminService.php`](classes/AdminService.php) | Logic quản trị hệ thống |
-| [`classes/services/MocGioSetService.php`](classes/services/MocGioSetService.php) | Quản lý preset mốc giờ |
-| [`csrf.php`](csrf.php) | CSRF token management |
-| [`includes/security-headers.php`](includes/security-headers.php) | Security headers |
+| [`public/index.php`](public/index.php) | Front controller duy nhất (trang + API) |
+| [`config/routes.php`](config/routes.php) | Bảng route trang và API |
+| [`app/Support/Database.php`](app/Support/Database.php) | Multi-DB singleton với 3 kết nối database |
+| [`app/Auth/Auth.php`](app/Auth/Auth.php) | Xác thực (authV2) + ánh xạ người dùng LINE |
+| [`app/Services/NangSuatService.php`](app/Services/NangSuatService.php) | Logic nghiệp vụ chính |
+| [`app/Services/AdminService.php`](app/Services/AdminService.php) | Logic quản trị hệ thống |
+| [`app/Services/MocGioSetService.php`](app/Services/MocGioSetService.php) | Quản lý preset mốc giờ |
+| [`app/Http/CsrfToken.php`](app/Http/CsrfToken.php) | CSRF token management |
+| [`app/Http/Middleware/SecurityHeaders.php`](app/Http/Middleware/SecurityHeaders.php) | Security headers |
+
+Cây thư mục: `public/` (web root), `bootstrap/`, `config/`, `app/` (PSR-4 `App\`), `views/`,
+`components/`, `database/`, `tests/`, `tools/`, `docs/`. Chi tiết: `.claude/rules/target-architecture.md`.
 
 ### 4.2. Các hành vi đặc biệt
 
