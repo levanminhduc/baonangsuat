@@ -57,11 +57,6 @@ test('api_group', function () {
     assertSame(false, Request::fake('GET', '/apix')->isApi());
 });
 
-test('router_owns_only_declared_groups', function () {
-    assertSame(true, routerTestRouter()->owns(Request::fake('GET', '/api/items/1')));
-    assertSame(false, routerTestRouter()->owns(Request::fake('GET', '/api/bao-cao/1')));
-});
-
 test('router_matches_path_with_param', function () {
     [$status, $route, $params] = routerTestRouter()->match('PUT', '/api/items/42');
     assertSame(200, $status);
@@ -84,6 +79,16 @@ test('router_same_path_different_methods', function () {
 test('router_param_constraint', function () {
     assertSame(404, routerTestRouter()->match('GET', '/api/items/abc')[0]);
     assertSame(['id' => 'abc'], routerTestRouter()->match('POST', '/api/items/abc/fail')[2]);
+});
+
+test('router_param_negative_lookahead', function () {
+    $router = new Router(['groups' => ['x' => []], 'routes' => [
+        ['GET', '/api/x/known', RouterTestController::class, 'show'],
+        ['*', '/api/x/{id:(?!(?:known|other)$).+}', RouterTestController::class, 'show'],
+    ]]);
+    assertSame(200, $router->match('GET', '/api/x/xyz')[0]);
+    assertSame(404, $router->match('GET', '/api/x/other')[0]);
+    assertSame(404, $router->match('GET', '/api/x/xyz/1')[0]);
 });
 
 test('router_group_error_messages', function () {

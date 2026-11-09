@@ -1,5 +1,6 @@
 <?php
 
+use App\Controllers\AdminController;
 use App\Controllers\AuthController;
 use App\Controllers\BaoCaoController;
 use App\Controllers\BaoCaoHistoryController;
@@ -10,6 +11,7 @@ use App\Controllers\DanhMucController;
 use App\Controllers\ImportController;
 use App\Controllers\ImportHistoryController;
 use App\Controllers\MocGioSetsController;
+use App\Controllers\UserPermissionsController;
 
 // Bảng route API (ADR 0001: URL giữ nguyên, khớp METHOD + đường dẫn). Xem App\Http\Router.
 //
@@ -20,7 +22,7 @@ $endpointNotFound = [404, 'Endpoint không hợp lệ'];
 $methodNotAllowed = [405, 'Method not allowed'];
 
 return [
-    // `/api/<group>` có ở đây thì Router lo hết; nhóm chưa chuyển chạy qua app/Legacy/api-router.php.
+    // `/api/<group>` không có ở đây → 404 'API không tồn tại'.
     // middleware nhóm chạy trước khi khớp route; not_found / method_not_allowed giữ message cũ của handler.
     'groups' => [
         'csrf-token' => [],
@@ -55,6 +57,16 @@ return [
         ],
         'bieu-do' => [
             'middleware' => ['auth'],
+            'not_found' => $endpointNotFound,
+            'method_not_allowed' => $endpointNotFound,
+        ],
+        'admin' => [
+            'middleware' => ['role:admin'],
+            'not_found' => $endpointNotFound,
+            'method_not_allowed' => $endpointNotFound,
+        ],
+        'user-permissions' => [
+            'middleware' => ['role:admin'],
             'not_found' => $endpointNotFound,
             'method_not_allowed' => $endpointNotFound,
         ],
@@ -115,5 +127,46 @@ return [
         ['GET', '/api/bieu-do/ca-list', BieuDoController::class, 'caList'],
         ['GET', '/api/bieu-do/so-sanh-chi-tiet', BieuDoController::class, 'soSanhChiTiet'],
         ['GET', '/api/bieu-do/so-sanh-matrix', BieuDoController::class, 'soSanhMatrix'],
+
+        ['GET', '/api/admin/lines', AdminController::class, 'lines'],
+        ['POST', '/api/admin/lines', AdminController::class, 'createLine', ['csrf']],
+        ['GET', '/api/admin/lines/{id:\d+}', AdminController::class, 'line'],
+        ['PUT', '/api/admin/lines/{id:\d+}', AdminController::class, 'updateLine', ['csrf']],
+        ['DELETE', '/api/admin/lines/{id:\d+}', AdminController::class, 'deleteLine', ['csrf']],
+        ['GET', '/api/admin/users', AdminController::class, 'users'],
+        ['GET', '/api/admin/user-lines', AdminController::class, 'userLines'],
+        ['POST', '/api/admin/user-lines', AdminController::class, 'addUserLine', ['csrf']],
+        ['DELETE', '/api/admin/user-lines', AdminController::class, 'removeUserLine', ['csrf']],
+        ['GET', '/api/admin/ma-hang', AdminController::class, 'maHangList'],
+        ['POST', '/api/admin/ma-hang', AdminController::class, 'createMaHang', ['csrf']],
+        ['GET', '/api/admin/ma-hang/{id:\d+}', AdminController::class, 'maHang'],
+        ['PUT', '/api/admin/ma-hang/{id:\d+}', AdminController::class, 'updateMaHang', ['csrf']],
+        ['DELETE', '/api/admin/ma-hang/{id:\d+}', AdminController::class, 'deleteMaHang', ['csrf']],
+        ['GET', '/api/admin/cong-doan', AdminController::class, 'congDoanList'],
+        ['POST', '/api/admin/cong-doan', AdminController::class, 'createCongDoan', ['csrf']],
+        ['GET', '/api/admin/cong-doan/{id:\d+}', AdminController::class, 'congDoan'],
+        ['PUT', '/api/admin/cong-doan/{id:\d+}', AdminController::class, 'updateCongDoan', ['csrf']],
+        ['DELETE', '/api/admin/cong-doan/{id:\d+}', AdminController::class, 'deleteCongDoan', ['csrf']],
+        ['GET', '/api/admin/routing', AdminController::class, 'routingList'],
+        ['POST', '/api/admin/routing', AdminController::class, 'addRouting', ['csrf']],
+        ['GET', '/api/admin/routing/{id:\d+}', AdminController::class, 'routing'],
+        ['PUT', '/api/admin/routing/{id:\d+}', AdminController::class, 'updateRouting', ['csrf']],
+        ['DELETE', '/api/admin/routing/{id:\d+}', AdminController::class, 'removeRouting', ['csrf']],
+        ['GET', '/api/admin/moc-gio/ca-list', AdminController::class, 'mocGioCaList'],
+        ['POST', '/api/admin/moc-gio/copy-default', AdminController::class, 'copyMocGioDefault', ['csrf']],
+        ['GET', '/api/admin/moc-gio', AdminController::class, 'mocGioList'],
+        ['POST', '/api/admin/moc-gio', AdminController::class, 'createMocGio', ['csrf']],
+        ['GET', '/api/admin/moc-gio/{id:\d+}', AdminController::class, 'mocGio'],
+        ['PUT', '/api/admin/moc-gio/{id:\d+}', AdminController::class, 'updateMocGio', ['csrf']],
+        ['DELETE', '/api/admin/moc-gio/{id:\d+}', AdminController::class, 'deleteMocGio', ['csrf']],
+        ['POST', '/api/admin/bao-cao/bulk-create', AdminController::class, 'bulkCreateBaoCao', ['csrf']],
+        // Tài nguyên admin không tồn tại: router cũ trả 'Resource không hợp lệ' thay vì 'Endpoint không hợp lệ'.
+        ['*', '/api/admin', AdminController::class, 'unknownResource'],
+        ['*', '/api/admin/{resource:(?!(?:lines|users|user-lines|ma-hang|cong-doan|routing|moc-gio|bao-cao)$).+}', AdminController::class, 'unknownResource'],
+
+        ['POST', '/api/user-permissions/bulk', UserPermissionsController::class, 'bulk'],
+        ['GET', '/api/user-permissions/{id:\d+}', UserPermissionsController::class, 'show'],
+        ['POST', '/api/user-permissions', UserPermissionsController::class, 'grant', ['csrf']],
+        ['DELETE', '/api/user-permissions/{id:\d+}/{quyen}', UserPermissionsController::class, 'revoke', ['csrf']],
     ],
 ];

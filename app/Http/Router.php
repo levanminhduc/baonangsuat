@@ -46,12 +46,6 @@ final class Router
     {
     }
 
-    // Nhóm `/api/<group>` đã chuyển sang Router; nhóm khác front controller nhường router cũ.
-    public function owns(Request $request): bool
-    {
-        return isset($this->config['groups'][$request->apiGroup()]);
-    }
-
     /**
      * @return array{0: int, 1: ?array, 2: array<string, string>} [200|404|405, route, params]
      */
@@ -118,6 +112,7 @@ final class Router
         }
 
         $params = [];
+        // Regex của tham số khớp trong một đoạn, không được chứa `/` (pattern bị tách theo `/`).
         foreach ($patternParts as $i => $part) {
             if (preg_match('/^\{(\w+)(?::(.+))?\}$/', $part, $m) === 1) {
                 $regex = $m[2] ?? '[^/]+';
