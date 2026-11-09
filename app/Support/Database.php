@@ -4,10 +4,12 @@ namespace App\Support;
 
 use Exception;
 
-class Database {
+class Database
+{
     private static $instances = [];
-    
-    private static function getConfig() {
+
+    private static function getConfig()
+    {
         static $config = null;
         if ($config === null) {
             $configFile = 'C:/xampp/config/db.php';
@@ -27,15 +29,16 @@ class Database {
         }
         return $config;
     }
-    
-    public static function getMysqli() {
+
+    public static function getMysqli()
+    {
         if (!isset(self::$instances['mysqli'])) {
             $config = self::getConfig();
             self::$instances['mysqli'] = mysqli_connect(
                 $config['host'],
                 $config['username'],
                 $config['password'],
-                $config['database']
+                $config['database'],
             );
             if (!self::$instances['mysqli']) {
                 throw new Exception('Database connection failed');
@@ -44,15 +47,16 @@ class Database {
         }
         return self::$instances['mysqli'];
     }
-    
-    public static function getNangSuat() {
+
+    public static function getNangSuat()
+    {
         if (!isset(self::$instances['nang_suat'])) {
             $config = self::getConfig();
             self::$instances['nang_suat'] = mysqli_connect(
                 $config['host'],
                 $config['username'],
                 $config['password'],
-                $config['database_nang_suat']
+                $config['database_nang_suat'],
             );
             if (!self::$instances['nang_suat']) {
                 throw new Exception('Database connection failed');
@@ -61,15 +65,16 @@ class Database {
         }
         return self::$instances['nang_suat'];
     }
-    
-    public static function getNhanSu() {
+
+    public static function getNhanSu()
+    {
         if (!isset(self::$instances['nhan_su'])) {
             $config = self::getConfig();
             self::$instances['nhan_su'] = mysqli_connect(
                 $config['host'],
                 $config['username'],
                 $config['password'],
-                $config['database_nhan_su']
+                $config['database_nhan_su'],
             );
             if (!self::$instances['nhan_su']) {
                 throw new Exception('Database connection failed');
@@ -78,8 +83,9 @@ class Database {
         }
         return self::$instances['nhan_su'];
     }
-    
-    public static function closeAll() {
+
+    public static function closeAll()
+    {
         foreach (self::$instances as $conn) {
             if ($conn) {
                 mysqli_close($conn);
