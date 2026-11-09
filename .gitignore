@@ -11,9 +11,7 @@ yarn-error.log*
 # Build
 dist/
 build/
-tools/
 specs/
-tests/
 
 # Environment
 .env
@@ -26,13 +24,14 @@ tests/
 .roo/
 vendor/
 .kilocode/
-.claude/
+.claude/*
+!.claude/rules/
 
 # Logs
 logs/
 *.log
 tailwindcss-windows-x64.exe
-tailwindcss-windows-x64.exe
+tools/*.exe
 nul
 # Kilo Code agent worktrees
 .kilocode/worktrees/
