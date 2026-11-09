@@ -2,8 +2,8 @@ module.exports = {
   content: [
     "./public/*.php",
     "./includes/**/*.php",
+    "./views/**/*.php",
     "./public/assets/js/**/*.js",
-    "./public/api/**/*.php",
     "./app/**/*.php"
   ],
   theme: {

@@ -1,82 +1,35 @@
 <?php
-require_once __DIR__ . '/../includes/security-headers.php';
-require_once __DIR__ . '/../bootstrap/app.php';
 
-use App\Auth\Auth;
+// Front controller duy nhất. `.htaccess` gốc đưa `/api/...` và `/` về đây; URL không đổi (ADR 0001).
+// Chỉ nạp autoload trước: preflight OPTIONS của API trả về khi chưa mở phiên, như router cũ.
+require_once __DIR__ . '/../bootstrap/autoload.php';
 
-Auth::requirePageLogin();
+use App\Http\Cors;
+use App\Http\Request;
+use App\Http\Router;
 
-if (Auth::checkRole(['admin'])) {
-    header('Location: admin.php');
-    exit;
+$bnsRequest = Request::fromGlobals();
+
+if (!$bnsRequest->isApi()) {
+    // `/` và `/index.php`: trang chọn LINE (tự nạp bootstrap/app.php).
+    require BNS_ROOT . '/views/index.php';
+
+    return;
 }
 
-if (Auth::hasLine()) {
-    header('Location: nhap-nang-suat.php');
-    exit;
+Cors::send($bnsRequest);
+if ($bnsRequest->method() === 'OPTIONS') {
+    exit(0);
 }
 
-$allowedLines = Auth::allowedLines();
-if (count($allowedLines) === 0) {
-    header('Location: no-line.php');
-    exit;
+require_once BNS_ROOT . '/bootstrap/app.php';
+
+$bnsRouter = new Router(require BNS_ROOT . '/config/routes.php');
+if ($bnsRouter->owns($bnsRequest)) {
+    $bnsRouter->dispatch($bnsRequest)->send();
+
+    return;
 }
-?>
-<!DOCTYPE html>
-<html lang="vi">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Chọn LINE - Hệ thống Báo Năng Suất</title>
-    
-    <!-- Dependencies -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    
-    <!-- Custom CSS -->
-    <link rel="stylesheet" href="assets/css/login.css">
-</head>
-<body>
-    <div class="login-wrapper">
-        <div class="login-box">
-            <div class="login-header text-center">
-                <div class="hoatho-logo">
-                    <img src="img/logoht.svg" alt="Hoa Tho Logo" width="100" height="100">
-                </div>
-                <h3 class="login-title">HỆ THỐNG BÁO NĂNG SUẤT</h3>
-            </div>
 
-            <div class="login-body text-center">
-                <p class="mb-3">Vui lòng chọn LINE làm việc</p>
-                <a href="<?php echo htmlspecialchars(Auth::logoutUrl()); ?>" id="logoutLink">Đăng xuất</a>
-            </div>
-
-            <footer class="login-footer text-center">
-                <p>© 2025 - HỆ THỐNG BÁO NĂNG SUẤT - CÔNG TY MAY HOÀ THỌ ĐIỆN BÀN</p>
-            </footer>
-        </div>
-    </div>
-
-    <!-- Line Selection Modal -->
-    <div class="modal fade" id="lineSelectModal" tabindex="-1" aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false">
-        <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title">Chọn LINE làm việc</h5>
-                </div>
-                <div class="modal-body p-0">
-                    <ul id="lineList" class="line-list"></ul>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <script id="allowedLines" type="application/json"><?php echo json_encode($allowedLines, JSON_HEX_TAG | JSON_HEX_AMP | JSON_UNESCAPED_UNICODE); ?></script>
-
-    <?php include __DIR__ . '/../includes/components/toast.php'; ?>
-
-    <!-- Scripts -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="assets/js/login.js"></script>
-</body>
-</html>
+// Nhóm API chưa chuyển sang Router.
+require BNS_ROOT . '/app/Legacy/api-router.php';

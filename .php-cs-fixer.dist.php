@@ -9,7 +9,9 @@ $dirs = array_filter(
 
 $finder = PhpCsFixer\Finder::create()
     ->in($dirs)
-    ->name('*.php');
+    ->name('*.php')
+    // Router API cũ giữ nguyên định dạng cho tới khi bị xoá (ticket 07).
+    ->exclude(['Legacy']);
 
 return (new PhpCsFixer\Config())
     ->setRules([

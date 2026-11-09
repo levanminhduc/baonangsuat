@@ -9,31 +9,8 @@ use App\Services\MocGioSetService;
 use App\Services\NangSuatService;
 use App\Support\Database;
 
-header('Content-Type: application/json; charset=utf-8');
-
-$allowedOrigins = [
-    'http://localhost',
-    'http://127.0.0.1',
-    'https://localhost',
-    'https://127.0.0.1'
-];
-
-$origin = $_SERVER['HTTP_ORIGIN'] ?? '';
-if (in_array($origin, $allowedOrigins) || strpos($origin, 'http://localhost:') === 0 || strpos($origin, 'http://127.0.0.1:') === 0) {
-    header('Access-Control-Allow-Origin: ' . $origin);
-    header('Access-Control-Allow-Credentials: true');
-}
-
-header('Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS');
-header('Access-Control-Allow-Headers: Content-Type, X-CSRF-Token');
-header('X-Content-Type-Options: nosniff');
-header('X-Frame-Options: DENY');
-
-if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
-    exit(0);
-}
-
-require_once __DIR__ . '/../../bootstrap/app.php';
+// Router API cũ, chỉ còn các nhóm chưa chuyển sang App\Http\Router (xem config/routes.php).
+// public/index.php đã gửi header CORS, xử lý OPTIONS và nạp bootstrap trước khi include file này.
 
 $requestUri = $_SERVER['REQUEST_URI'];
 $basePath = '/baonangsuat/api/';
@@ -86,18 +63,6 @@ function requireCsrf() {
 
 try {
     switch ($segments[0]) {
-        case 'csrf-token':
-            if ($method === 'GET') {
-                response(['success' => true, 'token' => CsrfToken::get()]);
-            }
-            response(['success' => false, 'message' => 'Method not allowed'], 405);
-            break;
-        case 'auth':
-            handleAuth($segments, $method, $input);
-            break;
-        case 'context':
-            handleContext($segments, $method);
-            break;
         case 'bao-cao':
             handleBaoCao($segments, $method, $input);
             break;
@@ -132,68 +97,6 @@ try {
     }
 } catch (Exception $e) {
     response(['success' => false, 'message' => $e->getMessage()], 500);
-}
-
-function handleAuth($segments, $method, $input) {
-    $action = $segments[1] ?? '';
-    
-    switch ($action) {
-        case 'select-line':
-            if ($method !== 'POST') {
-                response(['success' => false, 'message' => 'Method not allowed'], 405);
-            }
-            requireLogin();
-            requireCsrf();
-            $line_id = intval($input['line_id'] ?? 0);
-            $result = Auth::selectLine($line_id);
-            if ($result['success']) {
-                $result['redirect_url'] = Auth::getDefaultPage();
-            }
-            response($result, $result['success'] ? 200 : 403);
-            break;
-            
-        case 'session':
-            requireLogin();
-            $sessionData = Auth::getSession();
-            $sessionData['can_view_history'] = Auth::canViewHistory();
-            response(['success' => true, 'data' => $sessionData]);
-            break;
-            
-        default:
-            response(['success' => false, 'message' => 'Action không hợp lệ'], 404);
-    }
-}
-
-function handleContext($segments, $method) {
-    if ($method !== 'GET') {
-        response(['success' => false, 'message' => 'Method not allowed'], 405);
-    }
-    
-    $isAdmin = Auth::checkRole(['admin']);
-    $canCreateAnyLine = Auth::canCreateReportForAnyLine();
-    if ($isAdmin || $canCreateAnyLine) {
-        requireLogin();
-    } else {
-        requireLine();
-    }
-    
-    $session = Auth::getSession();
-    $service = new NangSuatService();
-    
-    $ca_id = isset($_GET['ca_id']) ? intval($_GET['ca_id']) : null;
-    
-    if ($session['line_id']) {
-        $context = $service->getContext($session['line_id'], $ca_id);
-    } else {
-        $context = [];
-    }
-    
-    $context['session'] = $session;
-    $context['can_view_history'] = Auth::canViewHistory();
-    $context['can_create_report'] = Auth::canCreateReport();
-    $context['can_create_report_any_line'] = $canCreateAnyLine;
-    
-    response(['success' => true, 'data' => $context]);
 }
 
 function handleBaoCao($segments, $method, $input) {
