@@ -343,6 +343,36 @@
             "message": "Method not allowed"
         }
     },
+    "OPTIONS /api/csrf-token": {
+        "status": 200,
+        "headers": {
+            "content-type": "application/json; charset=utf-8",
+            "x-frame-options": "DENY",
+            "x-content-type-options": "nosniff",
+            "access-control-allow-origin": "*",
+            "access-control-allow-credentials": "true",
+            "access-control-allow-methods": "GET, POST, PUT, DELETE, OPTIONS",
+            "access-control-allow-headers": "Content-Type"
+        },
+        "body": {
+            "invalid_json": "da39a3ee5e6b4b0d3255bfef95601890afd80709"
+        }
+    },
+    "OPTIONS /api/bao-cao/2": {
+        "status": 200,
+        "headers": {
+            "content-type": "application/json; charset=utf-8",
+            "x-frame-options": "DENY",
+            "x-content-type-options": "nosniff",
+            "access-control-allow-origin": "*",
+            "access-control-allow-credentials": "true",
+            "access-control-allow-methods": "GET, POST, PUT, DELETE, OPTIONS",
+            "access-control-allow-headers": "Content-Type"
+        },
+        "body": {
+            "invalid_json": "da39a3ee5e6b4b0d3255bfef95601890afd80709"
+        }
+    },
     "GET /api/auth/session": {
         "status": 401,
         "headers": {

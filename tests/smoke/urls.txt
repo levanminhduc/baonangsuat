@@ -41,6 +41,8 @@ GET /.gitignore
 # --- API: csrf-token / auth / context ---
 GET /api/csrf-token
 POST /api/csrf-token
+OPTIONS /api/csrf-token
+OPTIONS /api/bao-cao/2
 GET /api/auth/session
 POST /api/auth/select-line
 GET /api/context
