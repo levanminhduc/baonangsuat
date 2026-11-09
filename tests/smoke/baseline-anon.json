@@ -162,7 +162,7 @@
             "content-type": "text/css"
         },
         "body": {
-            "sha1": "d335e718bc2b3a0367c8164ed88a541e89869480"
+            "sha1": "e50588edf36f9c4b81edcd3937e51570a91a1be3"
         }
     },
     "GET /img/logoht.svg": {
@@ -250,7 +250,7 @@
         "status": 200,
         "headers": [],
         "body": {
-            "sha1": "95a43b78c9b4f0ece22ee9cf83d435bedbdeaae4"
+            "sha1": "227a8eeafb526ee0bc8f4759db9503010ad914ae"
         }
     },
     "GET /api/csrf-token": {

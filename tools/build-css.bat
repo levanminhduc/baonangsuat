@@ -1,4 +1,6 @@
 @echo off
+rem Chạy từ gốc repo dù gọi file này từ đâu
+cd /d "%~dp0.."
 echo Building Tailwind CSS...
 
 echo [1/2] Building main.css...
