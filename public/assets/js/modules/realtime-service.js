@@ -37,7 +37,7 @@ class RealtimeService {
         
         const el = document.getElementById(this.clockElementId);
         if (el) {
-            el.textContent = `[${h}:${m}:${s}]`;
+            el.textContent = `${h}:${m}:${s}`;
         }
     }
 

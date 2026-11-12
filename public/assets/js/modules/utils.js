@@ -89,4 +89,31 @@ export function updateStatusBar(message, status = 'success') {
             statusIndicator.classList.add('error');
         }
     }
+
+    // Trạng thái lưu hiển thị ở thanh trên + dải thông tin màn nhập
+    let text = message;
+    if (message === 'Đã lưu') {
+        const now = new Date();
+        text = `Đã lưu ${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+    } else if (message === 'Đã tải báo cáo') {
+        text = 'Đã tải';
+    } else if (status === 'error') {
+        text = 'Chưa lưu';
+    }
+    document.querySelectorAll('[data-save-status]').forEach(el => {
+        el.dataset.state = status;
+        const textEl = el.querySelector('.bns-save-text');
+        if (textEl) textEl.textContent = text;
+    });
+
+    // Lỗi lưu: hiện thanh báo kèm nút "Thử lại" ngay trên bảng
+    const alertBox = document.getElementById('bnsSaveAlert');
+    if (alertBox) {
+        alertBox.hidden = status !== 'error';
+        const alertText = document.getElementById('bnsSaveAlertText');
+        if (alertText && status === 'error') {
+            const reason = message.replace(/^Lỗi:\s*/, '');
+            alertText.textContent = reason.includes('chưa được lưu') ? reason : reason + '. Số vừa nhập chưa được lưu.';
+        }
+    }
 }

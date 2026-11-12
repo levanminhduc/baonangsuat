@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Biểu đồ năng suất - <?php echo htmlspecialchars($session['line_ten'] ?? 'Admin'); ?></title>
     <link rel="stylesheet" href="assets/css/style.css">
+    <link rel="stylesheet" href="assets/css/layout.css">
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
@@ -64,7 +65,8 @@
 </head>
 <body class="bg-gray-100">
     <?php
-    $navTitle = 'BIỂU ĐỒ NĂNG SUẤT';
+    $navTitle = 'Biểu đồ năng suất';
+    $navActive = 'bieu-do';
     $showAddBtn = false;
     $showHomeBtn = true;
     include __DIR__ . '/partials/navbar.php';

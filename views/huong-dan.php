@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Hướng Dẫn Sử Dụng - Hệ thống Năng suất</title>
     <link rel="stylesheet" href="assets/css/style.css">
+    <link rel="stylesheet" href="assets/css/layout.css">
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
       tailwind.config = {
@@ -44,7 +45,8 @@
 </head>
 <body class="bg-gray-50">
     <?php
-    $navTitle = 'HƯỚNG DẪN SỬ DỤNG';
+    $navTitle = 'Hướng dẫn sử dụng';
+    $navActive = 'huong-dan';
     $showAddBtn = false;
     $showHomeBtn = true;
     include __DIR__ . '/partials/navbar.php';

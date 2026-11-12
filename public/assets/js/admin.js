@@ -225,6 +225,8 @@ async function switchTab(tabName, updateHistory = true) {
         
         if (tabBtn) tabBtn.classList.add('active');
         if (tabContent) tabContent.classList.add('active');
+        // Sidebar: đánh dấu màn đang xem, đổi tiêu đề thanh trên
+        if (window.bnsNav) window.bnsNav.setActive('admin:' + tabName, true);
 
         if (updateHistory) {
             history.pushState(null, null, `#${tabName}`);

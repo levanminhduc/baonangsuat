@@ -6,6 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Chưa được phân LINE - Hệ thống Nhập Năng Suất</title>
     <link rel="stylesheet" href="assets/css/style.css">
+    <link rel="stylesheet" href="assets/css/layout.css">
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
       tailwind.config = {
@@ -25,7 +26,8 @@
 </head>
 <body>
     <?php
-    $navTitle = 'HỆ THỐNG NHẬP NĂNG SUẤT';
+    $navTitle = 'Hệ thống nhập năng suất';
+    $navActive = '';
     $showAddBtn = false;
     $showHomeBtn = false;
     include __DIR__ . '/partials/navbar.php';

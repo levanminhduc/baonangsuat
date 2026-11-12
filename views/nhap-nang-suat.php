@@ -5,7 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Nhập Năng Suất - <?php echo htmlspecialchars($session['line_ten'] ?? ''); ?></title>
     <link rel="stylesheet" href="assets/css/style.css">
+    <link rel="stylesheet" href="assets/css/layout.css">
     <link rel="stylesheet" href="assets/css/luy-ke-status.css">
+    <link rel="stylesheet" href="assets/css/entry.css">
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
       tailwind.config = {
@@ -25,7 +27,8 @@
 </head>
 <body>
     <?php
-    $navTitle = 'NHẬP NĂNG SUẤT THEO GIỜ';
+    $navTitle = 'Nhập năng suất theo giờ';
+    $navActive = 'nhap';
     $showAddBtn = true;
     $addBtnUrl = '#';
     $addBtnId = 'navCreateReportBtn';
@@ -78,8 +81,14 @@
             </div>
             
             <div id="editorContainer" class="hidden">
-                <div class="report-header"></div>
-                <div id="gridContainer" class="grid-container"></div>
+                <div class="bns-entry-card">
+                    <div class="bns-info" id="bnsInfo"></div>
+                    <div class="bns-save-alert" id="bnsSaveAlert" role="alert" hidden>
+                        <span id="bnsSaveAlertText">Chưa lưu được.</span>
+                        <button type="button" class="bns-btn" id="bnsSaveRetry">Thử lại</button>
+                    </div>
+                    <div id="gridContainer"></div>
+                </div>
             </div>
         </div>
 

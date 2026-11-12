@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Quản lý Admin - Hệ thống Năng suất</title>
     <link rel="stylesheet" href="assets/css/style.css">
+    <link rel="stylesheet" href="assets/css/layout.css">
     <link rel="stylesheet" href="assets/css/admin.css">
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
@@ -25,7 +26,8 @@
 </head>
 <body>
     <?php
-    $navTitle = 'QUẢN LÝ HỆ THỐNG NĂNG SUẤT';
+    $navTitle = 'Quản trị';
+    $navActive = 'admin';
     $showAddBtn = false;
     $showHomeBtn = true;
     include __DIR__ . '/partials/navbar.php';
@@ -34,53 +36,6 @@
 
         
         <div class="admin-content">
-            <style>
-                .menu-responsive {
-                    display: flex;
-                    gap: 5px;
-                    margin-bottom: 20px;
-                    border-bottom: 2px solid var(--border-color);
-                    padding-bottom: 0;
-                }
-
-                /* Mobile: Horizontal scroll */
-                @media (max-width: 767px) {
-                    .menu-responsive {
-                        overflow-x: auto;
-                        white-space: nowrap;
-                        flex-wrap: nowrap;
-                        -webkit-overflow-scrolling: touch;
-                        
-                        /* Hide scrollbar */
-                        -ms-overflow-style: none;
-                        scrollbar-width: none;
-                    }
-                    .menu-responsive::-webkit-scrollbar {
-                        display: none;
-                    }
-                }
-
-                /* Desktop: Wrap */
-                @media (min-width: 768px) {
-                    .menu-responsive {
-                        flex-wrap: wrap;
-                        overflow-x: visible;
-                    }
-                }
-            </style>
-            <div class="menu-responsive">
-                <button class="admin-tab active" data-tab="lines">Quản lý LINE</button>
-                <button class="admin-tab" data-tab="user-lines">Quản lý User-LINE</button>
-                <button class="admin-tab" data-tab="permissions">Quản lý Quyền</button>
-                <button class="admin-tab" data-tab="bulk-create">Tạo Báo Cáo</button>
-                <button class="admin-tab" data-tab="ma-hang">Quản lý Mã hàng</button>
-                <button class="admin-tab" data-tab="cong-doan">Quản lý Công đoạn</button>
-                <button class="admin-tab" data-tab="routing">Quản lý Routing</button>
-                <button class="admin-tab" data-tab="presets">Quản lý Preset Mốc Giờ</button>
-                <button class="admin-tab" data-tab="moc-gio">Quản lý Mốc giờ (Cũ)</button>
-                <button class="admin-tab" data-tab="import">Import Excel</button>
-                <button class="admin-tab" data-tab="import-history">Lịch sử Import</button>
-            </div>
             
             <div id="linesTab" class="admin-tab-content active">
                 <div class="admin-panel">
