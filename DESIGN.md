@@ -8,7 +8,7 @@ Ghi các quyết định đã chốt cho cả app. Đổi thì sửa ở đây t
 - Thanh trên nền xanh `#143583`, chữ trắng, liền với dòng logo của sidebar.
 - Từ 1024px: sidebar cố định 224px, thu về dải icon 56px (nhớ trong `localStorage`).
   Dưới 1024px: panel trượt từ trái, mở bằng nút menu.
-- 11 tab admin nằm trong sidebar, 4 nhóm: Tổ chức, Sản phẩm, Mốc giờ, Dữ liệu.
+- 11 tab admin nằm trong sidebar, 4 nhóm: Người dùng & LINE, Mã hàng & Công đoạn, Mốc giờ, Nhập liệu hàng loạt.
 - Class tiền tố `bns-`, CSS thuần (không qua Tailwind) để không đụng `.btn`, `.admin-tab` của `style.css`.
 
 ## Màn nhập báo cáo (`public/assets/css/entry.css`, `modules/grid.js`)

@@ -69,12 +69,12 @@ if ($isLoggedIn) {
 
     // 11 màn quản trị (trước là tab ngang trong admin.php), chia 4 nhóm
     $adminGroups = !$isAdmin ? [] : [
-        ['label' => 'Tổ chức', 'items' => [
+        ['label' => 'Người dùng & LINE', 'items' => [
             ['tab' => 'lines', 'label' => 'LINE', 'title' => 'Quản lý LINE', 'icon' => 'factory'],
             ['tab' => 'user-lines', 'label' => 'User - LINE', 'title' => 'Quản lý User-LINE', 'icon' => 'users'],
             ['tab' => 'permissions', 'label' => 'Quyền', 'title' => 'Quản lý Quyền', 'icon' => 'shield-check'],
         ]],
-        ['label' => 'Sản phẩm', 'items' => [
+        ['label' => 'Mã hàng & Công đoạn', 'items' => [
             ['tab' => 'ma-hang', 'label' => 'Mã hàng', 'title' => 'Quản lý Mã hàng', 'icon' => 'shirt'],
             ['tab' => 'cong-doan', 'label' => 'Công đoạn', 'title' => 'Quản lý Công đoạn', 'icon' => 'list-ordered'],
             ['tab' => 'routing', 'label' => 'Routing', 'title' => 'Quản lý Routing', 'icon' => 'route'],
@@ -83,7 +83,7 @@ if ($isLoggedIn) {
             ['tab' => 'presets', 'label' => 'Preset mốc giờ', 'title' => 'Quản lý Preset Mốc Giờ', 'icon' => 'clock'],
             ['tab' => 'moc-gio', 'label' => 'Mốc giờ (cũ)', 'title' => 'Quản lý Mốc giờ (Cũ)', 'icon' => 'clock-alert'],
         ]],
-        ['label' => 'Dữ liệu', 'items' => [
+        ['label' => 'Nhập liệu hàng loạt', 'items' => [
             ['tab' => 'bulk-create', 'label' => 'Tạo báo cáo hàng loạt', 'title' => 'Tạo Báo Cáo', 'icon' => 'file-plus-2'],
             ['tab' => 'import', 'label' => 'Import Excel', 'title' => 'Import Excel', 'icon' => 'file-spreadsheet'],
             ['tab' => 'import-history', 'label' => 'Lịch sử import', 'title' => 'Lịch sử Import', 'icon' => 'file-clock'],
