@@ -361,6 +361,10 @@
                             </div>
                             <input type="file" id="importFileInput" accept=".xlsx,.xls" class="hidden">
                         </div>
+                        <p class="mt-3 text-sm text-gray-500">
+                            Chưa có file? <a href="assets/templates/mau-import-cong-doan.xlsx" download class="text-primary font-medium hover:underline">Tải file mẫu</a>
+                            (mã hàng ở ô C1 dạng "MH: XXXX", công đoạn từ ô C4 trở xuống, mỗi sheet một mã hàng).
+                        </p>
 
                         <div id="importSelectedFile" class="hidden mt-4 p-3 bg-gray-50 border border-gray-200 rounded-lg flex items-center justify-between gap-3 shadow-sm">
                             <div class="flex items-center gap-3 overflow-hidden">
