@@ -49,9 +49,9 @@ class ImportService
             if (empty($maHang)) {
                 $errors[] = [
                     'sheet_name' => $sheetName,
-                    'cell' => 'C2',
+                    'cell' => 'C1',
                     'error_code' => 'INVALID_MA_HANG_FORMAT',
-                    'message' => "Không tìm thấy mã hàng trong ô C2. Định dạng cần: 'MH: XXXX'",
+                    'message' => "Không tìm thấy mã hàng trong ô C1 (mẫu cũ: C2). Định dạng cần: 'MH: XXXX'",
                 ];
                 continue;
             }
@@ -59,9 +59,9 @@ class ImportService
             if (empty($congDoanNames)) {
                 $errors[] = [
                     'sheet_name' => $sheetName,
-                    'cell' => 'C5:C100',
+                    'cell' => 'C4',
                     'error_code' => 'EMPTY_CONG_DOAN_LIST',
-                    'message' => 'Không tìm thấy công đoạn nào từ C5 trở đi',
+                    'message' => 'Không tìm thấy công đoạn nào từ C4 trở đi (mẫu cũ: C5)',
                 ];
                 continue;
             }
@@ -417,8 +417,15 @@ class ImportService
 
         foreach ($spreadsheet->getAllSheets() as $sheet) {
             $sheetName = $sheet->getTitle();
-            $maHang = $this->extractMaHang($sheet);
-            $congDoanList = $this->extractCongDoanList($sheet);
+            // Mẫu in hiện tại: MH ở C1, công đoạn từ C4, các bảng copy để in cách nhau 1 dòng trống
+            // nên dừng ở dòng trống đầu tiên. Mẫu cũ: MH ở C2, công đoạn từ C5, cho phép tối đa 4 dòng trống.
+            $maHang = $this->extractMaHang($sheet, 'C1');
+            if ($maHang !== null) {
+                $congDoanList = $this->extractCongDoanList($sheet, 4, 1);
+            } else {
+                $maHang = $this->extractMaHang($sheet, 'C2');
+                $congDoanList = $this->extractCongDoanList($sheet, 5, 5);
+            }
 
             $sheets[] = [
                 'sheet_name' => $sheetName,
@@ -430,9 +437,9 @@ class ImportService
         return $sheets;
     }
 
-    private function extractMaHang($sheet)
+    private function extractMaHang($sheet, $cell)
     {
-        $cellValue = $sheet->getCell('C2')->getValue();
+        $cellValue = $sheet->getCell($cell)->getValue();
 
         if (empty($cellValue)) {
             return null;
@@ -455,11 +462,9 @@ class ImportService
         return null;
     }
 
-    private function extractCongDoanList($sheet)
+    private function extractCongDoanList($sheet, $row, $maxEmptyRows)
     {
         $congDoanList = [];
-        $row = 5;
-        $maxEmptyRows = 5;
         $emptyRowCount = 0;
 
         while ($emptyRowCount < $maxEmptyRows) {
