@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Support\Database;
 use Exception;
+use stdClass;
 
 class NangSuatService
 {
@@ -96,9 +97,22 @@ class NangSuatService
         $result = mysqli_query($this->db, 'SELECT id, ma_hang, ten_hang FROM ma_hang WHERE is_active = 1 ORDER BY ma_hang');
         $list = [];
         while ($row = mysqli_fetch_assoc($result)) {
-            $list[] = $row;
+            $row['dinh_muc'] = new stdClass();
+            $list[$row['id']] = $row;
         }
-        return $list;
+
+        // LĐ + CTNS theo LINE (từ file import) để modal tạo báo cáo tự điền
+        $result = mysqli_query($this->db, 'SELECT ma_hang_id, line_id, so_lao_dong, ctns FROM ma_hang_line_dinh_muc');
+        while ($row = mysqli_fetch_assoc($result)) {
+            if (isset($list[$row['ma_hang_id']])) {
+                $list[$row['ma_hang_id']]['dinh_muc']->{$row['line_id']} = [
+                    'so_lao_dong' => intval($row['so_lao_dong']),
+                    'ctns' => intval($row['ctns']),
+                ];
+            }
+        }
+
+        return array_values($list);
     }
 
     public function getRouting($ma_hang_id, $line_id = null)

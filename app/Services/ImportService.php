@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Support\Database;
 use Exception;
+use PhpOffice\PhpSpreadsheet\Cell\Coordinate;
 use PhpOffice\PhpSpreadsheet\IOFactory;
 
 class ImportService
@@ -148,6 +149,16 @@ class ImportService
                 $thuTu++;
             }
 
+            $dinhMucList = [];
+            foreach ($sheetData['dinh_muc_list'] as $dinhMuc) {
+                $line = $this->findLineByLabel($dinhMuc['line_label']);
+                $dinhMucList[] = $dinhMuc + [
+                    'line_id' => $line ? intval($line['id']) : null,
+                    'ma_line' => $line['ma_line'] ?? null,
+                    'ten_line' => $line['ten_line'] ?? null,
+                ];
+            }
+
             $data[] = [
                 'sheet_name' => $sheetName,
                 'ma_hang' => $maHang,
@@ -160,6 +171,7 @@ class ImportService
                 'has_warning' => $hasWarning,
                 'warning_message' => $warningMessage,
                 'cong_doan_list' => $congDoanList,
+                'dinh_muc_list' => $dinhMucList,
             ];
 
             $stats['routing_to_delete'] += $routingToDelete;
@@ -218,6 +230,7 @@ class ImportService
             'cong_doan_created' => 0,
             'routing_created' => 0,
             'routing_deleted' => 0,
+            'dinh_muc_saved' => 0,
         ];
 
         mysqli_begin_transaction($this->db);
@@ -347,6 +360,27 @@ class ImportService
                         }
                     }
                 }
+
+                foreach ($maHangData['dinh_muc_list'] ?? [] as $dinhMuc) {
+                    $lineId = intval($dinhMuc['line_id'] ?? 0);
+                    if ($lineId <= 0) {
+                        continue;
+                    }
+                    $soLaoDong = max(0, intval($dinhMuc['so_lao_dong'] ?? 0));
+                    $ctns = max(0, intval($dinhMuc['ctns'] ?? 0));
+
+                    $stmt = mysqli_prepare(
+                        $this->db,
+                        'INSERT INTO ma_hang_line_dinh_muc (ma_hang_id, line_id, so_lao_dong, ctns) VALUES (?, ?, ?, ?)
+                         ON DUPLICATE KEY UPDATE so_lao_dong = VALUES(so_lao_dong), ctns = VALUES(ctns)',
+                    );
+                    mysqli_stmt_bind_param($stmt, 'iiii', $maHangId, $lineId, $soLaoDong, $ctns);
+                    if (!mysqli_stmt_execute($stmt)) {
+                        throw new Exception('Lỗi lưu LĐ/CTNS: ' . mysqli_error($this->db));
+                    }
+                    mysqli_stmt_close($stmt);
+                    $stats['dinh_muc_saved']++;
+                }
             }
 
             mysqli_commit($this->db);
@@ -420,10 +454,12 @@ class ImportService
             // Mẫu in hiện tại: MH ở C1, công đoạn từ C4, các bảng copy để in cách nhau 1 dòng trống
             // nên dừng ở dòng trống đầu tiên. Mẫu cũ: MH ở C2, công đoạn từ C5, cho phép tối đa 4 dòng trống.
             $maHang = $this->extractMaHang($sheet, 'C1');
+            $headerRow = 1;
             if ($maHang !== null) {
                 $congDoanList = $this->extractCongDoanList($sheet, 4, 1);
             } else {
                 $maHang = $this->extractMaHang($sheet, 'C2');
+                $headerRow = 2;
                 $congDoanList = $this->extractCongDoanList($sheet, 5, 5);
             }
 
@@ -431,6 +467,7 @@ class ImportService
                 'sheet_name' => $sheetName,
                 'ma_hang' => $maHang,
                 'cong_doan_list' => $congDoanList,
+                'dinh_muc_list' => $maHang !== null ? $this->extractDinhMucList($sheet, $headerRow, $maHang) : [],
             ];
         }
 
@@ -460,6 +497,66 @@ class ImportService
         }
 
         return null;
+    }
+
+    // Dòng đầu bảng in có nhiều bảng đặt cạnh nhau, mỗi bảng 1 LINE:
+    // "LINE: 1.-LĐ:.37…" | trống | "MH: 6940" | "CTNS:" | 280. Lấy LĐ + CTNS từng bảng cùng mã hàng.
+    private function extractDinhMucList($sheet, $row, $maHang)
+    {
+        $list = [];
+        $maxCol = Coordinate::columnIndexFromString($sheet->getHighestColumn($row));
+
+        for ($col = 1; $col <= $maxCol; $col++) {
+            $text = trim((string)$sheet->getCell([$col, $row])->getValue());
+            if (!preg_match('/LINE\s*:\s*([^-]*?)[\s.…]*-/iu', $text, $lineMatch)) {
+                continue;
+            }
+
+            $lineLabel = trim($lineMatch[1]);
+            $mhCell = Coordinate::stringFromColumnIndex($col + 2) . $row;
+            if ($lineLabel === '' || isset($list[$lineLabel]) || $this->extractMaHang($sheet, $mhCell) !== $maHang) {
+                continue;
+            }
+
+            $soLaoDong = preg_match('/LĐ\s*:\D*(\d+)/u', $text, $ldMatch) ? intval($ldMatch[1]) : 0;
+            $ctnsValue = $sheet->getCell([$col + 4, $row])->getCalculatedValue();
+            $ctns = is_numeric($ctnsValue) ? (int)round($ctnsValue) : 0;
+
+            if ($soLaoDong > 0 || $ctns > 0) {
+                $list[$lineLabel] = [
+                    'line_label' => $lineLabel,
+                    'so_lao_dong' => $soLaoDong,
+                    'ctns' => $ctns,
+                ];
+            }
+        }
+
+        return array_values($list);
+    }
+
+    // Nhãn LINE trong file là số ("1", "6"); LINE gộp ("1+6") không có trong hệ thống → null.
+    private function findLineByLabel($label)
+    {
+        if (!preg_match('/^\d+$/', $label)) {
+            return null;
+        }
+
+        $number = (string)intval($label);
+        $maLine = 'LINE_' . $number;
+        $tenLine = 'Chuyền ' . $number;
+        $stmt = mysqli_prepare(
+            $this->db,
+            'SELECT id, ma_line, ten_line FROM line
+             WHERE is_active = 1 AND (UPPER(ma_line) = ? OR ma_line = ? OR ten_line = ?)
+             ORDER BY id LIMIT 1',
+        );
+        mysqli_stmt_bind_param($stmt, 'sss', $maLine, $number, $tenLine);
+        mysqli_stmt_execute($stmt);
+        $result = mysqli_stmt_get_result($stmt);
+        $line = mysqli_fetch_assoc($result);
+        mysqli_stmt_close($stmt);
+
+        return $line;
     }
 
     private function extractCongDoanList($sheet, $row, $maxEmptyRows)

@@ -1,4 +1,4 @@
--- Cài mới DB năng suất (prod: bao_nang_suat; local: nang_suat) — đã gộp schema.sql + migrations 001–011.
+-- Cài mới DB năng suất (prod: bao_nang_suat; local: nang_suat) — đã gộp schema.sql + migrations 001–012.
 -- Chạy được trên MySQL 8.x và MariaDB 10.4+. Chỉ dùng cho DB TRỐNG.
 -- Toàn bộ bảng dùng utf8mb4_unicode_ci: trộn general_ci/unicode_ci làm lỗi so sánh chuỗi
 -- (migration 003 gặp lỗi "Illegal mix of collations" vì vậy).
@@ -227,6 +227,19 @@ CREATE TABLE import_history (
     KEY idx_import_boi (import_boi),
     KEY idx_import_luc (import_luc),
     KEY idx_trang_thai (trang_thai)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- LĐ + CTNS theo mã hàng + LINE, đọc từ file import (migration 012)
+CREATE TABLE ma_hang_line_dinh_muc (
+    ma_hang_id INT NOT NULL,
+    line_id INT NOT NULL,
+    so_lao_dong INT NOT NULL DEFAULT 0,
+    ctns INT NOT NULL DEFAULT 0,
+    updated_at TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    PRIMARY KEY (ma_hang_id, line_id),
+    KEY line_id (line_id),
+    FOREIGN KEY (ma_hang_id) REFERENCES ma_hang(id) ON DELETE CASCADE,
+    FOREIGN KEY (line_id) REFERENCES line(id) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- Dữ liệu tối thiểu để app chạy: 1 ca + bộ mốc giờ mặc định (510 phút, migration 002).

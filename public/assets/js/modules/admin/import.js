@@ -201,6 +201,7 @@ function renderPreview(response) {
             const badgeText = isNew ? 'Mới' : 'Cập nhật';
             
             const congDoanList = item.cong_doan_list || [];
+            const dinhMucList = item.dinh_muc_list || [];
             const newCount = congDoanList.filter(cd => cd.is_new).length;
             const existingCount = congDoanList.length - newCount;
             
@@ -304,7 +305,17 @@ function renderPreview(response) {
                             ${existingCount > 0 ? `<span class="text-gray-500 bg-gray-100 px-1.5 py-0.5 rounded">${existingCount} có sẵn</span>` : ''}
                         </div>
                     </div>
-                    
+
+                    ${dinhMucList.length > 0 ? `
+                        <div class="mt-2 flex flex-wrap gap-2 text-xs">
+                            ${dinhMucList.map(dm => dm.line_id ? `
+                                <span class="text-gray-700 bg-gray-100 px-1.5 py-0.5 rounded">${escapeHtml(dm.ma_line)}: LĐ ${dm.so_lao_dong} · CTNS ${dm.ctns}</span>
+                            ` : `
+                                <span class="text-gray-400 bg-white px-1.5 py-0.5 rounded border border-gray-200" title="Không có LINE tương ứng trong hệ thống, không lưu">LINE ${escapeHtml(dm.line_label)}: LĐ ${dm.so_lao_dong} · CTNS ${dm.ctns} (bỏ qua)</span>
+                            `).join('')}
+                        </div>
+                    ` : ''}
+
                     ${congDoanList.length > 0 ? `
                         <details class="mt-3 group bg-gray-50 rounded-lg border border-gray-100">
                             <summary class="p-3 text-sm text-primary cursor-pointer hover:bg-gray-100 select-none list-none flex items-center justify-between font-medium rounded-lg transition-colors">
@@ -346,6 +357,11 @@ async function handleConfirmImport(acknowledgeDeletion = false) {
             ten_cong_doan: cd.ten_cong_doan,
             ma_cong_doan: cd.ma_cong_doan,
             existing_id: cd.existing_id
+        })),
+        dinh_muc_list: (item.dinh_muc_list || []).filter(dm => dm.line_id).map(dm => ({
+            line_id: dm.line_id,
+            so_lao_dong: dm.so_lao_dong,
+            ctns: dm.ctns
         }))
     }));
     

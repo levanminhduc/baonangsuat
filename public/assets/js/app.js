@@ -406,6 +406,27 @@ class NangSuatApp {
         } else if (lineGroup) {
             lineGroup.style.display = 'none';
         }
+
+        if (maHangSelect) maHangSelect.onchange = () => this.fillDinhMuc();
+        if (lineSelect) lineSelect.onchange = () => this.fillDinhMuc();
+        this.fillDinhMuc();
+    }
+
+    // Tự điền LĐ + CTNS đã import theo mã hàng + LINE; không có thì để 0 cho người dùng nhập
+    fillDinhMuc() {
+        const maHangId = document.getElementById('modalMaHang')?.value;
+        const laoDongInput = document.getElementById('modalLaoDong');
+        const ctnsInput = document.getElementById('modalCtns');
+        if (!laoDongInput || !ctnsInput) return;
+
+        const lineId = window.appContext?.can_create_report_any_line
+            ? document.getElementById('modalLine')?.value
+            : window.appContext?.line?.id;
+        const maHang = (window.appContext?.ma_hang_list || []).find(mh => String(mh.id) === String(maHangId));
+        const dinhMuc = maHang?.dinh_muc?.[lineId];
+
+        laoDongInput.value = dinhMuc ? dinhMuc.so_lao_dong : 0;
+        ctnsInput.value = dinhMuc ? dinhMuc.ctns : 0;
     }
     
     async createReport() {
