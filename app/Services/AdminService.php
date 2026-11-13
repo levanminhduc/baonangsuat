@@ -38,6 +38,7 @@ class AdminService
 
     public function getLineList()
     {
+        $this->lineService->syncFromPhongBan();
         return $this->lineService->getList();
     }
 

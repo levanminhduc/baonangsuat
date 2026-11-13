@@ -48,7 +48,11 @@ class Auth
 
         $ma_nv = strtoupper(trim($user['name']));
         $nhanVienInfo = self::getNhanVienInfo($ma_nv);
-        $lines = self::getUserLines($ma_nv, $nhanVienInfo['phong_ban_ma'] ?? null)['lines'];
+        $lines = self::getUserLines(
+            $ma_nv,
+            $nhanVienInfo['phong_ban_ma'] ?? null,
+            $nhanVienInfo['phong_ban_ten'] ?? null,
+        )['lines'];
         $role = (string)($user['role'] ?? '');
 
         $line = LineSelection::reconcile(
@@ -122,7 +126,7 @@ class Auth
         }
     }
 
-    private static function getUserLines($ma_nv, $phong_ban_ma)
+    private static function getUserLines($ma_nv, $phong_ban_ma, $phong_ban_ten = null)
     {
         $nangSuat = Database::getNangSuat();
         $lines = [];
@@ -144,14 +148,17 @@ class Auth
         mysqli_stmt_close($stmt);
 
         if (count($lines) === 0 && $phong_ban_ma) {
+            $phong_ban_ma = (string) $phong_ban_ma;
+            $ten = strtoupper(trim((string) $phong_ban_ten));
             $stmt = mysqli_prepare(
                 $nangSuat,
-                'SELECT l.id, l.ma_line, l.ten_line 
-                 FROM phong_ban_line pbl 
-                 JOIN line l ON l.id = pbl.line_id 
-                 WHERE pbl.phong_ban_ma = ? AND l.is_active = 1',
+                'SELECT l.id, l.ma_line, l.ten_line
+                 FROM line l
+                 WHERE l.is_active = 1
+                   AND (l.ma_line = ? OR l.id IN (SELECT line_id FROM phong_ban_line WHERE phong_ban_ma = ?))
+                 ORDER BY l.ma_line',
             );
-            mysqli_stmt_bind_param($stmt, 's', $phong_ban_ma);
+            mysqli_stmt_bind_param($stmt, 'ss', $ten, $phong_ban_ma);
             mysqli_stmt_execute($stmt);
             $result = mysqli_stmt_get_result($stmt);
             while ($row = mysqli_fetch_assoc($result)) {

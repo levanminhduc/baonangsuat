@@ -13,14 +13,56 @@ class LineService
         $this->db = Database::getNangSuat();
     }
 
+    private const XUONG = ['XT' => 'Xưởng Trước', 'XN' => 'Xưởng Nhật', 'DK' => 'Dệt Kim'];
+
     public function getList()
     {
-        $result = mysqli_query($this->db, 'SELECT id, ma_line, ten_line, is_active FROM line ORDER BY ma_line');
+        $result = mysqli_query(
+            $this->db,
+            "SELECT id, ma_line, ten_line, is_active FROM line
+             ORDER BY FIELD(LEFT(ma_line, 2), 'DK', 'XN', 'XT') DESC, ma_line",
+        );
         $list = [];
         while ($row = mysqli_fetch_assoc($result)) {
             $list[] = $row;
         }
         return $list;
+    }
+
+    public function syncFromPhongBan()
+    {
+        $result = mysqli_query(
+            Database::getNhanSu(),
+            "SELECT ma, UPPER(TRIM(ten)) AS ten FROM phong_ban WHERE UPPER(TRIM(ten)) REGEXP '^(XT|XN|DK)[0-9]{2}$'",
+        );
+
+        $findStmt = mysqli_prepare($this->db, 'SELECT id FROM line WHERE ma_line = ?');
+        $insertStmt = mysqli_prepare($this->db, 'INSERT INTO line (ma_line, ten_line, is_active) VALUES (?, ?, 1)');
+        $mapStmt = mysqli_prepare($this->db, 'INSERT IGNORE INTO phong_ban_line (phong_ban_ma, line_id) VALUES (?, ?)');
+
+        while ($pb = mysqli_fetch_assoc($result)) {
+            $ma_line = $pb['ten'];
+            mysqli_stmt_bind_param($findStmt, 's', $ma_line);
+            mysqli_stmt_execute($findStmt);
+            $line = mysqli_fetch_assoc(mysqli_stmt_get_result($findStmt));
+
+            if ($line) {
+                $lineId = (int) $line['id'];
+            } else {
+                $ten_line = 'Tổ ' . intval(substr($ma_line, 2)) . ' ' . self::XUONG[substr($ma_line, 0, 2)];
+                mysqli_stmt_bind_param($insertStmt, 'ss', $ma_line, $ten_line);
+                mysqli_stmt_execute($insertStmt);
+                $lineId = mysqli_insert_id($this->db);
+            }
+
+            $phongBanMa = (string) $pb['ma'];
+            mysqli_stmt_bind_param($mapStmt, 'si', $phongBanMa, $lineId);
+            mysqli_stmt_execute($mapStmt);
+        }
+
+        mysqli_stmt_close($findStmt);
+        mysqli_stmt_close($insertStmt);
+        mysqli_stmt_close($mapStmt);
     }
 
     public function get($id)
