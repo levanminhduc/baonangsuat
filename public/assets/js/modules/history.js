@@ -314,7 +314,8 @@ export class HistoryModule {
                 const key = `${cd.cong_doan_id}_${moc.id}`;
                 const entry = baoCao.entries[key];
                 const value = entry ? parseInt(entry.so_luong) : 0;
-                luyKe += value;
+                // Ô nhập là lũy kế tại mốc → giữ số ở mốc muộn nhất đã nhập
+                if (value) luyKe = value;
                 
                 const chiTieu = (baoCao.chi_tieu_luy_ke && baoCao.chi_tieu_luy_ke[moc.id]) || 0;
                 let cellClass = 'cell-readonly text-center';
@@ -389,17 +390,11 @@ export class HistoryModule {
 
             baoCao.routing.forEach(cd => {
                 if (cd.la_cong_doan_tinh_luy_ke === 1 || cd.la_cong_doan_tinh_luy_ke === '1') {
-                     // Sum from entries only (since it's history)
-                     // Logic: Sum entries of this CD for all Moc Gio <= current Moc Gio
-                     baoCao.moc_gio_list.forEach(m => {
-                        if (m.thu_tu <= moc.thu_tu) {
-                            const key = `${cd.cong_doan_id}_${m.id}`;
-                            const entry = baoCao.entries[key];
-                            if (entry) {
-                                tongThucTe += parseInt(entry.so_luong) || 0;
-                            }
-                        }
-                    });
+                    // Ô nhập là lũy kế tại mốc → lấy đúng số ở mốc này, không cộng dồn các mốc trước
+                    const entry = baoCao.entries[`${cd.cong_doan_id}_${moc.id}`];
+                    if (entry) {
+                        tongThucTe += parseInt(entry.so_luong) || 0;
+                    }
                 }
             });
 

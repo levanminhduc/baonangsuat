@@ -154,8 +154,9 @@ export class GridManager {
         return cell ? parseInt(cell.dataset.value) || 0 : 0;
     }
 
+    // Ô nhập là lũy kế tại mốc → lũy kế của dòng = số ở mốc muộn nhất đã nhập, không cộng dồn
     rowTotal(cdId) {
-        return this.lastBaoCao.moc_gio_list.reduce((sum, moc) => sum + this.getValue(cdId, moc.id), 0);
+        return this.lastBaoCao.moc_gio_list.reduce((last, moc) => this.getValue(cdId, moc.id) || last, 0);
     }
 
     renderMobileList() {
@@ -264,14 +265,14 @@ export class GridManager {
         const mocList = baoCao.moc_gio_list;
         const lkStages = baoCao.routing.filter(isLkStage);
         const pctByMoc = {};
-        let cumulative = 0;
 
         mocList.forEach((moc, i) => {
             const chiTieu = baoCao.chi_tieu_luy_ke[moc.id] || 0;
-            lkStages.forEach(cd => { cumulative += this.getValue(cd.cong_doan_id, moc.id); });
+            // Ô nhập đã là lũy kế tại mốc → so thẳng với chỉ tiêu lũy kế của mốc đó
+            const thucTe = lkStages.reduce((sum, cd) => sum + this.getValue(cd.cong_doan_id, moc.id), 0);
             const isLater = this.nowIndex >= 0 && i > this.nowIndex;
-            const pct = chiTieu > 0 && !isLater ? (cumulative / chiTieu) * 100 : null;
-            pctByMoc[moc.id] = { pct, thucTe: cumulative, chiTieu };
+            const pct = chiTieu > 0 && !isLater ? (thucTe / chiTieu) * 100 : null;
+            pctByMoc[moc.id] = { pct, thucTe, chiTieu };
 
             const hieuSuatCell = document.querySelector(`.hieu-suat-cell[data-moc="${moc.id}"]`);
             if (hieuSuatCell) {
