@@ -361,6 +361,29 @@ class ImportService
                     }
                 }
 
+                // Không có công đoạn lũy kế thì hiệu suất luôn trống → lấy công đoạn cuối (thường là KCS thành phẩm), không đè lựa chọn của admin
+                if (!empty($routingDataList)) {
+                    $lkStmt = mysqli_prepare($this->db, 'SELECT 1 FROM ma_hang_cong_doan WHERE ma_hang_id = ? AND line_id IS NULL AND la_cong_doan_tinh_luy_ke = 1 LIMIT 1');
+                    mysqli_stmt_bind_param($lkStmt, 'i', $maHangId);
+                    mysqli_stmt_execute($lkStmt);
+                    $hasLuyKe = mysqli_fetch_row(mysqli_stmt_get_result($lkStmt)) !== null;
+                    mysqli_stmt_close($lkStmt);
+
+                    if (!$hasLuyKe) {
+                        $last = $routingDataList[0];
+                        foreach ($routingDataList as $routingData) {
+                            if ($routingData['thu_tu'] >= $last['thu_tu']) {
+                                $last = $routingData;
+                            }
+                        }
+                        $lastCongDoanId = $last['cong_doan_id'];
+                        $setLkStmt = mysqli_prepare($this->db, 'UPDATE ma_hang_cong_doan SET la_cong_doan_tinh_luy_ke = 1 WHERE ma_hang_id = ? AND cong_doan_id = ? AND line_id IS NULL');
+                        mysqli_stmt_bind_param($setLkStmt, 'ii', $maHangId, $lastCongDoanId);
+                        mysqli_stmt_execute($setLkStmt);
+                        mysqli_stmt_close($setLkStmt);
+                    }
+                }
+
                 foreach ($maHangData['dinh_muc_list'] ?? [] as $dinhMuc) {
                     $lineId = intval($dinhMuc['line_id'] ?? 0);
                     if ($lineId <= 0) {
