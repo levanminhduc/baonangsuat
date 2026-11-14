@@ -12,7 +12,7 @@
 #editorContainer { padding: 12px; }
 /* style.css cho #gridContainer cuộn riêng; ở đây bảng tự cuộn trong .bns-entry-scroll,
    còn danh sách mobile cuộn theo trang để hàng mốc giờ dính dưới thanh trên */
-#editorContainer #gridContainer { flex: none; max-height: none; overflow: visible; }
+#editorContainer #gridContainer, #historyGridContainer { flex: none; max-height: none; overflow: visible; }
 .bns-toggle-info { color: var(--bns-muted); }
 @media (min-width: 1024px) { #editorContainer { padding: 16px; } }
 

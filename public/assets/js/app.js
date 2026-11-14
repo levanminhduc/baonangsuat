@@ -1,17 +1,13 @@
 import { fetchCsrfToken, api } from './modules/api.js';
 import { showLoading, hideLoading, showToast, updateStatusBar, getStatusText } from './modules/utils.js';
-import { GridManager, hieuSuatLevel, formatPercent } from './modules/grid.js';
+import { GridManager } from './modules/grid.js';
+import { svgIcon, formatNgay, reportInfoHtml, bindInfoToggle, updateLuyKeSummary } from './modules/report-view.js';
 import { HistoryModule } from './modules/history.js';
 import { Router } from './modules/router.js';
 import networkMonitor from './modules/network-monitor.js';
 
 function escapeHtml(text) {
     return String(text ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
-}
-
-// Icon Lucide nét 2px, kích thước do CSS quyết định
-function svgIcon(paths, className = '') {
-    return `<svg${className ? ` class="${className}"` : ''} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${paths}</svg>`;
 }
 
 class NangSuatApp {
@@ -264,6 +260,7 @@ class NangSuatApp {
             contentInput.classList.remove('hidden');
             contentHistory.classList.add('hidden');
             if (this.baoCao) this.renderAppBar();
+            else this.resetAppBar();
         } else if (tabName === 'history') {
             tabHistory.classList.add('active', 'border-primary', 'text-primary');
             tabHistory.classList.remove('border-transparent', 'text-gray-500');
@@ -529,34 +526,14 @@ class NangSuatApp {
 
         const bc = this.baoCao;
         const isEditable = bc.trang_thai === 'draft';
-        const field = (label, value) => `<div class="bns-field"><span class="bns-muted">${label}</span>${value}</div>`;
         const numInput = (id, value, label) => `<input class="bns-num-input" type="text" inputmode="numeric" pattern="[0-9]*" autocomplete="off" id="${id}" value="${escapeHtml(value)}" aria-label="${label}">`;
-        const ngay = String(bc.ngay_bao_cao || '').split('-').reverse().join('/');
 
-        info.innerHTML = `
-            <div class="bns-info-lk">
-                <div class="bns-info-lk-row">
-                    <span class="bns-muted" id="bnsLkLabel">Lũy kế</span>
-                    <div class="bns-meter is-inline"><span id="bnsLkMeterInline"></span></div>
-                    <b id="bnsLkValue">–</b>
-                    <span class="bns-badge bns-badge-muted" id="bnsLkPct">–</span>
-                </div>
-                <div class="bns-meter is-block"><span id="bnsLkMeterBlock"></span></div>
-            </div>
-            <div class="bns-info-status">
-                <span class="bns-badge ${isEditable ? 'bns-badge-primary' : 'bns-badge-muted'}">${escapeHtml(getStatusText(bc.trang_thai))}</span>
-                ${isEditable ? this.saveStatusHtml('') : ''}
-                <button type="button" class="bns-icon-btn bns-toggle-info" id="bnsToggleInfo" aria-expanded="true" aria-controls="headerInfoContainer" title="Ẩn thông tin">${svgIcon('<path d="m18 15-6-6-6 6"/>')}</button>
-            </div>
-            <div class="bns-info-fields" id="headerInfoContainer">
-                ${field('Mã hàng', `<span class="bns-field-value">${escapeHtml(bc.ma_hang)}</span>`)}
-                ${field('Ngày', `<span class="bns-field-value">${escapeHtml(ngay)}</span>`)}
-                ${field('Lao động', isEditable ? numInput('headerLaoDong', bc.so_lao_dong, 'Lao động') : `<span class="bns-field-value">${escapeHtml(bc.so_lao_dong)}</span>`)}
-                ${field('CTNS', isEditable ? numInput('headerCtns', bc.ctns, 'CTNS') : `<span class="bns-field-value">${escapeHtml(bc.ctns)}</span>`)}
-                ${field('CT/giờ', `<span class="bns-field-value" id="ctGioDisplay">${escapeHtml(bc.ct_gio)}</span>`)}
-                ${field('Ca', `<span class="bns-field-value">${escapeHtml(bc.ten_ca || bc.ma_ca || '')}</span>`)}
-            </div>
-        `;
+        info.innerHTML = reportInfoHtml(bc, {
+            fieldsId: 'headerInfoContainer',
+            laoDong: isEditable ? numInput('headerLaoDong', bc.so_lao_dong, 'Lao động') : undefined,
+            ctns: isEditable ? numInput('headerCtns', bc.ctns, 'CTNS') : undefined,
+            statusExtra: isEditable ? this.saveStatusHtml('') : '',
+        });
 
         const footer = document.getElementById('gridFooter');
         if (footer) {
@@ -564,7 +541,7 @@ class NangSuatApp {
             footer.style.display = 'none';
         }
 
-        document.getElementById('bnsToggleInfo')?.addEventListener('click', () => this.toggleHeaderInfo());
+        bindInfoToggle(info);
 
         if (isEditable) {
             ['headerLaoDong', 'headerCtns'].forEach(id => {
@@ -600,28 +577,29 @@ class NangSuatApp {
         </span>`;
     }
 
-    // Thanh trên khi mở báo cáo: quay lại, tên báo cáo, trạng thái, trạng thái lưu, nút thao tác
-    renderAppBar() {
+    // Thanh trên khi mở báo cáo: quay lại, tên báo cáo, trạng thái, trạng thái lưu, nút thao tác.
+    // Chi tiết lịch sử truyền history: { onBack, actions } → chỉ đọc, nút do history.js quyết định
+    renderAppBar(bc = this.baoCao, history = null) {
         const slot = document.getElementById('bnsBarSlot');
-        const bc = this.baoCao;
         if (!slot || !bc) return;
 
-        const isEditable = bc.trang_thai === 'draft';
+        const isDraft = bc.trang_thai === 'draft';
+        const isEditable = !history && isDraft;
         const isCompleted = bc.trang_thai === 'completed';
-        const canComplete = !isCompleted && !isEditable;
+        const canComplete = !history && !isCompleted && !isDraft;
         const isAdmin = window.appContext?.session?.role === 'admin';
-        const ngay = String(bc.ngay_bao_cao || '').split('-').reverse().join('/');
+        const ngay = formatNgay(bc.ngay_bao_cao);
         const title = [bc.ma_line, bc.ten_ca || bc.ma_ca].filter(Boolean).map(escapeHtml).join(' · ');
         const check = svgIcon('<path d="M20 6 9 17l-5-5"/>');
 
-        let actions = '';
+        let actions = history ? history.actions : '';
         if (isEditable) {
             actions += `<button type="button" id="submitBtn" class="bns-bar-btn">${check}<span>Chốt<span class="bns-long"> báo cáo</span></span></button>`;
         }
         if (canComplete) {
             actions += `<button type="button" id="completeBtn" class="bns-bar-btn">${check}<span>Hoàn tất</span></button>`;
         }
-        if (isCompleted && isAdmin) {
+        if (!history && isCompleted && isAdmin) {
             actions += `<button type="button" id="reopenBtn" class="bns-bar-btn is-ghost">${svgIcon('<path d="M9 14 4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 0 1 0 11H11"/>')}<span>Mở lại</span></button>`;
         }
 
@@ -629,7 +607,7 @@ class NangSuatApp {
             <button type="button" id="backBtn" class="bns-icon-btn" aria-label="Quay lại danh sách" title="Quay lại danh sách">${svgIcon('<path d="m12 19-7-7 7-7"/><path d="M19 12H5"/>')}</button>
             <div class="bns-title-wrap">
                 <h2 class="bns-title">${title}<span class="bns-bar-date"> · ${escapeHtml(ngay)}</span></h2>
-                <span class="bns-badge bns-bar-badge ${isEditable ? 'is-draft' : 'is-locked'}">${escapeHtml(getStatusText(bc.trang_thai))}</span>
+                <span class="bns-badge bns-bar-badge ${isDraft ? 'is-draft' : 'is-locked'}">${escapeHtml(getStatusText(bc.trang_thai))}</span>
             </div>
             ${isEditable ? this.saveStatusHtml('bns-bar-save') : ''}
             ${actions}
@@ -637,7 +615,7 @@ class NangSuatApp {
         slot.hidden = false;
         document.body.setAttribute('data-bns-editing', '');
 
-        document.getElementById('backBtn')?.addEventListener('click', () => this.showReportList());
+        document.getElementById('backBtn')?.addEventListener('click', () => (history ? history.onBack() : this.showReportList()));
         document.getElementById('submitBtn')?.addEventListener('click', () => this.submitReport());
         document.getElementById('completeBtn')?.addEventListener('click', () => this.completeReport());
         document.getElementById('reopenBtn')?.addEventListener('click', () => this.reopenReport());
@@ -655,41 +633,7 @@ class NangSuatApp {
 
     // grid.js gọi mỗi lần tính lại hiệu suất: tóm tắt lũy kế tại mốc đang nhập
     updateLuyKeSummary(summary) {
-        const label = document.getElementById('bnsLkLabel');
-        const value = document.getElementById('bnsLkValue');
-        const pctEl = document.getElementById('bnsLkPct');
-        const meters = ['bnsLkMeterInline', 'bnsLkMeterBlock'].map(id => document.getElementById(id)).filter(Boolean);
-        if (!label || !value || !pctEl) return;
-
-        const hasPct = summary && summary.pct !== null && summary.pct !== undefined;
-        label.textContent = summary ? `Lũy kế ${summary.gio}` : 'Lũy kế';
-        value.innerHTML = summary ? `${summary.thucTe} <span>/ ${summary.chiTieu}</span>` : '–';
-
-        if (!hasPct) {
-            pctEl.textContent = '–';
-            pctEl.className = 'bns-badge bns-badge-muted';
-            meters.forEach(m => { m.style.width = '0'; });
-            return;
-        }
-
-        const level = hieuSuatLevel(summary.pct);
-        pctEl.textContent = formatPercent(summary.pct);
-        pctEl.className = `bns-badge bns-badge-${level}`;
-        const color = { ok: 'var(--bns-success)', warn: 'var(--bns-warning)', bad: 'var(--bns-error)' }[level];
-        meters.forEach(m => {
-            m.style.width = Math.min(100, summary.pct) + '%';
-            m.style.background = color;
-        });
-    }
-
-    toggleHeaderInfo() {
-        const container = document.getElementById('headerInfoContainer');
-        const btn = document.getElementById('bnsToggleInfo');
-        if (!container || !btn) return;
-        const isHidden = container.classList.toggle('hidden');
-        btn.setAttribute('aria-expanded', String(!isHidden));
-        btn.title = isHidden ? 'Hiện thông tin' : 'Ẩn thông tin';
-        btn.innerHTML = svgIcon(isHidden ? '<path d="m6 9 6 6 6-6"/>' : '<path d="m18 15-6-6-6 6"/>');
+        updateLuyKeSummary(document.getElementById('bnsInfo'), summary);
     }
 
     onCellChange(input) {

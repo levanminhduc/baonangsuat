@@ -144,15 +144,11 @@
             </div>
             
             <!-- History Detail (Drill-down) -->
-            <div id="historyDetailContainer" class="hidden mt-4">
-                 <div class="flex justify-between items-center mb-4">
-                    <h3 class="text-lg font-medium text-gray-900">Chi tiết báo cáo</h3>
-                    <button id="closeHistoryDetailBtn" class="text-gray-500 hover:text-gray-700">
-                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
-                    </button>
-                 </div>
-                 <div class="report-header history-report-header mb-4"></div>
-                 <div id="historyGridContainer" class="grid-container history-grid-container"></div>
+            <div id="historyDetailContainer" class="hidden">
+                <div class="bns-entry-card">
+                    <div class="bns-info" id="historyInfo"></div>
+                    <div id="historyGridContainer"></div>
+                </div>
             </div>
         </div>
         

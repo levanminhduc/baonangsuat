@@ -26,7 +26,7 @@ export function hieuSuatLevel(value) {
 const LEVEL_COLOR = { ok: 'var(--bns-success)', warn: 'var(--bns-warning)', bad: 'var(--bns-error)' };
 const NUM_ATTRS = 'type="text" inputmode="numeric" pattern="[0-9]*" enterkeyhint="next" autocomplete="off"';
 
-function escapeHtml(text) {
+export function escapeHtml(text) {
     return String(text ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 }
 
@@ -35,8 +35,11 @@ function isLkStage(cd) {
 }
 
 export class GridManager {
-    constructor(app) {
+    // readonly: chi tiết lịch sử dùng lại bảng này, không cho nhập kể cả báo cáo nháp
+    constructor(app, { containerId = 'gridContainer', readonly = false } = {}) {
         this.app = app;
+        this.containerId = containerId;
+        this.readonly = readonly;
         this.currentCell = null;
         this.lastBaoCao = null;
         this.nowIndex = -1;
@@ -68,6 +71,19 @@ export class GridManager {
         return idx;
     }
 
+    // Tìm trong vùng của bảng này: màn nhập và lịch sử cùng nằm trong một trang
+    $(selector) {
+        return document.getElementById(this.containerId)?.querySelector(selector) ?? null;
+    }
+
+    $$(selector) {
+        return document.getElementById(this.containerId)?.querySelectorAll(selector) ?? [];
+    }
+
+    isEditable(baoCao) {
+        return !this.readonly && baoCao.trang_thai === 'draft';
+    }
+
     // Màu từng ô theo chỉ tiêu lũy kế đã bỏ ở giao diện mới (so số một giờ với chỉ tiêu cộng dồn nên gần như ô nào cũng đỏ)
     getCellColorClass() {
         return '';
@@ -77,10 +93,10 @@ export class GridManager {
 
     renderGrid(baoCao) {
         this.lastBaoCao = baoCao;
-        const container = document.getElementById('gridContainer');
+        const container = document.getElementById(this.containerId);
         if (!container || !baoCao) return;
 
-        const isEditable = baoCao.trang_thai === 'draft';
+        const isEditable = this.isEditable(baoCao);
         const mocList = baoCao.moc_gio_list;
         this.nowIndex = this.computeNowIndex(baoCao);
         this.mobileIndex = this.defaultMobileIndex(baoCao);
@@ -133,7 +149,7 @@ export class GridManager {
                     <tbody>${bodyHtml}</tbody>
                 </table>
             </div>
-            <div class="bns-mobile" id="bnsMobileEntry"></div>
+            <div class="bns-mobile"></div>
         `;
 
         baoCao.routing.forEach(cd => this.updateRowLuyKe(cd.cong_doan_id));
@@ -148,9 +164,9 @@ export class GridManager {
 
     // Số của một ô lấy từ bảng desktop (nguồn duy nhất; danh sách mobile chỉ phản chiếu)
     getValue(cdId, mocId) {
-        const input = document.querySelector(`.bns-cell-input[data-cd="${cdId}"][data-moc="${mocId}"]`);
+        const input = this.$(`.bns-cell-input[data-cd="${cdId}"][data-moc="${mocId}"]`);
         if (input) return parseInt(input.value) || 0;
-        const cell = document.querySelector(`.bns-entry-table tr[data-cd="${cdId}"] td[data-moc="${mocId}"]`);
+        const cell = this.$(`.bns-entry-table tr[data-cd="${cdId}"] td[data-moc="${mocId}"]`);
         return cell ? parseInt(cell.dataset.value) || 0 : 0;
     }
 
@@ -160,11 +176,11 @@ export class GridManager {
     }
 
     renderMobileList() {
-        const box = document.getElementById('bnsMobileEntry');
+        const box = this.$('.bns-mobile');
         const baoCao = this.lastBaoCao;
         if (!box || !baoCao) return;
 
-        const isEditable = baoCao.trang_thai === 'draft';
+        const isEditable = this.isEditable(baoCao);
         const mocList = baoCao.moc_gio_list;
         const moc = mocList[this.mobileIndex];
         if (!moc) {
@@ -214,7 +230,7 @@ export class GridManager {
                     const digits = mInput.value.replace(/\D/g, '');
                     if (mInput.value !== digits) mInput.value = digits;
                     // Ghi vào ô bảng desktop rồi đi đúng luồng lưu cũ
-                    const twin = document.querySelector(`.bns-cell-input[data-cd="${mInput.dataset.cd}"][data-moc="${mInput.dataset.moc}"]`);
+                    const twin = this.$(`.bns-cell-input[data-cd="${mInput.dataset.cd}"][data-moc="${mInput.dataset.moc}"]`);
                     if (!twin) return;
                     twin.value = digits;
                     this.app.onCellChange(twin);
@@ -232,14 +248,14 @@ export class GridManager {
 
     // Ô bảng desktop đổi trạng thái lưu thì ô mobile tương ứng đổi theo
     syncMobileState(input) {
-        const mInput = document.querySelector(`.bns-m-input[data-cd="${input.dataset.cd}"][data-moc="${input.dataset.moc}"]`);
+        const mInput = this.$(`.bns-m-input[data-cd="${input.dataset.cd}"][data-moc="${input.dataset.moc}"]`);
         if (!mInput) return;
         ['modified', 'saving', 'saved', 'error'].forEach(cls => mInput.classList.toggle(cls, input.classList.contains(cls)));
         if (document.activeElement !== mInput && mInput.value !== input.value) mInput.value = input.value;
     }
 
     bindGridEvents() {
-        const inputs = document.querySelectorAll('.bns-cell-input');
+        const inputs = this.$$('.bns-cell-input');
 
         inputs.forEach(input => {
             input.addEventListener('focus', (e) => {
@@ -274,7 +290,7 @@ export class GridManager {
             const pct = chiTieu > 0 && !isLater ? (thucTe / chiTieu) * 100 : null;
             pctByMoc[moc.id] = { pct, thucTe, chiTieu };
 
-            const hieuSuatCell = document.querySelector(`.hieu-suat-cell[data-moc="${moc.id}"]`);
+            const hieuSuatCell = this.$(`.hieu-suat-cell[data-moc="${moc.id}"]`);
             if (hieuSuatCell) {
                 hieuSuatCell.classList.remove('hieu-suat-green', 'hieu-suat-yellow', 'hieu-suat-red');
                 if (pct === null) {
@@ -286,7 +302,7 @@ export class GridManager {
             }
 
             // Chấm màu trên nút mốc giờ (mobile)
-            const dot = document.querySelector(`.bns-chip[data-moc="${moc.id}"] .bns-dot`);
+            const dot = this.$(`.bns-chip[data-moc="${moc.id}"] .bns-dot`);
             if (dot) {
                 const show = pct !== null && (this.nowIndex < 0 || i <= this.nowIndex);
                 dot.hidden = !show;
@@ -302,7 +318,7 @@ export class GridManager {
     }
 
     updateRowLuyKe(cdId) {
-        const row = document.querySelector(`.bns-entry-table tr[data-cd="${cdId}"]`);
+        const row = this.$(`.bns-entry-table tr[data-cd="${cdId}"]`);
         if (!row || !this.lastBaoCao) return;
 
         const inputValuesByMoc = {};
@@ -311,7 +327,7 @@ export class GridManager {
         });
         const total = this.rowTotal(cdId);
 
-        const mTotal = document.querySelector(`[data-m-total="${cdId}"]`);
+        const mTotal = this.$(`[data-m-total="${cdId}"]`);
         if (mTotal) mTotal.textContent = total;
 
         const luyKeCell = row.querySelector('.cell-luyke');
@@ -372,7 +388,7 @@ export class GridManager {
     }
 
     moveToNextCell(currentInput, direction) {
-        const allInputs = Array.from(document.querySelectorAll('.bns-cell-input'));
+        const allInputs = Array.from(this.$$('.bns-cell-input'));
         const currentIndex = allInputs.indexOf(currentInput);
         const nextIndex = currentIndex + direction;
 
@@ -384,7 +400,7 @@ export class GridManager {
     moveToCell(currentInput, rowDelta, colDelta) {
         const currentRow = currentInput.closest('tr');
         const currentCell = currentInput.closest('td');
-        const rows = Array.from(document.querySelectorAll('.bns-entry-table tbody tr'));
+        const rows = Array.from(this.$$('.bns-entry-table tbody tr'));
         const rowIndex = rows.indexOf(currentRow);
         const cells = Array.from(currentRow.querySelectorAll('td'));
         const colIndex = cells.indexOf(currentCell);

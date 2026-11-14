@@ -1,13 +1,18 @@
 import { api } from './api.js';
-import { showLoading, hideLoading, showToast, getStatusText, formatGio } from './utils.js';
+import { showLoading, hideLoading, showToast, getStatusText } from './utils.js';
 import { GridManager } from './grid.js';
+import { svgIcon, reportInfoHtml, bindInfoToggle, updateLuyKeSummary } from './report-view.js';
 
 export class HistoryModule {
     constructor(app) {
         this.app = app;
         this.currentPage = 1;
         this.pageSize = 20;
-        this.gridManager = new GridManager(app); // Reuse GridManager for detail view
+        // Chi tiết lịch sử dùng đúng bảng của màn nhập, chỉ đọc
+        this.gridManager = new GridManager(
+            { updateLuyKeSummary: (summary) => updateLuyKeSummary(document.getElementById('historyInfo'), summary) },
+            { containerId: 'historyGridContainer', readonly: true }
+        );
         
         // Cache state
         this.historyCache = null;
@@ -27,17 +32,6 @@ export class HistoryModule {
             filterBtn.addEventListener('click', () => {
                 this.currentPage = 1;
                 this.loadHistoryList(true); // Force refresh
-            });
-        }
-
-        const closeDetailBtn = document.getElementById('closeHistoryDetailBtn');
-        if (closeDetailBtn) {
-            closeDetailBtn.addEventListener('click', () => {
-                if (window.app && window.app.router) {
-                    window.app.router.navigate('/lich-su');
-                } else {
-                    this.hideDetail();
-                }
             });
         }
     }
@@ -229,190 +223,27 @@ export class HistoryModule {
     }
 
     renderDetail(baoCao) {
-        // Render Header
-        const header = document.querySelector('.history-report-header');
-        if (header) {
+        const info = document.getElementById('historyInfo');
+        if (info) {
             const isFallback = baoCao.ket_qua_luy_ke_is_fallback == 1;
-            const fallbackBadge = isFallback 
-                ? `<span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-yellow-100 text-yellow-800 ml-2 border border-yellow-200">Tính lại</span>` 
-                : '';
-
-            // Check unlock permission
-            const session = window.appContext?.session || {};
-            const isAdmin = session.vai_tro === 'admin';
-            const canUnlock = isAdmin && ['submitted', 'approved', 'locked'].includes(baoCao.trang_thai);
-            
-            const unlockBtn = canUnlock ? `
-                <button onclick="window.historyModule.unlockReport(${baoCao.id})"
-                    class="btn bg-red-600 hover:bg-red-700 text-white text-sm font-medium w-full flex justify-center items-center shadow-sm transition-colors duration-200"
-                    title="Mở khóa báo cáo để chỉnh sửa">
-                    <svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 11V7a4 4 0 118 0m-4 8v2m-6 4h12a1 1 0 001-1v-6a1 1 0 00-1-1H9a1 1 0 00-1 1v6a1 1 0 001 1z"></path>
-                    </svg>
-                    Mở khóa
-                </button>
-            ` : '';
-
-            header.innerHTML = `
-                <div class="header-field">
-                    <label>LINE:</label>
-                    <span class="value">${baoCao.ma_line}</span>
-                </div>
-                <div class="header-field">
-                    <label>LĐ:</label>
-                    <span class="value">${baoCao.so_lao_dong}</span>
-                </div>
-                <div class="header-field">
-                    <label>MH:</label>
-                    <span class="value">${baoCao.ma_hang}</span>
-                </div>
-                <div class="header-field">
-                    <label>CTNS:</label>
-                    <span class="value">${baoCao.ctns}</span>
-                </div>
-                <div class="header-field">
-                    <label>CT/Giờ:</label>
-                    <span class="value">${baoCao.ct_gio}</span>
-                </div>
-                <div class="header-field">
-                    <label>Ngày:</label>
-                    <span class="value">${baoCao.ngay_bao_cao}${fallbackBadge}</span>
-                </div>
-                <div class="header-actions">
-                    ${unlockBtn}
-                </div>
-            `;
+            info.innerHTML = reportInfoHtml(baoCao, {
+                fieldsId: 'historyInfoFields',
+                ngayExtra: isFallback ? ' <span class="bns-badge bns-badge-warn" title="Kết quả lũy kế tính lại">Tính lại</span>' : '',
+            });
+            bindInfoToggle(info);
         }
 
-        // Render Grid (Readonly)
-        const container = document.getElementById('historyGridContainer');
-        if (!container) return;
-
-        let headerHtml = `
-            <tr>
-                <th class="col-stt" rowspan="3">STT</th>
-                <th class="col-name" rowspan="3">Tên công đoạn</th>
-                ${baoCao.moc_gio_list.map(m => `<th class="col-hour">${formatGio(m.gio)}</th>`).join('')}
-                <th class="col-luyke" rowspan="3">Lũy kế</th>
-            </tr>
-            <tr class="row-chitieu">
-                ${baoCao.moc_gio_list.map(m => `<td>${(baoCao.chi_tieu_luy_ke && baoCao.chi_tieu_luy_ke[m.id]) || 0}</td>`).join('')}
-            </tr>
-            <tr class="row-hieuSuat">
-                ${baoCao.moc_gio_list.map(m => `<td class="hieu-suat-cell-history" data-moc="${m.id}">-</td>`).join('')}
-            </tr>
-        `;
-
-        let bodyHtml = '';
-        baoCao.routing.forEach((cd, idx) => {
-            let luyKe = 0;
-            bodyHtml += `<tr>`;
-            bodyHtml += `<td class="cell-readonly">${idx + 1}</td>`;
-            bodyHtml += `<td class="cell-name" title="${cd.ten_cong_doan}">${cd.ten_cong_doan}</td>`;
-            
-            baoCao.moc_gio_list.forEach(moc => {
-                const key = `${cd.cong_doan_id}_${moc.id}`;
-                const entry = baoCao.entries[key];
-                const value = entry ? parseInt(entry.so_luong) : 0;
-                // Ô nhập là lũy kế tại mốc → giữ số ở mốc muộn nhất đã nhập
-                if (value) luyKe = value;
-                
-                const chiTieu = (baoCao.chi_tieu_luy_ke && baoCao.chi_tieu_luy_ke[moc.id]) || 0;
-                let cellClass = 'cell-readonly text-center';
-                
-                // Add color class based on comparison with target
-                if (chiTieu > 0) {
-                    cellClass += (value >= chiTieu ? ' cell-pass' : ' cell-fail');
-                }
-                
-                bodyHtml += `<td class="${cellClass}">${value || ''}</td>`;
-            });
-            
-            // Xử lý hiển thị lũy kế và trạng thái từ ket_qua_luy_ke
-            let luyKeDisplay = luyKe;
-            let statusHtml = '';
-
-            if (baoCao.ket_qua_luy_ke && baoCao.ket_qua_luy_ke.cong_doan) {
-                const result = baoCao.ket_qua_luy_ke.cong_doan.find(c => c.cong_doan_id == cd.cong_doan_id);
-                if (result) {
-                    luyKeDisplay = result.luy_ke_thuc_te;
-                    
-                    if (result.trang_thai) {
-                        const statusMap = {
-                            'dat': { text: 'Đạt', class: 'luy-ke-status-pass' },
-                            'chua_dat': { text: 'Chưa đạt', class: 'luy-ke-status-fail' },
-                            'na': { text: 'N/A', class: 'luy-ke-status-na' }
-                        };
-                        const s = statusMap[result.trang_thai] || statusMap['na'];
-                        
-                        // Chỉ hiện badge nếu có trạng thái ý nghĩa hoặc là công đoạn tính lũy kế
-                        if (result.trang_thai !== 'na' || cd.la_cong_doan_tinh_luy_ke == 1 || cd.la_cong_doan_tinh_luy_ke == '1') {
-                            statusHtml = `
-                                <div class="mt-1 flex justify-center">
-                                    <div class="luy-ke-status-cell ${s.class}">
-                                        ${s.text}
-                                        <span class="luy-ke-tooltip">
-                                            Thực tế: ${result.luy_ke_thuc_te} / Mục tiêu: ${result.chi_tieu_luy_ke}
-                                        </span>
-                                    </div>
-                                </div>
-                            `;
-                        }
-                    }
-                }
-            }
-
-            bodyHtml += `<td class="cell-luyke text-center">
-                <div class="flex flex-col items-center justify-center">
-                    <span class="font-bold">${luyKeDisplay}</span>
-                    ${statusHtml}
-                </div>
-            </td>`;
-            bodyHtml += '</tr>';
+        const isAdmin = window.appContext?.session?.vai_tro === 'admin';
+        const canUnlock = isAdmin && ['submitted', 'approved', 'locked'].includes(baoCao.trang_thai);
+        const unlockBtn = canUnlock
+            ? `<button type="button" class="bns-bar-btn is-ghost" title="Mở khóa báo cáo để chỉnh sửa" onclick="window.historyModule.unlockReport(${parseInt(baoCao.id)})">${svgIcon('<rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 9.9-1"/>')}<span>Mở khóa</span></button>`
+            : '';
+        this.app.renderAppBar(baoCao, {
+            actions: unlockBtn,
+            onBack: () => (this.app.router ? this.app.router.navigate('/lich-su') : this.hideDetail()),
         });
 
-        container.innerHTML = `
-            <table class="excel-grid">
-                <thead>${headerHtml}</thead>
-                <tbody>${bodyHtml}</tbody>
-            </table>
-        `;
-
-        // Calculate and update Hieu Suat for Readonly view
-        this.updateHieuSuatHistory(baoCao);
-    }
-
-    updateHieuSuatHistory(baoCao) {
-        // Similar to GridManager but purely calculation based on data, no DOM input reading
-        baoCao.moc_gio_list.forEach(moc => {
-            const chiTieu = (baoCao.chi_tieu_luy_ke && baoCao.chi_tieu_luy_ke[moc.id]) || 0;
-            let tongThucTe = 0;
-
-            baoCao.routing.forEach(cd => {
-                if (cd.la_cong_doan_tinh_luy_ke === 1 || cd.la_cong_doan_tinh_luy_ke === '1') {
-                    // Ô nhập là lũy kế tại mốc → lấy đúng số ở mốc này, không cộng dồn các mốc trước
-                    const entry = baoCao.entries[`${cd.cong_doan_id}_${moc.id}`];
-                    if (entry) {
-                        tongThucTe += parseInt(entry.so_luong) || 0;
-                    }
-                }
-            });
-
-            const hieuSuatCell = document.querySelector(`.hieu-suat-cell-history[data-moc="${moc.id}"]`);
-            if (hieuSuatCell && chiTieu > 0) {
-                const hieuSuat = (tongThucTe / chiTieu) * 100;
-                hieuSuatCell.textContent = hieuSuat.toFixed(1) + '%';
-                
-                hieuSuatCell.classList.remove('hieu-suat-green', 'hieu-suat-yellow', 'hieu-suat-red');
-                if (hieuSuat >= 100) {
-                    hieuSuatCell.classList.add('hieu-suat-green');
-                } else if (hieuSuat >= 90) {
-                    hieuSuatCell.classList.add('hieu-suat-yellow');
-                } else {
-                    hieuSuatCell.classList.add('hieu-suat-red');
-                }
-            }
-        });
+        this.gridManager.renderGrid(baoCao);
     }
 
     async unlockReport(reportId) {
