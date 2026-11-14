@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Support\Database;
+use mysqli_sql_exception;
 
 class LineService
 {
@@ -167,19 +168,31 @@ class LineService
             return ['success' => false, 'message' => 'Không thể xóa LINE đã có báo cáo'];
         }
 
-        $stmt = mysqli_prepare($this->db, 'DELETE FROM line WHERE id = ?');
-        mysqli_stmt_bind_param($stmt, 'i', $id);
+        mysqli_begin_transaction($this->db);
 
-        if (mysqli_stmt_execute($stmt)) {
+        try {
+            // FK line_moc_gio_set không có ON DELETE nên phải gỡ gán preset trước
+            $mapStmt = mysqli_prepare($this->db, 'DELETE FROM line_moc_gio_set WHERE line_id = ?');
+            mysqli_stmt_bind_param($mapStmt, 'i', $id);
+            mysqli_stmt_execute($mapStmt);
+            mysqli_stmt_close($mapStmt);
+
+            $stmt = mysqli_prepare($this->db, 'DELETE FROM line WHERE id = ?');
+            mysqli_stmt_bind_param($stmt, 'i', $id);
+            mysqli_stmt_execute($stmt);
             $affected = mysqli_stmt_affected_rows($stmt);
             mysqli_stmt_close($stmt);
-            if ($affected > 0) {
-                return ['success' => true, 'message' => 'Xóa LINE thành công'];
-            }
-            return ['success' => false, 'message' => 'Không tìm thấy LINE'];
-        }
 
-        mysqli_stmt_close($stmt);
-        return ['success' => false, 'message' => 'Lỗi xóa LINE'];
+            if ($affected === 0) {
+                mysqli_rollback($this->db);
+                return ['success' => false, 'message' => 'Không tìm thấy LINE'];
+            }
+
+            mysqli_commit($this->db);
+            return ['success' => true, 'message' => 'Xóa LINE thành công'];
+        } catch (mysqli_sql_exception $e) {
+            mysqli_rollback($this->db);
+            return ['success' => false, 'message' => 'Lỗi xóa LINE: ' . $e->getMessage()];
+        }
     }
 }
