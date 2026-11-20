@@ -17,6 +17,7 @@ use App\Controllers\IndexPageController;
 use App\Controllers\MocGioSetsController;
 use App\Controllers\NhapNangSuatPageController;
 use App\Controllers\NoLinePageController;
+use App\Controllers\PoSubartController;
 use App\Controllers\UserPermissionsController;
 
 // Bảng route API (ADR 0001: URL giữ nguyên, khớp METHOD + đường dẫn). Xem App\Http\Router.
@@ -119,6 +120,8 @@ return [
         ['GET', '/api/danh-muc/ma-hang', DanhMucController::class, 'maHang'],
         ['GET', '/api/danh-muc/moc-gio', DanhMucController::class, 'mocGio'],
         ['GET', '/api/danh-muc/routing', DanhMucController::class, 'routing'],
+        ['GET', '/api/danh-muc/po', DanhMucController::class, 'po'],
+        ['GET', '/api/danh-muc/po-subart', DanhMucController::class, 'poSubart'],
 
         ['GET', '/api/moc-gio-sets', MocGioSetsController::class, 'index'],
         ['POST', '/api/moc-gio-sets', MocGioSetsController::class, 'store', ['csrf']],
@@ -180,9 +183,12 @@ return [
         ['PUT', '/api/admin/moc-gio/{id:\d+}', AdminController::class, 'updateMocGio', ['csrf']],
         ['DELETE', '/api/admin/moc-gio/{id:\d+}', AdminController::class, 'deleteMocGio', ['csrf']],
         ['POST', '/api/admin/bao-cao/bulk-create', AdminController::class, 'bulkCreateBaoCao', ['csrf']],
+        ['GET', '/api/admin/po-subart', PoSubartController::class, 'index'],
+        ['PUT', '/api/admin/po-subart', PoSubartController::class, 'save', ['csrf']],
+        ['DELETE', '/api/admin/po-subart', PoSubartController::class, 'destroy', ['csrf']],
         // Tài nguyên admin không tồn tại: router cũ trả 'Resource không hợp lệ' thay vì 'Endpoint không hợp lệ'.
         ['*', '/api/admin', AdminController::class, 'unknownResource'],
-        ['*', '/api/admin/{resource:(?!(?:lines|users|user-lines|ma-hang|cong-doan|routing|moc-gio|bao-cao)$).+}', AdminController::class, 'unknownResource'],
+        ['*', '/api/admin/{resource:(?!(?:lines|users|user-lines|ma-hang|cong-doan|routing|moc-gio|bao-cao|po-subart)$).+}', AdminController::class, 'unknownResource'],
 
         ['POST', '/api/user-permissions/bulk', UserPermissionsController::class, 'bulk'],
         ['GET', '/api/user-permissions/{id:\d+}', UserPermissionsController::class, 'show'],

@@ -121,6 +121,15 @@ const modules = {
             m.updateMocGioLineSelect();
         }
     },
+    'po-subart': {
+        path: './modules/admin/po-subart.js',
+        deps: ['ma-hang'],
+        instance: null,
+        loaded: false,
+        init: async (m) => {
+            m.init();
+        }
+    },
     'import': {
         path: './modules/admin/import.js',
         deps: [],
@@ -187,6 +196,7 @@ function initRouter() {
         'presets': '/presets',
         'moc-gio': '/moc-gio',
         'bulk-create': '/bulk-create',
+        'po-subart': '/po-subart',
         'import-history': '/import-history'
     };
     

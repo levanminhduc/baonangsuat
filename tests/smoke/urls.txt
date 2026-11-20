@@ -69,6 +69,8 @@ GET /api/danh-muc/ma-hang
 GET /api/danh-muc/moc-gio?ca_id=1
 GET /api/danh-muc/routing?ma_hang_id=1
 GET /api/danh-muc/routing?ma_hang_id=1&line_id=6
+GET /api/danh-muc/po?ma_hang_id=1
+GET /api/danh-muc/po-subart?ma_hang_id=1&po_number=X
 
 # --- API: admin ---
 GET /api/admin/lines
@@ -91,6 +93,7 @@ POST /api/admin/cong-doan
 PUT /api/admin/cong-doan/1
 DELETE /api/admin/cong-doan/1
 GET /api/admin/routing?ma_hang_id=1
+GET /api/admin/po-subart?ma_hang_id=1&po_number=X
 GET /api/admin/routing/1
 POST /api/admin/routing
 PUT /api/admin/routing/1

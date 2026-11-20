@@ -78,6 +78,7 @@ if ($isLoggedIn) {
             ['tab' => 'ma-hang', 'label' => 'Mã hàng', 'title' => 'Quản lý Mã hàng', 'icon' => 'shirt'],
             ['tab' => 'cong-doan', 'label' => 'Công đoạn', 'title' => 'Quản lý Công đoạn', 'icon' => 'list-ordered'],
             ['tab' => 'routing', 'label' => 'Routing', 'title' => 'Quản lý Routing', 'icon' => 'route'],
+            ['tab' => 'po-subart', 'label' => 'SL Subart', 'title' => 'Quản lý SL Subart theo PO', 'icon' => 'boxes'],
         ]],
         ['label' => 'Mốc giờ', 'items' => [
             ['tab' => 'presets', 'label' => 'Preset mốc giờ', 'title' => 'Quản lý Preset Mốc Giờ', 'icon' => 'clock'],

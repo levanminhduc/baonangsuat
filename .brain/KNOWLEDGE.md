@@ -12,6 +12,8 @@
 - [env] Bắt buộc có repo authV2 nằm cạnh (`../authV2/bootstrap.php`), kể cả khi chạy test CLI — bootstrap/app.php · brain-init · 2026-11-14
 - [env] `vendor/` gitignored → `composer install` trước; Tailwind dist gitignored → `tools\build-css.bat` (các trang hiện vẫn nạp Tailwind CDN) — .claude/rules/tailwind-js.md · brain-init · 2026-11-14
 - [env] 3 DB: `mysqli` (user, user_permissions), `nang_suat` (dữ liệu), `quan_ly_nhan_su` (HR, chỉ đọc) — AGENTS.md · brain-init · 2026-11-14
+- [env] Kết nối thứ 4 tuỳ chọn: Postgres datchi qua key `datchi_pg` trong db.php + ext pdo_pgsql. Apache local = Laragon php 8.3.28 (php.ini đã bật pdo_pgsql); PHP CLI = XAMPP 8.2 chưa bật → `php -d extension=pdo_pgsql` — app/Support/Database.php · F-015 · 2026-11-14
+- [env] pdo_pgsql nối `connect_timeout` từ PDO::ATTR_TIMEOUT (mặc định 30) sau DSN → `connect_timeout` trong DSN vô hiệu; đo 21s → 3s khi đặt ATTR_TIMEOUT — app/Support/Database.php · F-015 · 2026-11-14
 
 ## Test và build
 - [test] `php tests/php/run.php [filter]` — runner tự viết, chạy `tests/php/*_test.php` (32 test, pass ở 9765f3d), gồm structure_test khoá kiến trúc — tests/php/run.php · brain-init · 2026-11-14
@@ -21,6 +23,11 @@
 - [test] Thao tác ghi (POST/PUT/DELETE, import confirm) không chạy bằng phiên thật; để user thử tay — .claude/rules/refactor-verification-gates.md · brain-init · 2026-11-14
 
 ## Bẫy trong code
+- [git] `core.autocrlf=true` → nhiều file checkout CRLF: `php-cs-fixer --dry-run` báo hàng loạt file (false positive), Edit tool không khớp chuỗi nhiều dòng (sửa bằng script newline=''), smoke lệch hash body asset. Kiểm file mới: `--config=.php-cs-fixer.dist.php --path-mode=intersection <files>` — F-015 · 2026-11-14
+- [js] Ô nhập grid là lũy kế tại mốc: tổng báo cáo = số ở mốc muộn nhất đã nhập (grid.rowTotal, calculateLuyKeThucTe), KHÔNG SUM các mốc — public/assets/js/modules/grid.js:174 · F-015 · 2026-11-14
+- [php] `NangSuatService::updateHeader` mặc định so_lao_dong/ctns = 0 khi thiếu → mọi PUT header phải gửi lại cả hai — app/Services/NangSuatService.php · F-015 · 2026-11-14
+- [php] `JsonResponse` final + strict_types; service trả mảng có `status` thì controller bóc ra làm HTTP status (BaoCaoController::withStatus, PoSubartController::toResponse) — F-015 · 2026-11-14
+- [test] Test route thật: `(new Router(require BNS_ROOT . '/config/routes.php'))->match($method, $path)` → [status, route, params]; filter runner là substring tên file — tests/php/router_test.php · F-015 · 2026-11-14
 - [js] `API_BASE = '/baonangsuat/api'` hard-code trong api.js, admin-api.js, admin/import.js, login.js — chạy dưới vhost phải sửa — AGENTS.md · brain-init · 2026-11-14
 - [admin] `GET /api/admin/lines` có side-effect: đồng bộ LINE từ `quan_ly_nhan_su.phong_ban` (INSERT line mới) mỗi lần gọi — app/Services/AdminService.php:41 · brain-init · 2026-11-14
 - [db] migrations đánh số trùng (hai file 010_) và thiếu 007/008; không có tool chạy migration, áp tay — database/migrations/ · brain-init · 2026-11-14

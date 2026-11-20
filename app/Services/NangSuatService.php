@@ -2,12 +2,17 @@
 
 namespace App\Services;
 
+use App\Services\SubartSoLuong\SubartSoLuongFactory;
 use App\Support\Database;
 use Exception;
+use mysqli_sql_exception;
 use stdClass;
+use Throwable;
 
 class NangSuatService
 {
+    private const MSG_BAO_CAO_TRUNG = 'Báo cáo đã tồn tại cho ngày/ca/mã hàng/PO/subart này';
+
     private $db;
 
     public function __construct()
@@ -147,6 +152,77 @@ class NangSuatService
         return $list;
     }
 
+    private function daCoBaoCao($ngay_bao_cao, $line_id, $ca_id, $ma_hang_id, $po_number, $sub_art_code, $excludeId = 0)
+    {
+        $po = (string)$po_number;
+        $sub = (string)$sub_art_code;
+        $checkStmt = mysqli_prepare(
+            $this->db,
+            "SELECT id FROM bao_cao_nang_suat
+             WHERE ngay_bao_cao = ? AND line_id = ? AND ca_id = ? AND ma_hang_id = ?
+               AND IFNULL(po_number, '') = ? AND IFNULL(sub_art_code, '') = ? AND id <> ?",
+        );
+        mysqli_stmt_bind_param($checkStmt, 'siiissi', $ngay_bao_cao, $line_id, $ca_id, $ma_hang_id, $po, $sub, $excludeId);
+        mysqli_stmt_execute($checkStmt);
+        $found = mysqli_fetch_assoc(mysqli_stmt_get_result($checkStmt)) !== null;
+        mysqli_stmt_close($checkStmt);
+        return $found;
+    }
+
+    // Chuẩn hoá + kiểm po_number/sub_art_code với datchi; lỗi trả kèm 'status' để controller đặt mã HTTP.
+    private function chuanHoaPoSubart($ma_hang_id, $po_number, $sub_art_code)
+    {
+        $loi = function ($status, $message) {
+            return ['success' => false, 'status' => $status, 'message' => $message];
+        };
+        if (($po_number !== null && !is_string($po_number)) || ($sub_art_code !== null && !is_string($sub_art_code))) {
+            return $loi(422, 'PO hoặc subart không hợp lệ');
+        }
+        $po_number = trim((string)$po_number);
+        $sub_art_code = trim((string)$sub_art_code);
+        if ($po_number === '' && $sub_art_code === '') {
+            return ['success' => true, 'po_number' => null, 'sub_art_code' => null];
+        }
+        if ($po_number === '') {
+            return $loi(422, 'Chọn subart thì phải chọn PO');
+        }
+        if (strlen($po_number) > 50 || strlen($sub_art_code) > 100) {
+            return $loi(422, 'PO hoặc subart không hợp lệ');
+        }
+
+        $stmt = mysqli_prepare($this->db, 'SELECT ma_hang FROM ma_hang WHERE id = ?');
+        mysqli_stmt_bind_param($stmt, 'i', $ma_hang_id);
+        mysqli_stmt_execute($stmt);
+        $maHang = mysqli_fetch_assoc(mysqli_stmt_get_result($stmt));
+        mysqli_stmt_close($stmt);
+        if (!$maHang) {
+            return $loi(422, 'Mã hàng không tồn tại');
+        }
+
+        $datchi = new DatchiPoService();
+        $po = $datchi->getPoQuantity($po_number, $maHang['ma_hang']);
+        if (!$po['available']) {
+            return $loi(503, 'Không kết nối được dữ liệu PO');
+        }
+        if ($po['quantity'] === null) {
+            return $loi(422, 'PO ' . $po_number . ' không có mã hàng ' . $maHang['ma_hang']);
+        }
+
+        if ($sub_art_code === '') {
+            return ['success' => true, 'po_number' => $po_number, 'sub_art_code' => null];
+        }
+        $subArts = $datchi->getSubArtsForStyle($maHang['ma_hang']);
+        if (!$subArts['available']) {
+            return $loi(503, 'Không kết nối được dữ liệu PO');
+        }
+        foreach ($subArts['items'] as $code) {
+            if (strcasecmp($code, $sub_art_code) === 0) {
+                return ['success' => true, 'po_number' => $po_number, 'sub_art_code' => $code];
+            }
+        }
+        return $loi(422, 'Subart ' . $sub_art_code . ' không thuộc mã hàng ' . $maHang['ma_hang']);
+    }
+
     public function createBaoCao($data, $ma_nv)
     {
         $ngay_bao_cao = $data['ngay_bao_cao'];
@@ -157,18 +233,16 @@ class NangSuatService
         $ctns = intval($data['ctns'] ?? 0);
         $ghi_chu = $data['ghi_chu'] ?? '';
 
-        $checkStmt = mysqli_prepare(
-            $this->db,
-            'SELECT id FROM bao_cao_nang_suat WHERE ngay_bao_cao = ? AND line_id = ? AND ca_id = ? AND ma_hang_id = ?',
-        );
-        mysqli_stmt_bind_param($checkStmt, 'siii', $ngay_bao_cao, $line_id, $ca_id, $ma_hang_id);
-        mysqli_stmt_execute($checkStmt);
-        $checkResult = mysqli_stmt_get_result($checkStmt);
-        if (mysqli_fetch_assoc($checkResult)) {
-            mysqli_stmt_close($checkStmt);
-            return ['success' => false, 'message' => 'Báo cáo đã tồn tại cho ngày/ca/mã hàng này'];
+        $poSubart = $this->chuanHoaPoSubart($ma_hang_id, $data['po_number'] ?? null, $data['sub_art_code'] ?? null);
+        if (!$poSubart['success']) {
+            return $poSubart;
         }
-        mysqli_stmt_close($checkStmt);
+        $po_number = $poSubart['po_number'];
+        $sub_art_code = $poSubart['sub_art_code'];
+
+        if ($this->daCoBaoCao($ngay_bao_cao, $line_id, $ca_id, $ma_hang_id, $po_number, $sub_art_code)) {
+            return ['success' => false, 'message' => self::MSG_BAO_CAO_TRUNG];
+        }
 
         $mocGioResult = $this->getMocGioList($ca_id, $line_id);
         $mocGioList = $mocGioResult['data'];
@@ -193,12 +267,12 @@ class NangSuatService
         $stmt = mysqli_prepare(
             $this->db,
             'INSERT INTO bao_cao_nang_suat
-             (ngay_bao_cao, line_id, ca_id, ma_hang_id, so_lao_dong, ctns, ct_gio, tong_phut_hieu_dung, ghi_chu, tao_boi, routing_snapshot)
-             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+             (ngay_bao_cao, line_id, ca_id, ma_hang_id, so_lao_dong, ctns, ct_gio, tong_phut_hieu_dung, ghi_chu, tao_boi, routing_snapshot, po_number, sub_art_code)
+             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
         );
         mysqli_stmt_bind_param(
             $stmt,
-            'siiiiidisss',
+            'siiiiidisssss',
             $ngay_bao_cao,
             $line_id,
             $ca_id,
@@ -210,10 +284,26 @@ class NangSuatService
             $ghi_chu,
             $ma_nv,
             $routingSnapshot,
+            $po_number,
+            $sub_art_code,
         );
 
-        if (!mysqli_stmt_execute($stmt)) {
+        try {
+            $ok = mysqli_stmt_execute($stmt);
+        } catch (mysqli_sql_exception $e) {
             mysqli_stmt_close($stmt);
+            // Hai request song song qua được check trùng thì UNIQUE chặn.
+            if (intval($e->getCode()) === 1062) {
+                return ['success' => false, 'message' => self::MSG_BAO_CAO_TRUNG];
+            }
+            throw $e;
+        }
+        if (!$ok) {
+            $errno = mysqli_errno($this->db);
+            mysqli_stmt_close($stmt);
+            if ($errno === 1062) {
+                return ['success' => false, 'message' => self::MSG_BAO_CAO_TRUNG];
+            }
             return ['success' => false, 'message' => 'Lỗi tạo báo cáo: ' . mysqli_error($this->db)];
         }
 
@@ -281,8 +371,122 @@ class NangSuatService
         $baoCao['entries'] = $this->getEntries($bao_cao_id);
         $baoCao['chi_tieu_luy_ke'] = $this->calculateChiTieuLuyKe($baoCao);
         $baoCao['luy_ke_thuc_te'] = $this->calculateLuyKeThucTe($baoCao);
+        $baoCao['po'] = $this->getKhoiPo($baoCao);
 
         return $baoCao;
+    }
+
+    // Khối PO/subart của báo cáo: SL + lũy kế thành phẩm của các báo cáo KHÁC (FE cộng báo cáo đang mở).
+    private function getKhoiPo($baoCao)
+    {
+        $po_number = trim((string)($baoCao['po_number'] ?? ''));
+        if ($po_number === '') {
+            return null;
+        }
+        $sub_art_code = trim((string)($baoCao['sub_art_code'] ?? ''));
+
+        // Datchi lỗi không được làm hỏng GET báo cáo.
+        $available = false;
+        $soLuongPo = null;
+        try {
+            $r = (new DatchiPoService())->getPoQuantity($po_number, $baoCao['ma_hang']);
+            $available = (bool)$r['available'];
+            $soLuongPo = $available ? $r['quantity'] : null;
+        } catch (Throwable $e) {
+        }
+
+        $luyKePo = 0;
+        $luyKeSub = 0;
+        $khac = [];
+        $stmt = mysqli_prepare(
+            $this->db,
+            'SELECT id, line_id, routing_snapshot, sub_art_code
+             FROM bao_cao_nang_suat WHERE po_number = ? AND ma_hang_id = ? AND id <> ?',
+        );
+        $maHangId = intval($baoCao['ma_hang_id']);
+        $selfId = intval($baoCao['id']);
+        mysqli_stmt_bind_param($stmt, 'sii', $po_number, $maHangId, $selfId);
+        mysqli_stmt_execute($stmt);
+        $result = mysqli_stmt_get_result($stmt);
+        while ($row = mysqli_fetch_assoc($result)) {
+            $khac[intval($row['id'])] = $row;
+        }
+        mysqli_stmt_close($stmt);
+
+        if ($khac) {
+            // Công đoạn thành phẩm theo snapshot từng báo cáo; thiếu thì lấy routing hiện tại của LINE.
+            $congDoanTheoLine = [];
+            $congDoan = [];
+            foreach ($khac as $id => $row) {
+                $cdId = PoTienDo::thanhPhamCongDoanId($row['routing_snapshot']);
+                if ($cdId === null) {
+                    $lineId = intval($row['line_id']);
+                    if (!array_key_exists($lineId, $congDoanTheoLine)) {
+                        $congDoanTheoLine[$lineId] = null;
+                        foreach ($this->getRouting($maHangId, $lineId) as $cd) {
+                            if (intval($cd['la_cong_doan_tinh_luy_ke']) === 1) {
+                                $congDoanTheoLine[$lineId] = intval($cd['cong_doan_id']);
+                                break;
+                            }
+                        }
+                    }
+                    $cdId = $congDoanTheoLine[$lineId];
+                }
+                $congDoan[$id] = $cdId;
+            }
+
+            // Ô nhập là lũy kế tại mốc → thành phẩm của báo cáo = số ở mốc muộn nhất đã nhập (như grid rowTotal).
+            $ids = implode(',', array_map('intval', array_keys($khac)));
+            $result = mysqli_query(
+                $this->db,
+                "SELECT nl.bao_cao_id, nl.cong_doan_id, nl.so_luong
+                 FROM nhap_lieu_nang_suat nl
+                 JOIN moc_gio mg ON mg.id = nl.moc_gio_id
+                 WHERE nl.bao_cao_id IN ($ids) AND nl.so_luong > 0
+                 ORDER BY nl.bao_cao_id, mg.thu_tu, mg.gio",
+            );
+            $thanhPham = [];
+            while ($row = mysqli_fetch_assoc($result)) {
+                $id = intval($row['bao_cao_id']);
+                if ($congDoan[$id] !== null && $congDoan[$id] === intval($row['cong_doan_id'])) {
+                    $thanhPham[$id] = intval($row['so_luong']);
+                }
+            }
+            foreach ($thanhPham as $id => $sl) {
+                $luyKePo += $sl;
+                if ($sub_art_code !== '' && strcasecmp((string)$khac[$id]['sub_art_code'], $sub_art_code) === 0) {
+                    $luyKeSub += $sl;
+                }
+            }
+        }
+
+        $subArt = null;
+        if ($sub_art_code !== '') {
+            $soLuongSub = null;
+            try {
+                $items = SubartSoLuongFactory::make()->getSoLuong($po_number, $baoCao['ma_hang'])['items'] ?? [];
+                foreach ($items as $code => $sl) {
+                    if (strcasecmp((string)$code, $sub_art_code) === 0) {
+                        $soLuongSub = intval($sl);
+                        break;
+                    }
+                }
+            } catch (Throwable $e) {
+            }
+            $subArt = [
+                'sub_art_code' => $sub_art_code,
+                'so_luong' => $soLuongSub,
+                'luy_ke_bao_cao_khac' => $luyKeSub,
+            ];
+        }
+
+        return [
+            'po_number' => $po_number,
+            'available' => $available,
+            'so_luong_po' => $soLuongPo,
+            'luy_ke_bao_cao_khac' => $luyKePo,
+            'sub_art' => $subArt,
+        ];
     }
 
     public function getEntries($bao_cao_id)
@@ -533,7 +737,7 @@ class NangSuatService
     {
         $stmt = mysqli_prepare(
             $this->db,
-            'SELECT version, trang_thai, ca_id, line_id FROM bao_cao_nang_suat WHERE id = ?',
+            'SELECT version, trang_thai, ca_id, line_id, ma_hang_id, ngay_bao_cao, po_number, sub_art_code FROM bao_cao_nang_suat WHERE id = ?',
         );
         mysqli_stmt_bind_param($stmt, 'i', $bao_cao_id);
         mysqli_stmt_execute($stmt);
@@ -557,6 +761,25 @@ class NangSuatService
         $ctns = intval($data['ctns'] ?? 0);
         $ghi_chu = $data['ghi_chu'] ?? '';
 
+        // Không có khoá po_number/sub_art_code trong body thì giữ nguyên hai cột.
+        $po_number = $baoCao['po_number'];
+        $sub_art_code = $baoCao['sub_art_code'];
+        if (array_key_exists('po_number', $data) || array_key_exists('sub_art_code', $data)) {
+            $poSubart = $this->chuanHoaPoSubart(
+                $baoCao['ma_hang_id'],
+                array_key_exists('po_number', $data) ? $data['po_number'] : $po_number,
+                array_key_exists('sub_art_code', $data) ? $data['sub_art_code'] : $sub_art_code,
+            );
+            if (!$poSubart['success']) {
+                return $poSubart;
+            }
+            $po_number = $poSubart['po_number'];
+            $sub_art_code = $poSubart['sub_art_code'];
+            if ($this->daCoBaoCao($baoCao['ngay_bao_cao'], $baoCao['line_id'], $baoCao['ca_id'], $baoCao['ma_hang_id'], $po_number, $sub_art_code, intval($bao_cao_id))) {
+                return ['success' => false, 'message' => self::MSG_BAO_CAO_TRUNG];
+            }
+        }
+
         $mocGioResult = $this->getMocGioList($baoCao['ca_id'], $baoCao['line_id']);
         $mocGioList = $mocGioResult['data'];
         $tong_phut_hieu_dung = 0;
@@ -574,23 +797,34 @@ class NangSuatService
 
         $updateStmt = mysqli_prepare(
             $this->db,
-            'UPDATE bao_cao_nang_suat 
-             SET so_lao_dong = ?, ctns = ?, ct_gio = ?, tong_phut_hieu_dung = ?, ghi_chu = ?, version = ?
+            'UPDATE bao_cao_nang_suat
+             SET so_lao_dong = ?, ctns = ?, ct_gio = ?, tong_phut_hieu_dung = ?, ghi_chu = ?, po_number = ?, sub_art_code = ?, version = ?
              WHERE id = ?',
         );
         mysqli_stmt_bind_param(
             $updateStmt,
-            'iidisii',
+            'iidisssii',
             $so_lao_dong,
             $ctns,
             $ct_gio,
             $tong_phut_hieu_dung,
             $ghi_chu,
+            $po_number,
+            $sub_art_code,
             $newVersion,
             $bao_cao_id,
         );
 
-        if (mysqli_stmt_execute($updateStmt)) {
+        try {
+            $ok = mysqli_stmt_execute($updateStmt);
+        } catch (mysqli_sql_exception $e) {
+            mysqli_stmt_close($updateStmt);
+            if (intval($e->getCode()) === 1062) {
+                return ['success' => false, 'message' => self::MSG_BAO_CAO_TRUNG];
+            }
+            throw $e;
+        }
+        if ($ok) {
             mysqli_stmt_close($updateStmt);
             return [
                 'success' => true,

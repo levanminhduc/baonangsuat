@@ -77,7 +77,7 @@ class BieuDoController
         return new JsonResponse((new ChartService())->getProductivityComparisonMatrix(...$this->comparisonArgs($request, null)));
     }
 
-    // [line_id, ma_hang_id, ngay, ca_id]; $missing = giá trị khi thiếu tham số (endpoint cũ dùng 0 hoặc null).
+    // [line_id, ma_hang_id, ngay, ca_id, bao_cao_id|null]; $missing = giá trị khi thiếu tham số (endpoint cũ dùng 0 hoặc null).
     private function comparisonArgs(Request $request, $missing)
     {
         return [
@@ -85,6 +85,7 @@ class BieuDoController
             $request->hasQuery('ma_hang_id') ? intval($request->query('ma_hang_id')) : $missing,
             $request->query('ngay', date('Y-m-d')),
             $request->hasQuery('ca_id') ? intval($request->query('ca_id')) : $missing,
+            $request->hasQuery('bao_cao_id') ? intval($request->query('bao_cao_id')) : null,
         ];
     }
 
