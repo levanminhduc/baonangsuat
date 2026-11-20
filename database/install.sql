@@ -1,4 +1,4 @@
--- Cài mới DB năng suất (prod: bao_nang_suat; local: nang_suat) — đã gộp schema.sql + migrations 001–012.
+-- Cài mới DB năng suất (prod: bao_nang_suat; local: nang_suat) — đã gộp schema.sql + migrations 001–013.
 -- Chạy được trên MySQL 8.x và MariaDB 10.4+. Chỉ dùng cho DB TRỐNG.
 -- Toàn bộ bảng dùng utf8mb4_unicode_ci: trộn general_ci/unicode_ci làm lỗi so sánh chuỗi
 -- (migration 003 gặp lỗi "Illegal mix of collations" vì vậy).
@@ -145,6 +145,8 @@ CREATE TABLE bao_cao_nang_suat (
     line_id INT NOT NULL,
     ca_id INT NOT NULL,
     ma_hang_id INT NOT NULL,
+    po_number VARCHAR(50) NULL,
+    sub_art_code VARCHAR(100) NULL,
     so_lao_dong INT NOT NULL DEFAULT 0,
     ctns INT NOT NULL DEFAULT 0,
     ct_gio DECIMAL(10,2) DEFAULT 0.00,
@@ -159,7 +161,10 @@ CREATE TABLE bao_cao_nang_suat (
     hoan_tat_boi VARCHAR(50) DEFAULT NULL,
     ket_qua_luy_ke JSON NULL,
     routing_snapshot JSON NULL,
-    UNIQUE KEY uk_bao_cao (ngay_bao_cao, line_id, ca_id, ma_hang_id),
+    po_key VARCHAR(50) AS (IFNULL(po_number, '')) STORED,
+    sub_art_key VARCHAR(100) AS (IFNULL(sub_art_code, '')) STORED,
+    UNIQUE KEY uk_bao_cao (ngay_bao_cao, line_id, ca_id, ma_hang_id, po_key, sub_art_key),
+    KEY idx_po_ma_hang (po_number, ma_hang_id, sub_art_code),
     KEY ca_id (ca_id),
     KEY ma_hang_id (ma_hang_id),
     KEY idx_ngay (ngay_bao_cao),
@@ -240,6 +245,18 @@ CREATE TABLE ma_hang_line_dinh_muc (
     KEY line_id (line_id),
     FOREIGN KEY (ma_hang_id) REFERENCES ma_hang(id) ON DELETE CASCADE,
     FOREIGN KEY (line_id) REFERENCES line(id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE po_subart_so_luong (
+    po_number VARCHAR(50) NOT NULL,
+    ma_hang_id INT NOT NULL,
+    sub_art_code VARCHAR(100) NOT NULL,
+    so_luong INT UNSIGNED NOT NULL,
+    updated_by VARCHAR(50) DEFAULT NULL,
+    updated_at TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    PRIMARY KEY (po_number, ma_hang_id, sub_art_code),
+    KEY ma_hang_id (ma_hang_id),
+    FOREIGN KEY (ma_hang_id) REFERENCES ma_hang(id) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- Dữ liệu tối thiểu để app chạy: 1 ca + bộ mốc giờ mặc định (510 phút, migration 002).

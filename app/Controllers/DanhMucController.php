@@ -5,6 +5,7 @@ namespace App\Controllers;
 use App\Http\JsonResponse;
 use App\Http\Request;
 use App\Services\NangSuatService;
+use App\Services\PoSubartService;
 
 class DanhMucController
 {
@@ -31,5 +32,20 @@ class DanhMucController
         $line_id = $request->hasQuery('line_id') ? intval($request->query('line_id')) : null;
 
         return new JsonResponse(['success' => true, 'data' => (new NangSuatService())->getRouting($ma_hang_id, $line_id)]);
+    }
+
+    public function po(Request $request)
+    {
+        $ma_hang_id = $request->hasQuery('ma_hang_id') ? intval($request->query('ma_hang_id')) : 0;
+
+        return PoSubartController::toResponse((new PoSubartService())->danhMucPo($ma_hang_id));
+    }
+
+    public function poSubart(Request $request)
+    {
+        $ma_hang_id = $request->hasQuery('ma_hang_id') ? intval($request->query('ma_hang_id')) : 0;
+        $po_number = (string)$request->query('po_number');
+
+        return PoSubartController::toResponse((new PoSubartService())->danhMucSubart($po_number, $ma_hang_id));
     }
 }

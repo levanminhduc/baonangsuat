@@ -38,6 +38,7 @@ Vì sao làm, "xong" trông thế nào với người dùng.
   [haiku]  chore — CHỈ việc cơ học có Example: để copy VÀ có Check: bắt được lỗi
   [sonnet] implementer — logic có phạm vi rõ theo spec (mặc định cho code)
   [opus]   orchestrator tự làm — phán đoán khó: migration, concurrency, hiệu năng, bảo mật, thay đổi xuyên module
+  Step thêm kết nối hệ thống ngoài: Check phải đo cả đường host không tới được (thời gian chờ ≤ timeout cấu hình). (P-003)
   Thêm vào tiêu đề:  (test) → tester viết test từ mục 3, trước khi có code   ·   (doc) → doc-writer -->
 ### S1 [sonnet] (test) Acceptance tests cho mục 3
 Files: ...

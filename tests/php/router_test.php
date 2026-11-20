@@ -140,3 +140,19 @@ test('request_json_body_like_legacy', function () {
     assertSame([], Request::fake('POST', '/api/x', [], [], 'hỏng')->jsonBody());
     assertSame([], Request::fake('POST', '/api/x', [], [], '5')->jsonBody());
 });
+
+test('routes_po_danh_muc_and_admin_po_subart', function () {
+    $router = new Router(require BNS_ROOT . '/config/routes.php');
+    $expected = [
+        ['GET', '/api/danh-muc/po', 'App\Controllers\DanhMucController', 'po'],
+        ['GET', '/api/danh-muc/po-subart', 'App\Controllers\DanhMucController', 'poSubart'],
+        ['GET', '/api/admin/po-subart', 'App\Controllers\PoSubartController', 'index'],
+        ['PUT', '/api/admin/po-subart', 'App\Controllers\PoSubartController', 'save'],
+        ['DELETE', '/api/admin/po-subart', 'App\Controllers\PoSubartController', 'destroy'],
+    ];
+    foreach ($expected as [$method, $path, $class, $action]) {
+        [$status, $route] = $router->match($method, $path);
+        assertSame(200, $status, "$method $path");
+        assertSame([$class, $action], [$route[2], $route[3]], "$method $path");
+    }
+});

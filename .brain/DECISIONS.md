@@ -15,3 +15,18 @@
 Date: 2026-11-14 (ghi nhận ADR có sẵn) · Status: Active · Scope: http, routes, front-controller · From: docs/adr/0001-single-entry-point-path-based-urls.md
 Why: giữ bookmark, `?redirect=` của authV2, navbar và JS gọi API; tránh thêm redirect 302.
 Rejected: `index.php?page=x` + `?action=` như nhansuhtdb (phải đổi toàn bộ URL API và viết shim redirect).
+
+### D-002 Đọc master data PO/Style/Subart thẳng từ Postgres datchi (PDO pgsql, chỉ đọc)
+Date: 2026-11-14 · Status: Active · Scope: support, po-subart · From: F-015
+Why: datchi là nguồn sự thật PO; không đồng bộ/copy dữ liệu. Kết nối tuỳ chọn: thiếu cấu hình/ext/lỗi → `available:false`, màn nhập chạy như cũ. Session `default_transaction_read_only`, timeout 3s qua PDO::ATTR_TIMEOUT (không phải DSN).
+Rejected: API HTTP của datchi (phải viết thêm endpoint + auth); đồng bộ định kỳ sang MySQL (lệch dữ liệu, cần cron).
+
+### D-003 SL subart nhập tay trong MySQL, sau interface nguồn để đổi sang datchi
+Date: 2026-11-14 · Status: Active · Scope: po-subart · From: F-015
+Why: datchi chưa có SL theo subart; sau này import bên datchi. `SubartSoLuongSource` + factory theo config `subart_so_luong_source` (hiện chỉ `manual`); nguồn không editable → PUT/DELETE 409. Ràng buộc Σ subart ≤ SL PO–mã hàng kiểm trong transaction `SELECT … FOR UPDATE`.
+Rejected: ghi SL subart ngược vào datchi (vi phạm chỉ đọc).
+
+### D-004 Báo cáo lưu chuỗi po_number/sub_art_code; khoá trùng gồm PO + subart qua cột sinh
+Date: 2026-11-14 · Status: Active · Scope: bao-cao, db · From: F-015
+Why: một LINE may nhiều PO/subart của cùng mã hàng trong một ca. Lưu chuỗi (không id datchi) để báo cáo đọc được khi datchi chết. UNIQUE coi NULL là khác nhau → `po_key`/`sub_art_key` = IFNULL(…,'') STORED. Mã hàng ↔ style khớp UPPER(TRIM).
+Rejected: giữ khoá cũ (chặn nghiệp vụ thật); FK sang id datchi (khác DB).

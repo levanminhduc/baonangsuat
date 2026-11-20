@@ -25,3 +25,4 @@
 | F-012 | Biểu đồ so sánh năng suất | DONE | bieu-do, fe-chart | +/api/bieu-do/* | (legacy) |
 | F-013 | Phân quyền user (user_permissions) | DONE | permissions | +/api/user-permissions, +user_permissions | (legacy) |
 | F-014 | Một entry point + Router path-based (ADR 0001) | DONE | front-controller, http, routes | ~mọi URL giữ nguyên | (legacy) |
+| F-015 | Chọn PO – Mã hàng / PO – Subart khi tạo báo cáo, SL subart nhập tay, so lũy kế (datchi) | DONE | support, context-danh-muc, bao-cao, admin, fe-app, fe-admin | +GET /api/danh-muc/{po,po-subart}, +/api/admin/po-subart, +po_subart_so_luong, +bao_cao_nang_suat.{po_number,sub_art_code,po_key,sub_art_key}, +Database::{getDatchi,getOptionalConfig}, +SubartSoLuongSource, ~POST /api/bao-cao, ~PUT /api/bao-cao/{id}/header, ~GET /api/bao-cao/{id}, ~uk_bao_cao, ~GET /api/bieu-do/{ma-hang-list,so-sanh*} | features/F-015-po-ma-hang-so-luong.md |

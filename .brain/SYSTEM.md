@@ -4,7 +4,7 @@
      Giữ dạng bảng, mỗi mục một dòng. Lý do nằm ở DECISIONS.md, mẹo nằm ở KNOWLEDGE.md. -->
 
 Status: READY
-Last updated: 2026-11-14 by /brain-init
+Last updated: 2026-11-14 by /go F-015
 Synced at commit: 9765f3d
 
 ## Modules
@@ -21,9 +21,10 @@ Synced at commit: 9765f3d
 | admin | AdminController, AdminService (facade) + Line/User/MaHang/CongDoan/Routing/MocGio services | CRUD danh mục, gán user–LINE, bulk-create báo cáo, đồng bộ LINE từ HR | F-005…F-008, F-011 |
 | moc-gio-sets | MocGioSetsController, MocGioSetService | Preset mốc giờ theo ca, gán LINE, fallback về preset mặc định | F-009 |
 | import | ImportController, ImportHistoryController, ImportService | Import Excel mã hàng + routing + LĐ/CTNS (PhpSpreadsheet), lịch sử import | F-010 |
-| bieu-do | BieuDoController, ChartService | Dữ liệu biểu đồ so sánh năng suất | F-012 |
+| bieu-do | BieuDoController, ChartService | Dữ liệu biểu đồ so sánh năng suất; chọn theo bao_cao_id (nhiều báo cáo cùng mã hàng/ca) | F-012, F-015 |
+| po-subart | PoSubartController, PoSubartService, DatchiPoService, PoTienDo, Services/SubartSoLuong/ | Đọc PO–Style–Subart từ datchi (Postgres, chỉ đọc); SL subart nhập tay (Σ ≤ SL PO); nguồn SL subart qua SubartSoLuongSource | F-015 |
 | permissions | UserPermissionsController | Cấp/thu quyền user (`user_permissions`) — controller truy DB trực tiếp | F-013 |
-| support | app/Support/ | `Database` (3 kết nối mysqli singleton), `View::render` | (legacy) |
+| support | app/Support/ | `Database` (3 mysqli singleton + `getDatchi()` PDO pgsql tuỳ chọn, null khi thiếu cấu hình/ext/lỗi), `View::render` | (legacy), F-015 |
 | fe-app | public/assets/js/app.js + modules/ | NangSuatApp: màn nhập năng suất, grid auto-save, lịch sử, lũy kế | F-002 |
 | fe-admin | public/assets/js/admin.js + modules/admin/ | Admin SPA, module lazy-load theo `deps` | F-005 |
 | fe-chart | public/assets/js/bieu-do.js | Trang biểu đồ | F-012 |
@@ -38,15 +39,17 @@ Nguồn sự thật: `config/routes.php` (prefix `/baonangsuat/api`). Shape `{su
 | GET /api/csrf-token | http | (legacy) | api.js, admin-api.js |
 | POST /api/auth/select-line · * /api/auth/session | auth | F-001 | index view ?, app.js ? |
 | GET /api/context (`report`) | context-danh-muc | F-002 | app.js |
-| GET,POST /api/bao-cao · GET,DELETE /api/bao-cao/{id} · GET …/{id}/routing | bao-cao | F-002 | app.js |
-| PUT /api/bao-cao/{id}/entries · …/header | bao-cao | F-002 | app.js (grid auto-save) |
+| GET,POST /api/bao-cao · GET,DELETE /api/bao-cao/{id} · GET …/{id}/routing | bao-cao | F-002; F-015 (+po_number/sub_art_code, 422/503, GET thêm khối `po`) | app.js |
+| PUT /api/bao-cao/{id}/entries · …/header | bao-cao | F-002; F-015 (header nhận po_number/sub_art_code) | app.js (grid auto-save, editor PO) |
 | POST /api/bao-cao/{id}/submit · approve · unlock · complete · reopen | bao-cao | F-003 | app.js |
 | GET /api/danh-muc/{ca,ma-hang,moc-gio,routing} | context-danh-muc | F-002 | app.js ? |
+| GET /api/danh-muc/po?ma_hang_id · /api/danh-muc/po-subart?ma_hang_id&po_number | po-subart | F-015 | app.js (modal tạo, editor PO) |
+| GET,PUT,DELETE /api/admin/po-subart (admin; csrf PUT/DELETE; 409/422/503) | po-subart | F-015 | modules/admin/po-subart.js |
 | /api/moc-gio-sets[/copy,/unassigned-lines,/resolve,/{id},/{id}/lines] | moc-gio-sets | F-009 | admin/presets.js ? |
 | GET /api/bao-cao-history[/{id}] | history | F-004 | modules/history.js ? |
 | POST /api/import/{preview,confirm} | import | F-010 | admin/import.js |
 | GET /api/import-history[/{id}] | import | F-010 | admin/import-history.js |
-| GET /api/bieu-do/{so-sanh,ma-hang-list,lines,ca-list,so-sanh-chi-tiet,so-sanh-matrix} | bieu-do | F-012 | bieu-do.js |
+| GET /api/bieu-do/{so-sanh,ma-hang-list,lines,ca-list,so-sanh-chi-tiet,so-sanh-matrix} | bieu-do | F-012; F-015 (ma-hang-list mỗi báo cáo một dòng + bao_cao_id/po/subart; so-sanh* nhận bao_cao_id) | bieu-do.js |
 | /api/admin/{lines,users,user-lines,ma-hang,cong-doan,routing,moc-gio}[/{id}] | admin | F-005…F-008 | modules/admin/*.js |
 | POST /api/admin/bao-cao/bulk-create | admin | F-011 | admin/bulk-create.js |
 | /api/user-permissions[/bulk,/{id},/{id}/{quyen}] | permissions | F-013 | admin/permissions.js ? |
@@ -56,7 +59,7 @@ Nguồn sự thật: `config/routes.php` (prefix `/baonangsuat/api`). Shape `{su
 DB `nang_suat` trừ khi ghi khác. Schema: `database/nang_suat_schema.sql` (+ `database/migrations/`). Writer/reader lấy từ grep SQL trong `app/`; cột khoá đánh `?` là chưa kiểm.
 | Table | Key columns | Defined by | Written by | Read by |
 |---|---|---|---|---|
-| bao_cao_nang_suat | id, line_id ?, ca_id ?, ma_hang_id ?, version, routing_snapshot, ket_qua_luy_ke | (legacy) | NangSuatService | NangSuat, History, Chart, Import, Line, MaHang, CongDoan services |
+| bao_cao_nang_suat | id, line_id, ca_id, ma_hang_id, po_number?, sub_art_code?, version, routing_snapshot, ket_qua_luy_ke; uk_bao_cao (ngay, line, ca, ma_hang, po_key, sub_art_key) | (legacy); F-015 migration 013 | NangSuatService | NangSuat, History, Chart, Import, Line, MaHang, CongDoan services |
 | nhap_lieu_nang_suat | bao_cao_id, cong_doan_id, moc_gio_id, so_luong | (legacy) | NangSuatService | NangSuat, History, Chart, Import, CongDoan, MocGio(Set) services |
 | nhap_lieu_nang_suat_audit | ? | (legacy) | NangSuatService | NangSuatService |
 | line | id, ma_line, ten_line, is_active | (legacy) | LineService (sync từ HR) | Auth + hầu hết service |
@@ -71,6 +74,8 @@ DB `nang_suat` trừ khi ghi khác. Schema: `database/nang_suat_schema.sql` (+ `
 | moc_gio_set | id, ca_id ?, is_default | migration 003 | MocGioSetService | MocGio, MocGioSet services |
 | line_moc_gio_set | line_id, set_id ? | migration 003 | MocGioSetService, LineService | MocGioSet, Line services |
 | import_history | id | migration 011 | ImportService | ImportService |
+| po_subart_so_luong | PK (po_number, ma_hang_id, sub_art_code), so_luong | migration 013 (F-015) | PoSubartService | ManualSubartSource, NangSuatService (khối po) |
+| purchase_orders, po_items, styles, sub_arts (Postgres datchi, chỉ đọc) | po_number / style_code / sub_art_code | hệ thống datchi | — | DatchiPoService |
 | user_permissions (DB mysqli) | ma_nv ?, quyen | migration 004 | UserPermissionsController | Auth, UserPermissionsController |
 | user (DB mysqli) | ma_nv | authV2 | authV2 | Auth |
 | nhan_vien, phong_ban (DB quan_ly_nhan_su, chỉ đọc) | ma_nv, phong_ban_ma / ma, ten | hệ thống HR | — | Auth, Import, User, Line services |
@@ -91,6 +96,7 @@ DB `nang_suat` trừ khi ghi khác. Schema: `database/nang_suat_schema.sql` (+ `
 | realtime-service + worker | modules/realtime-service.js, workers/realtime-worker.js | (legacy) | các trang có đồng hồ server |
 | modal, utils, admin-utils, time-manager, network-monitor | modules/*.js | (legacy) | app.js, admin.js |
 | admin state | modules/admin/state.js | (legacy) | modules/admin/* |
+| admin po-subart (tab SL Subart, deps ma-hang) | modules/admin/po-subart.js | F-015 | admin.js, navbar mục "SL Subart" |
 | PHP UI components | components/*.php (toast, modal-base, confirm-modal, tabs, status-badge, line-preset-table…) | (legacy) | views/ |
 
 ## Architecture rules
@@ -110,7 +116,9 @@ DB `nang_suat` trừ khi ghi khác. Schema: `database/nang_suat_schema.sql` (+ `
 | Routing | Danh sách công đoạn của mã hàng; snapshot vào báo cáo lúc tạo | Router HTTP / Router hash JS |
 | Mốc giờ | Mốc thời gian trong ca để nhập sản lượng | Preset mốc giờ |
 | Preset mốc giờ (moc_gio_set) | Bộ mốc giờ theo ca, gán cho LINE; fallback về set `is_default=1` | — |
-| Lũy kế | Sản lượng cộng dồn theo mốc, chỉ công đoạn `la_cong_doan_tinh_luy_ke=1` | Tổng mọi công đoạn |
+| Lũy kế | Sản lượng cộng dồn theo mốc, chỉ công đoạn `la_cong_doan_tinh_luy_ke=1`; ô nhập đã là lũy kế tại mốc → tổng báo cáo = số ở mốc muộn nhất đã nhập | Tổng mọi công đoạn; SUM các mốc |
+| PO / Style / Subart | Đơn hàng datchi / = mã hàng (khớp UPPER(TRIM) style_code) / biến thể của style | — |
+| Lũy kế PO | Σ thành phẩm (mốc cuối) các báo cáo cùng PO + mã hàng (+ subart) | Lũy kế trong ca |
 | Kết quả lũy kế | JSON chốt lúc submit (`ket_qua_luy_ke`): chỉ tiêu vs thực tế từng mốc | Tính lại lúc xem (fallback khi null) |
 | LĐ / CTNS | Lao động / chỉ tiêu năng suất; import theo LINE, tự điền khi tạo báo cáo | — |
 | ma_nv | Mã nhân viên, luôn UPPER(TRIM) | — |

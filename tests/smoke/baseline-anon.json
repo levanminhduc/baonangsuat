@@ -135,7 +135,7 @@
             "content-type": "text/javascript"
         },
         "body": {
-            "sha1": "b2f19d0436acb2901ef94455bb783357ef3156e7"
+            "sha1": "15ab01b14d6b1415376ac689c111f5d1c7648daf"
         }
     },
     "GET /assets/js/modules/api.js": {
@@ -144,7 +144,7 @@
             "content-type": "text/javascript"
         },
         "body": {
-            "sha1": "66c44be5deaa7165ec675a706af3bd84a3bb3f1f"
+            "sha1": "d29ee72f392a796b5d50c7b71f19d1b374b395db"
         }
     },
     "GET /assets/js/workers/realtime-worker.js": {
@@ -153,7 +153,7 @@
             "content-type": "text/javascript"
         },
         "body": {
-            "sha1": "7144276c20796af35dda6e267bd26f4b9d122782"
+            "sha1": "f9c034d7d97cf47e197c040db6bfdff86e2ed84d"
         }
     },
     "GET /assets/tailwind/dist/main.css": {
@@ -162,7 +162,7 @@
             "content-type": "text/css"
         },
         "body": {
-            "sha1": "e50588edf36f9c4b81edcd3937e51570a91a1be3"
+            "sha1": "abe46c6d816823141d466960ba524c60df7acead"
         }
     },
     "GET /img/logoht.svg": {
@@ -171,7 +171,7 @@
             "content-type": "image/svg+xml"
         },
         "body": {
-            "sha1": "084bdcd4d913e5fb441fe27d64b08561fad1c916"
+            "sha1": "3e07d910f75a450233212e2254b7688c63b57871"
         }
     },
     "GET /classes/Auth.php": {
@@ -747,6 +747,40 @@
             "message": "Chưa đăng nhập"
         }
     },
+    "GET /api/danh-muc/po?ma_hang_id=1": {
+        "status": 401,
+        "headers": {
+            "content-type": "application/json; charset=utf-8",
+            "cache-control": "no-store, no-cache, must-revalidate",
+            "x-frame-options": "DENY",
+            "x-content-type-options": "nosniff",
+            "access-control-allow-origin": "*",
+            "access-control-allow-credentials": "true",
+            "access-control-allow-methods": "GET, POST, PUT, DELETE, OPTIONS",
+            "access-control-allow-headers": "Content-Type"
+        },
+        "body": {
+            "success": false,
+            "message": "Chưa đăng nhập"
+        }
+    },
+    "GET /api/danh-muc/po-subart?ma_hang_id=1&po_number=X": {
+        "status": 401,
+        "headers": {
+            "content-type": "application/json; charset=utf-8",
+            "cache-control": "no-store, no-cache, must-revalidate",
+            "x-frame-options": "DENY",
+            "x-content-type-options": "nosniff",
+            "access-control-allow-origin": "*",
+            "access-control-allow-credentials": "true",
+            "access-control-allow-methods": "GET, POST, PUT, DELETE, OPTIONS",
+            "access-control-allow-headers": "Content-Type"
+        },
+        "body": {
+            "success": false,
+            "message": "Chưa đăng nhập"
+        }
+    },
     "GET /api/admin/lines": {
         "status": 401,
         "headers": {
@@ -1071,6 +1105,23 @@
         }
     },
     "GET /api/admin/routing?ma_hang_id=1": {
+        "status": 401,
+        "headers": {
+            "content-type": "application/json; charset=utf-8",
+            "cache-control": "no-store, no-cache, must-revalidate",
+            "x-frame-options": "DENY",
+            "x-content-type-options": "nosniff",
+            "access-control-allow-origin": "*",
+            "access-control-allow-credentials": "true",
+            "access-control-allow-methods": "GET, POST, PUT, DELETE, OPTIONS",
+            "access-control-allow-headers": "Content-Type"
+        },
+        "body": {
+            "success": false,
+            "message": "Chưa đăng nhập"
+        }
+    },
+    "GET /api/admin/po-subart?ma_hang_id=1&po_number=X": {
         "status": 401,
         "headers": {
             "content-type": "application/json; charset=utf-8",

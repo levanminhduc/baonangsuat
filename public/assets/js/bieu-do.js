@@ -17,7 +17,8 @@ class BieuDoApp {
             line_id: null,
             ma_hang_id: null,
             ngay: null,
-            ca_id: null
+            ca_id: null,
+            bao_cao_id: null
         };
         this.maHangList = [];
         this.isAdmin = window.appConfig?.isAdmin ?? false;
@@ -53,6 +54,19 @@ class BieuDoApp {
     // =====================
     
     /**
+     * Tìm dòng trong danh sách mã hàng: ưu tiên bao_cao_id; URL cũ không có thì lấy báo cáo đầu của mã hàng + ca
+     */
+    findMaHangItem(maHangId, caId, baoCaoId) {
+        if (baoCaoId) {
+            const byId = this.maHangList.find(i => i.bao_cao_id === baoCaoId && i.id === maHangId && i.ca_id === caId);
+            if (byId) {
+                return byId;
+            }
+        }
+        return this.maHangList.find(i => i.id === maHangId && i.ca_id === caId) || null;
+    }
+    
+    /**
      * Parse query params and populate this.filters
      * Read line_id, ngay, ma_hang_id, ca_id from URL
      */
@@ -64,7 +78,8 @@ class BieuDoApp {
             line_id: params.get('line_id') ? parseInt(params.get('line_id')) : null,
             ngay: params.get('ngay') || null,
             ma_hang_id: params.get('ma_hang_id') ? parseInt(params.get('ma_hang_id')) : null,
-            ca_id: params.get('ca_id') ? parseInt(params.get('ca_id')) : null
+            ca_id: params.get('ca_id') ? parseInt(params.get('ca_id')) : null,
+            bao_cao_id: params.get('bao_cao_id') ? parseInt(params.get('bao_cao_id')) : null
         };
         
         // Apply ngay from URL if present, otherwise use today's date (from input default)
@@ -99,6 +114,9 @@ class BieuDoApp {
         if (this.filters.ca_id) {
             params.set('ca_id', this.filters.ca_id);
         }
+        if (this.filters.bao_cao_id) {
+            params.set('bao_cao_id', this.filters.bao_cao_id);
+        }
         
         const queryString = params.toString();
         const newUrl = queryString 
@@ -131,18 +149,18 @@ class BieuDoApp {
             this.elements.filterLine.value = this.filters.line_id;
         }
         
-        // Sync Ma Hang dropdown - construct composite value "{ma_hang_id}_{ca_id}"
+        // Sync Ma Hang dropdown - option value = bao_cao_id
         if (this.filters.ma_hang_id && this.filters.ca_id && this.elements.filterMaHang) {
-            const compositeValue = `${this.filters.ma_hang_id}_${this.filters.ca_id}`;
-            const optionExists = Array.from(this.elements.filterMaHang.options)
-                .some(opt => opt.value === compositeValue);
+            const item = this.findMaHangItem(this.filters.ma_hang_id, this.filters.ca_id, this.filters.bao_cao_id);
             
-            if (optionExists) {
-                this.elements.filterMaHang.value = compositeValue;
+            if (item) {
+                this.filters.bao_cao_id = item.bao_cao_id;
+                this.elements.filterMaHang.value = String(item.bao_cao_id);
             } else {
                 // Invalid ma_hang_id from URL - clear it
                 this.filters.ma_hang_id = null;
                 this.filters.ca_id = null;
+                this.filters.bao_cao_id = null;
             }
         }
     }
@@ -174,6 +192,7 @@ class BieuDoApp {
                 if (this.urlFilters.ma_hang_id && this.urlFilters.ca_id) {
                     this.filters.ma_hang_id = this.urlFilters.ma_hang_id;
                     this.filters.ca_id = this.urlFilters.ca_id;
+                    this.filters.bao_cao_id = this.urlFilters.bao_cao_id;
                     this.syncUIWithFilters();
                     
                     // Auto-load chart if all filters are valid
@@ -269,14 +288,16 @@ class BieuDoApp {
         
         // Ma Hang change - update ca_id
         this.elements.filterMaHang.addEventListener('change', () => {
-            const selected = this.elements.filterMaHang.value;
-            if (selected) {
-                const [maHangId, caId] = selected.split('_');
-                this.filters.ma_hang_id = parseInt(maHangId);
-                this.filters.ca_id = parseInt(caId);
+            const selected = parseInt(this.elements.filterMaHang.value);
+            const item = selected ? this.maHangList.find(i => i.bao_cao_id === selected) : null;
+            if (item) {
+                this.filters.ma_hang_id = item.id;
+                this.filters.ca_id = item.ca_id;
+                this.filters.bao_cao_id = item.bao_cao_id;
             } else {
                 this.filters.ma_hang_id = null;
                 this.filters.ca_id = null;
+                this.filters.bao_cao_id = null;
             }
         });
         
@@ -353,14 +374,13 @@ class BieuDoApp {
         
         // After ma_hang list loads, select from URL and auto-load chart if all params present
         if (this.urlFilters.ma_hang_id && this.urlFilters.ca_id && this.maHangList.length > 0) {
-            const compositeValue = `${this.urlFilters.ma_hang_id}_${this.urlFilters.ca_id}`;
-            const optionExists = Array.from(this.elements.filterMaHang.options)
-                .some(opt => opt.value === compositeValue);
+            const item = this.findMaHangItem(this.urlFilters.ma_hang_id, this.urlFilters.ca_id, this.urlFilters.bao_cao_id);
             
-            if (optionExists) {
-                this.filters.ma_hang_id = this.urlFilters.ma_hang_id;
-                this.filters.ca_id = this.urlFilters.ca_id;
-                this.elements.filterMaHang.value = compositeValue;
+            if (item) {
+                this.filters.ma_hang_id = item.id;
+                this.filters.ca_id = item.ca_id;
+                this.filters.bao_cao_id = item.bao_cao_id;
+                this.elements.filterMaHang.value = String(item.bao_cao_id);
                 
                 // Auto-load chart if all required params are present in URL
                 if (this.hasAllRequiredFilters()) {
@@ -400,6 +420,7 @@ class BieuDoApp {
         this.elements.filterMaHang.innerHTML = '<option value="">-- Chọn mã hàng --</option>';
         this.filters.ma_hang_id = null;
         this.filters.ca_id = null;
+        this.filters.bao_cao_id = null;
         
         if (!lineId || !ngay) {
             return;
@@ -418,9 +439,15 @@ class BieuDoApp {
                 this.elements.filterMaHang.innerHTML = '<option value="">-- Chọn mã hàng --</option>';
                 response.data.forEach(item => {
                     const option = document.createElement('option');
-                    // Store both ma_hang_id and ca_id in value
-                    option.value = `${item.id}_${item.ca_id}`;
-                    option.textContent = `${item.ma_hang} - ${item.ten_hang} (${item.ca_ten})`;
+                    option.value = String(item.bao_cao_id);
+                    let label = `${item.ma_hang} - ${item.ten_hang} (${item.ca_ten})`;
+                    if (item.po_number) {
+                        label += ` · PO ${item.po_number}`;
+                    }
+                    if (item.sub_art_code) {
+                        label += ` · ${item.sub_art_code}`;
+                    }
+                    option.textContent = label;
                     this.elements.filterMaHang.appendChild(option);
                 });
             }
@@ -431,7 +458,7 @@ class BieuDoApp {
     }
     
     async loadChartData() {
-        const { line_id, ma_hang_id, ngay, ca_id } = this.filters;
+        const { line_id, ma_hang_id, ngay, ca_id, bao_cao_id } = this.filters;
         
         // Validate filters
         if (!line_id) {
@@ -467,7 +494,7 @@ class BieuDoApp {
         }
         
         try {
-            const response = await api('GET', `/bieu-do/so-sanh?line_id=${line_id}&ma_hang_id=${ma_hang_id}&ngay=${ngay}&ca_id=${ca_id}`);
+            const response = await api('GET', `/bieu-do/so-sanh?line_id=${line_id}&ma_hang_id=${ma_hang_id}&ngay=${ngay}&ca_id=${ca_id}${bao_cao_id ? `&bao_cao_id=${bao_cao_id}` : ''}`);
             
             if (response.success) {
                 this.renderChart(response.data);
@@ -491,7 +518,7 @@ class BieuDoApp {
     }
     
     async loadCongDoanData() {
-        const { line_id, ma_hang_id, ngay, ca_id } = this.filters;
+        const { line_id, ma_hang_id, ngay, ca_id, bao_cao_id } = this.filters;
         
         // Skip if filters are not valid
         if (!line_id || !ma_hang_id || !ca_id) {
@@ -508,6 +535,9 @@ class BieuDoApp {
                 ngay: ngay,
                 ca_id: ca_id
             });
+            if (bao_cao_id) {
+                params.set('bao_cao_id', bao_cao_id);
+            }
             
             const response = await api('GET', `/bieu-do/so-sanh-chi-tiet?${params}`);
             
@@ -864,7 +894,7 @@ class BieuDoApp {
     }
     
     async loadMatrixData() {
-        const { line_id, ma_hang_id, ngay, ca_id } = this.filters;
+        const { line_id, ma_hang_id, ngay, ca_id, bao_cao_id } = this.filters;
         
         // Skip if filters are not valid
         if (!line_id || !ma_hang_id || !ca_id) {
@@ -886,6 +916,9 @@ class BieuDoApp {
                 ngay: ngay,
                 ca_id: ca_id
             });
+            if (bao_cao_id) {
+                params.set('bao_cao_id', bao_cao_id);
+            }
             
             const response = await api('GET', `/bieu-do/so-sanh-matrix?${params}`);
             loading.classList.add('hidden');
@@ -1005,6 +1038,9 @@ class BieuDoApp {
             ngay: this.filters.ngay,
             ca_id: this.filters.ca_id
         });
+        if (this.filters.bao_cao_id) {
+            params.set('bao_cao_id', this.filters.bao_cao_id);
+        }
         
         try {
             const response = await api('GET', `/bieu-do/so-sanh-matrix?${params}`);

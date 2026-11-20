@@ -22,28 +22,10 @@ class ChartService
      * @param int $ca_id Shift ID
      * @return array Chart data response
      */
-    public function getProductivityComparison($line_id, $ma_hang_id, $ngay, $ca_id)
+    public function getProductivityComparison($line_id, $ma_hang_id, $ngay, $ca_id, $bao_cao_id = null)
     {
         // 1. Get report for the given filters
-        $stmt = mysqli_prepare(
-            $this->db,
-            'SELECT bc.id, bc.line_id, bc.ma_hang_id, bc.ca_id, bc.ngay_bao_cao,
-                    bc.ctns, bc.tong_phut_hieu_dung, bc.ct_gio, bc.so_lao_dong, bc.routing_snapshot,
-                    l.ma_line, l.ten_line,
-                    mh.ma_hang, mh.ten_hang,
-                    c.ma_ca, c.ten_ca
-             FROM bao_cao_nang_suat bc
-             JOIN line l ON l.id = bc.line_id
-             JOIN ma_hang mh ON mh.id = bc.ma_hang_id
-             JOIN ca_lam c ON c.id = bc.ca_id
-             WHERE bc.line_id = ? AND bc.ma_hang_id = ? AND bc.ngay_bao_cao = ? AND bc.ca_id = ?
-             LIMIT 1',
-        );
-        mysqli_stmt_bind_param($stmt, 'iisi', $line_id, $ma_hang_id, $ngay, $ca_id);
-        mysqli_stmt_execute($stmt);
-        $result = mysqli_stmt_get_result($stmt);
-        $baoCao = mysqli_fetch_assoc($result);
-        mysqli_stmt_close($stmt);
+        $baoCao = $this->findReportForChart($line_id, $ma_hang_id, $ngay, $ca_id, $bao_cao_id);
 
         if (!$baoCao) {
             return [
@@ -144,6 +126,37 @@ class ChartService
         ];
     }
 
+    // Có bao_cao_id thì chọn đúng báo cáo (một ngày/ca/mã hàng có thể có nhiều PO/subart); vẫn ràng line để không xem chéo LINE.
+    private function findReportForChart($line_id, $ma_hang_id, $ngay, $ca_id, $bao_cao_id)
+    {
+        $select = 'SELECT bc.id, bc.line_id, bc.ma_hang_id, bc.ca_id, bc.ngay_bao_cao,
+                    bc.ctns, bc.tong_phut_hieu_dung, bc.ct_gio, bc.so_lao_dong, bc.routing_snapshot,
+                    l.ma_line, l.ten_line,
+                    mh.ma_hang, mh.ten_hang,
+                    c.ma_ca, c.ten_ca
+             FROM bao_cao_nang_suat bc
+             JOIN line l ON l.id = bc.line_id
+             JOIN ma_hang mh ON mh.id = bc.ma_hang_id
+             JOIN ca_lam c ON c.id = bc.ca_id ';
+
+        if ($bao_cao_id) {
+            $stmt = mysqli_prepare($this->db, $select . 'WHERE bc.id = ? AND bc.line_id = ? LIMIT 1');
+            mysqli_stmt_bind_param($stmt, 'ii', $bao_cao_id, $line_id);
+        } else {
+            $stmt = mysqli_prepare(
+                $this->db,
+                $select . 'WHERE bc.line_id = ? AND bc.ma_hang_id = ? AND bc.ngay_bao_cao = ? AND bc.ca_id = ? LIMIT 1',
+            );
+            mysqli_stmt_bind_param($stmt, 'iisi', $line_id, $ma_hang_id, $ngay, $ca_id);
+        }
+        mysqli_stmt_execute($stmt);
+        $result = mysqli_stmt_get_result($stmt);
+        $baoCao = mysqli_fetch_assoc($result);
+        mysqli_stmt_close($stmt);
+
+        return $baoCao;
+    }
+
     /**
      * Get list of ma_hang that have reports for a given LINE and date
      *
@@ -155,12 +168,12 @@ class ChartService
     {
         $stmt = mysqli_prepare(
             $this->db,
-            'SELECT DISTINCT mh.id, mh.ma_hang, mh.ten_hang, bc.ca_id, c.ten_ca, c.ma_ca
+            'SELECT bc.id AS bao_cao_id, bc.po_number, bc.sub_art_code, mh.id, mh.ma_hang, mh.ten_hang, bc.ca_id, c.ten_ca, c.ma_ca
              FROM bao_cao_nang_suat bc
              JOIN ma_hang mh ON mh.id = bc.ma_hang_id
              JOIN ca_lam c ON c.id = bc.ca_id
              WHERE bc.line_id = ? AND bc.ngay_bao_cao = ?
-             ORDER BY c.id, mh.ma_hang',
+             ORDER BY c.id, mh.ma_hang, bc.po_number, bc.sub_art_code',
         );
         mysqli_stmt_bind_param($stmt, 'is', $line_id, $ngay);
         mysqli_stmt_execute($stmt);
@@ -175,6 +188,9 @@ class ChartService
                 'ca_id' => intval($row['ca_id']),
                 'ca_ten' => $row['ten_ca'],
                 'ca_ma' => $row['ma_ca'],
+                'bao_cao_id' => intval($row['bao_cao_id']),
+                'po_number' => $row['po_number'],
+                'sub_art_code' => $row['sub_art_code'],
             ];
         }
         mysqli_stmt_close($stmt);
@@ -367,28 +383,10 @@ class ChartService
      *   'ngay' => string
      * ]
      */
-    public function getProductivityComparisonMatrix($line_id, $ma_hang_id, $ngay, $ca_id)
+    public function getProductivityComparisonMatrix($line_id, $ma_hang_id, $ngay, $ca_id, $bao_cao_id = null)
     {
         // 1. Get report for the given filters
-        $stmt = mysqli_prepare(
-            $this->db,
-            'SELECT bc.id, bc.line_id, bc.ma_hang_id, bc.ca_id, bc.ngay_bao_cao,
-                    bc.ctns, bc.tong_phut_hieu_dung, bc.ct_gio, bc.so_lao_dong, bc.routing_snapshot,
-                    l.ma_line, l.ten_line,
-                    mh.ma_hang, mh.ten_hang,
-                    c.ma_ca, c.ten_ca
-             FROM bao_cao_nang_suat bc
-             JOIN line l ON l.id = bc.line_id
-             JOIN ma_hang mh ON mh.id = bc.ma_hang_id
-             JOIN ca_lam c ON c.id = bc.ca_id
-             WHERE bc.line_id = ? AND bc.ma_hang_id = ? AND bc.ngay_bao_cao = ? AND bc.ca_id = ?
-             LIMIT 1',
-        );
-        mysqli_stmt_bind_param($stmt, 'iisi', $line_id, $ma_hang_id, $ngay, $ca_id);
-        mysqli_stmt_execute($stmt);
-        $result = mysqli_stmt_get_result($stmt);
-        $baoCao = mysqli_fetch_assoc($result);
-        mysqli_stmt_close($stmt);
+        $baoCao = $this->findReportForChart($line_id, $ma_hang_id, $ngay, $ca_id, $bao_cao_id);
 
         if (!$baoCao) {
             return [
@@ -570,28 +568,10 @@ class ChartService
      *   ]
      * ]
      */
-    public function getProductivityComparisonDetailed($line_id, $ma_hang_id, $ngay, $ca_id)
+    public function getProductivityComparisonDetailed($line_id, $ma_hang_id, $ngay, $ca_id, $bao_cao_id = null)
     {
         // 1. Get report for the given filters
-        $stmt = mysqli_prepare(
-            $this->db,
-            'SELECT bc.id, bc.line_id, bc.ma_hang_id, bc.ca_id, bc.ngay_bao_cao,
-                    bc.ctns, bc.tong_phut_hieu_dung, bc.ct_gio, bc.so_lao_dong, bc.routing_snapshot,
-                    l.ma_line, l.ten_line,
-                    mh.ma_hang, mh.ten_hang,
-                    c.ma_ca, c.ten_ca
-             FROM bao_cao_nang_suat bc
-             JOIN line l ON l.id = bc.line_id
-             JOIN ma_hang mh ON mh.id = bc.ma_hang_id
-             JOIN ca_lam c ON c.id = bc.ca_id
-             WHERE bc.line_id = ? AND bc.ma_hang_id = ? AND bc.ngay_bao_cao = ? AND bc.ca_id = ?
-             LIMIT 1',
-        );
-        mysqli_stmt_bind_param($stmt, 'iisi', $line_id, $ma_hang_id, $ngay, $ca_id);
-        mysqli_stmt_execute($stmt);
-        $result = mysqli_stmt_get_result($stmt);
-        $baoCao = mysqli_fetch_assoc($result);
-        mysqli_stmt_close($stmt);
+        $baoCao = $this->findReportForChart($line_id, $ma_hang_id, $ngay, $ca_id, $bao_cao_id);
 
         if (!$baoCao) {
             return [

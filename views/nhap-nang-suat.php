@@ -188,6 +188,15 @@
                     <label for="modalMaHang" class="block text-sm font-medium text-gray-700">Mã hàng</label>
                     <select id="modalMaHang" required class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary transition-colors outline-none bg-white"></select>
                 </div>
+                <div class="form-group space-y-1">
+                    <label for="modalPo" class="block text-sm font-medium text-gray-700">PO</label>
+                    <select id="modalPo" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary transition-colors outline-none bg-white"></select>
+                    <p id="modalPoHint" class="hidden text-xs text-warning">Không kết nối được dữ liệu PO</p>
+                </div>
+                <div class="form-group space-y-1 hidden" id="modalSubartGroup">
+                    <label for="modalSubart" class="block text-sm font-medium text-gray-700">Subart</label>
+                    <select id="modalSubart" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary transition-colors outline-none bg-white"></select>
+                </div>
                 <div class="grid grid-cols-2 gap-4">
                     <div class="form-group space-y-1">
                         <label for="modalLaoDong" class="block text-sm font-medium text-gray-700">Số lao động</label>

@@ -38,7 +38,7 @@ class BaoCaoController
             $input['line_id'] = $session['line_id'];
         }
 
-        return new JsonResponse((new NangSuatService())->createBaoCao($input, $session['ma_nv']));
+        return $this->withStatus((new NangSuatService())->createBaoCao($input, $session['ma_nv']));
     }
 
     public function show(Request $request)
@@ -76,7 +76,7 @@ class BaoCaoController
         $input = $request->jsonBody();
         $version = $input['version'] ?? 1;
 
-        return new JsonResponse((new NangSuatService())->updateHeader($this->id($request), $input, $version));
+        return $this->withStatus((new NangSuatService())->updateHeader($this->id($request), $input, $version));
     }
 
     public function submit(Request $request)
@@ -107,6 +107,15 @@ class BaoCaoController
     public function destroy(Request $request)
     {
         return new JsonResponse((new NangSuatService())->deleteBaoCao($this->id($request)));
+    }
+
+    // Service trả 'status' (422/503) chỉ khi cần mã HTTP khác 200; không đưa vào body.
+    private function withStatus(array $result)
+    {
+        $status = $result['status'] ?? 200;
+        unset($result['status']);
+
+        return new JsonResponse($result, $status);
     }
 
     private function id(Request $request)

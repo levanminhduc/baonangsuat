@@ -3,6 +3,9 @@
 namespace App\Support;
 
 use Exception;
+use mysqli;
+use PDO;
+use PDOException;
 
 class Database
 {
@@ -84,10 +87,56 @@ class Database
         return self::$instances['nhan_su'];
     }
 
+    public static function getOptionalConfig($key)
+    {
+        try {
+            return self::getConfig()[$key] ?? null;
+        } catch (Exception $e) {
+            return null;
+        }
+    }
+
+    // Postgres master data datchi (PO/Style/Subart), chỉ đọc. Thiếu cấu hình/ext/lỗi kết nối → null để màn nhập chạy như cũ.
+    public static function getDatchi()
+    {
+        if (!array_key_exists('datchi', self::$instances)) {
+            self::$instances['datchi'] = self::connectDatchi();
+        }
+        return self::$instances['datchi'];
+    }
+
+    private static function connectDatchi()
+    {
+        $pg = self::getOptionalConfig('datchi_pg');
+        if (!extension_loaded('pdo_pgsql') || !is_array($pg) || empty($pg['host']) || empty($pg['dbname'])) {
+            return null;
+        }
+        $dsn = sprintf(
+            'pgsql:host=%s;port=%d;dbname=%s;connect_timeout=3',
+            $pg['host'],
+            intval($pg['port'] ?? 5432),
+            $pg['dbname'],
+        );
+        try {
+            $pdo = new PDO($dsn, $pg['user'] ?? '', $pg['password'] ?? '', [
+                PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
+                PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
+                // pdo_pgsql tự nối connect_timeout từ ATTR_TIMEOUT (mặc định 30s), đè tham số trong DSN
+                PDO::ATTR_TIMEOUT => 3,
+            ]);
+            $pdo->exec('SET statement_timeout = 3000');
+            $pdo->exec('SET default_transaction_read_only = on');
+            return $pdo;
+        } catch (PDOException $e) {
+            error_log('datchi: kết nối thất bại (SQLSTATE ' . $e->getCode() . ')');
+            return null;
+        }
+    }
+
     public static function closeAll()
     {
         foreach (self::$instances as $conn) {
-            if ($conn) {
+            if ($conn instanceof mysqli) {
                 mysqli_close($conn);
             }
         }
