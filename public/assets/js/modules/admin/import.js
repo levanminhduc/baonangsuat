@@ -331,7 +331,7 @@ function renderPreview(response) {
                                             <span class="text-gray-700 break-words">${escapeHtml(cd.ten_cong_doan)}</span>
                                         </div>
                                         <span class="text-xs whitespace-nowrap ${cd.is_new ? 'text-success font-medium bg-green-50 px-1.5 py-0.5 rounded border border-green-100' : 'text-gray-400 bg-white px-1.5 py-0.5 rounded border border-gray-200'}">
-                                            ${cd.ma_cong_doan} ${cd.is_new ? '(Mới)' : ''}
+                                            ${escapeHtml(cd.ma_cong_doan)} ${cd.is_new ? '(Mới)' : ''}
                                         </span>
                                     </div>
                                 `).join('')}
