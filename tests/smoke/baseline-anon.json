@@ -117,7 +117,7 @@
             "content-type": "text/css"
         },
         "body": {
-            "sha1": "99d43f8c6c3048f9b9a9551d1ae8cd8b6790ebe6"
+            "sha1": "cdca380e888bd0775b3f4c63afbf9715624c7489"
         }
     },
     "GET /assets/css/admin.css": {
@@ -126,7 +126,7 @@
             "content-type": "text/css"
         },
         "body": {
-            "sha1": "a75747a4e4432c666bcbc01255a0d4466aade6f4"
+            "sha1": "b3af237f042469a623ba4413aabb2efdcfe56fed"
         }
     },
     "GET /assets/js/app.js": {
@@ -144,7 +144,7 @@
             "content-type": "text/javascript"
         },
         "body": {
-            "sha1": "b1f5e4377ee64b166119cfcf2efc74d1f8cd5c5b"
+            "sha1": "325d8bab7edee623c2c0f1f57cf617655f5b7270"
         }
     },
     "GET /assets/js/workers/realtime-worker.js": {
@@ -153,7 +153,7 @@
             "content-type": "text/javascript"
         },
         "body": {
-            "sha1": "f9c034d7d97cf47e197c040db6bfdff86e2ed84d"
+            "sha1": "7144276c20796af35dda6e267bd26f4b9d122782"
         }
     },
     "GET /assets/tailwind/dist/app.css": {
@@ -189,7 +189,7 @@
             "content-type": "image/svg+xml"
         },
         "body": {
-            "sha1": "3e07d910f75a450233212e2254b7688c63b57871"
+            "sha1": "084bdcd4d913e5fb441fe27d64b08561fad1c916"
         }
     },
     "GET /classes/Auth.php": {
@@ -229,12 +229,12 @@
         }
     },
     "GET /includes/navbar.php": {
-        "status": 403,
+        "status": 404,
         "headers": {
             "content-type": "text/html; charset=iso-8859-1"
         },
         "body": {
-            "html_title": "403 Forbidden"
+            "html_title": "404 Not Found"
         }
     },
     "GET /tools/smoke.php": {
@@ -255,7 +255,7 @@
             "html_title": "403 Forbidden"
         }
     },
-    "GET /.scratch/folder-structure/spec.md": {
+    "GET /.scratch/": {
         "status": 403,
         "headers": {
             "content-type": "text/html; charset=iso-8859-1"

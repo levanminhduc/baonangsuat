@@ -10,7 +10,7 @@ DirectoryIndex index.php
 RewriteEngine On
 
 # (1) Chặn truy cập trực tiếp thư mục code/dữ liệu ngoài web root → 403
-RewriteRule ^(app|bootstrap|components|config|database|docs|includes|tests|tools|vendor|views)(/.*)?$ - [F,L]
+RewriteRule ^(app|bootstrap|components|config|database|docs|tests|tools|vendor|views)(/.*)?$ - [F,L]
 
 # (2) Chặn mọi dotfile/dot-dir: .git/, .gitignore, .htaccess, .claude/, .scratch/ ...
 RewriteRule (^|/)\. - [F,L]

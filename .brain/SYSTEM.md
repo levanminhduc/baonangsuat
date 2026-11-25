@@ -4,7 +4,7 @@
      Giữ dạng bảng, mỗi mục một dòng. Lý do nằm ở DECISIONS.md, mẹo nằm ở KNOWLEDGE.md. -->
 
 Status: READY
-Last updated: 2026-11-25 by /go F-016
+Last updated: 2026-11-25 by /go F-017
 Synced at commit: 9765f3d
 
 ## Modules
@@ -28,7 +28,7 @@ Synced at commit: 9765f3d
 | fe-app | public/assets/js/app.js (entry) + modules/nhap/{report-list,create-modal,po-editor,editor,autosave,workflow}.js + modules/ | NangSuatApp: màn nhập năng suất, grid auto-save, lịch sử, lũy kế | F-002 |
 | fe-admin | public/assets/js/admin.js + modules/admin/ | Admin SPA, module lazy-load theo `deps` | F-005 |
 | fe-chart | public/assets/js/bieu-do.js (entry) + modules/bieu-do/{state,format,filters,data,charts,chart-type,matrix}.js; Chart.js tại assets/vendor | Trang biểu đồ | F-012 |
-| tests-tools | tests/php, tests/smoke, tools/ | Unit/structure test, smoke so baseline HTTP, build CSS | (legacy) |
+| tests-tools | tests/php, tests/smoke, tools/ | Unit/structure test, smoke so baseline HTTP, build CSS, `tools/computed-style-dump.js` (so computed style toàn DOM before/after qua Playwright `browser_run_code`) | (legacy) |
 
 ## Shared contracts
 

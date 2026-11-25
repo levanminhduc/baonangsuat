@@ -1,5 +1,5 @@
 # F-017 Dọn thư mục gốc và chuẩn hoá xuống dòng
-Status: APPROVED   <!-- bạn đổi thành APPROVED để /go chạy. DOC = chỉ giữ làm tài liệu, không chạy -->
+Status: DONE
 Related: F-016 extends (dọn kho) · F-018, F-019 depends on (chạy sau việc này)
 Complexity: standard
 Risk: normal
@@ -55,6 +55,8 @@ Sau F-016 gốc repo còn rác local (exe 129 MB trùng, ảnh/log Playwright), 
 ## 7. Plan
 Không có S1 (test): việc này không đổi hành vi code; AC kiểm bằng lệnh.
 
+Amended (run): thứ tự chạy S3 → S1 → S2 → S4 → S5 vì `reset --hard` của S3 xoá thay đổi chưa commit của bước khác; /go không commit giữa bước.
+
 ### S1 [opus] Xoá rác local, giữ script so computed-style
 Files: `tailwindcss-windows-x64.exe`, `.superpowers/`, `.playwright-mcp/`, `tools/computed-style-dump.js` (mới)
 Do: (1) chép `.playwright-mcp/cmp.js` → `tools/computed-style-dump.js`, đổi hằng `S` (dòng 2, đang là `.playwright-mcp/`) thành thư mục xuất nhận từ tham số/biến đầu file, thêm 3 dòng đầu file nói cách chạy qua Playwright `browser_run_code`. (2) Liệt kê `.superpowers/` và `.playwright-mcp/`; nếu có file không phải log/ảnh/yml/script `live*.js` tạm → DỪNG hỏi. (3) Xoá `tailwindcss-windows-x64.exe` (đã có `tools/tailwindcss.exe` — kiểm `tools\build-css.bat` chạy được trước khi xoá), `.superpowers/`, nội dung `.playwright-mcp/`. (Orchestrator làm vì là thao tác xoá file không nằm trong git.)
@@ -75,12 +77,14 @@ Done when: AC2, AC6.
 Files: `.scratch/folder-structure/**` → `docs/archive/folder-structure/**`, `tests/php/structure_test.php:2`
 Example: `docs/archive/superpowers/` (cách F-016 chuyển bằng `git mv`)
 Do: `git mv .scratch/folder-structure docs/archive/folder-structure`; sửa comment dòng 2 của `structure_test.php` trỏ đường dẫn mới. Commit `git mv` tách khỏi commit sửa comment.
+Amended: thêm `tests/smoke/urls.txt:34` → `GET /.scratch/` (vẫn kiểm chặn dot-dir) + chụp lại baseline-anon; `git mv` để staged, /ship tách commit.
 Check: `git ls-files .scratch` rỗng VÀ `rg -n "\.scratch/folder-structure" tests app docs/agents CLAUDE.md AGENTS.md` = 0 VÀ `php tests/php/run.php structure` pass (AC4).
 
 ### S5 [haiku] Sửa rule hỏng ký tự, .htaccess, xoá script banner
 Files: `.claude/rules/tailwind-js.md:7`, `.htaccess:13`, `tools/generate-project-banner.py`
 Example: `CLAUDE.md` dòng "tools\build-css.bat" (cách viết đúng)
 Do: dòng 7 của rule: thay hai chuỗi hỏng bằng `tools\build-css.bat` và `tools\tailwindcss.exe`. `.htaccess:13`: bỏ `includes|` khỏi nhóm, không đổi gì khác. `git rm tools/generate-project-banner.py`.
+Amended: `/includes/navbar.php` 403 → 404 (thư mục không tồn tại) — chấp nhận, chụp lại baseline-anon; rule `.claude/` do orchestrator sửa (subagent không ghi `.claude/`).
 Check: `rg -n -F "tools\build-css.bat" .claude/rules/tailwind-js.md` = 1 dòng; `rg -n "includes" .htaccess` = 0; `php tools/smoke.php` khớp baseline; lệnh curl ở AC5 = 403.
 
 ### S6 [opus] Update brain
