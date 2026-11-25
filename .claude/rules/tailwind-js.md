@@ -4,7 +4,7 @@
 
 - Không CDN. Mọi trang nạp một file `public/assets/tailwind/dist/app.css` qua `views/layouts/app.php`
   (file dist ĐƯỢC commit; server không cần build).
-- Build: `toolsuild-css.bat` chạy `tools	ailwindcss.exe` (v4) với `public/assets/tailwind/src/app.css`.
+- Build: `tools\build-css.bat` chạy `tools\tailwindcss.exe` (v4) với `public/assets/tailwind/src/app.css`.
   Đổi class trong `views/`, `components/`, `public/assets/js/` → build lại và commit `dist/app.css`.
 - Thứ tự `@import` trong `src/app.css` là hợp đồng, tất cả KHÔNG nằm trong layer: CSS tay
   (`public/assets/css/*.css`) → preflight → `v3-compat.css` → utility → `v3-space.css`. CSS tay có

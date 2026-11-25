@@ -46,3 +46,8 @@ Rejected: thư viện DI ngoài (thừa cho quy mô này); giữ facade AdminSer
 Date: 2026-11-25 · Status: Active · Scope: fe-app, fe-admin, views · From: F-016
 Why: handler inline buộc hàm phải global và chặn việc siết CSP; HTML sinh từ JS nối chuỗi tham số dễ XSS. Tham số đi qua `data-args` (JSON đã escape).
 Rejected: giữ inline cho HTML sinh từ JS.
+
+### D-008 Xuống dòng LF cho mọi file text qua `.gitattributes`
+Date: 2026-11-25 · Status: Active · Scope: repo · From: F-017
+Why: `core.autocrlf=true` (cấu hình máy) làm working tree lẫn CRLF/LF trong khi index toàn LF → cs-fixer báo sai, Edit không khớp chuỗi, smoke lệch hash. `* text=auto eol=lf` + `*.bat text eol=crlf` + binary xlsx/exe/png; index không đổi nội dung.
+Rejected: giữ autocrlf (mỗi máy một kiểu); `eol=crlf` (PSR-12 đòi LF).

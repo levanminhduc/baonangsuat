@@ -23,7 +23,7 @@
 - [test] Thao tác ghi (POST/PUT/DELETE, import confirm) không chạy bằng phiên thật; để user thử tay — .claude/rules/refactor-verification-gates.md · brain-init · 2026-11-14
 
 ## Bẫy trong code
-- [git] `core.autocrlf=true` → nhiều file checkout CRLF: `php-cs-fixer --dry-run` báo hàng loạt file (false positive), Edit tool không khớp chuỗi nhiều dòng (sửa bằng script newline=''), smoke lệch hash body asset. Kiểm file mới: `--config=.php-cs-fixer.dist.php --path-mode=intersection <files>` — F-015 · 2026-11-14
+- [obsolete F-017: `.gitattributes` eol=lf] [git] `core.autocrlf=true` → nhiều file checkout CRLF: `php-cs-fixer --dry-run` báo hàng loạt file (false positive), Edit tool không khớp chuỗi nhiều dòng (sửa bằng script newline=''), smoke lệch hash body asset. Kiểm file mới: `--config=.php-cs-fixer.dist.php --path-mode=intersection <files>` — F-015 · 2026-11-14
 - [js] Ô nhập grid là lũy kế tại mốc: tổng báo cáo = số ở mốc muộn nhất đã nhập (grid.rowTotal, calculateLuyKeThucTe), KHÔNG SUM các mốc — public/assets/js/modules/grid.js:174 · F-015 · 2026-11-14
 - [php] `NangSuatService::updateHeader` mặc định so_lao_dong/ctns = 0 khi thiếu → mọi PUT header phải gửi lại cả hai — app/Services/NangSuatService.php · F-015 · 2026-11-14
 - [php] `JsonResponse` final + strict_types; service trả mảng có `status` thì controller bóc ra làm HTTP status (BaoCaoController::withStatus, PoSubartController::toResponse) — F-015 · 2026-11-14
@@ -45,4 +45,8 @@
 - [test] Kiểm trang đã đăng nhập không cần cookie: PHP built-in server + phiên giả (reflection vào Auth) + `BNS_DB_CONFIG` trỏ DB `*_test`; DB test thiếu bảng HR (`phong_ban`, `nhan_vien`, `user`) nên tab LINE/User cần bảng giả — tests/php/support/db.php · F-016 · 2026-11-25
 - [tool] Git Bash đổi pattern `rg` bắt đầu bằng `/` thành đường dẫn Windows: viết `[/]baonangsuat` · F-016 · 2026-11-25
 - [tool] `.gitignore` phải neo `/vendor/`; `vendor/` trần nuốt luôn public/assets/vendor · F-016 · 2026-11-25
-- [php] cs-fixer báo cả file khi working tree là CRLF (autocrlf); chạy `fix` đổi sang LF là đủ, git không ghi nhận thay đổi · F-016 · 2026-11-25
+- [obsolete F-017: `.gitattributes` eol=lf] [php] cs-fixer báo cả file khi working tree là CRLF (autocrlf); chạy `fix` đổi sang LF là đủ, git không ghi nhận thay đổi · F-016 · 2026-11-25
+- [git] `.gitattributes` ép LF cho mọi file text (chỉ `*.bat` CRLF); ép lại working tree: `git rm -r --cached .` rồi `git reset --hard` chạy HAI lệnh riêng — gộp `&& git reset -q --hard` từng để index rỗng dù rc=0; kiểm `git ls-files | wc -l` · F-017 · 2026-11-25
+- [css] Tailwind v4 tự dò source cả repo ngoài các `@source` → build lại nhặt class từ `.brain/*.md` (`bg-[#…]`, `p-[30px]`), dist lệch bản commit; build xong phải soát `git diff dist/app.css` · F-017 · 2026-11-25
+- [test] Chuyển/xoá đường dẫn có trong `tests/smoke/urls.txt` → sửa urls.txt + `php tools/smoke.php --update` cùng bước; `baseline-auth.json` (local) cần `--cookie=<HTSSOSESSID> --update` riêng · F-017 · 2026-11-25
+- [tool] Bash tool: backslash trong python heredoc bị gộp (`\\b` → `\b`) nên sửa byte không ăn; viết script ra file (scratchpad) rồi chạy · F-017 · 2026-11-25

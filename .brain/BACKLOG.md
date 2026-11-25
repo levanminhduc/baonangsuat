@@ -22,7 +22,7 @@
 - [ ] (test) Smoke --cookie (đăng nhập) chưa chạy lại cho URL bieu-do cũ sau S5b; UI F-015 chưa thử trình duyệt — tests/smoke · F-015 verifier · 2026-11-14
 - [ ] (bug?) Khoá version không chặn được ghi đè đồng thời: updateEntries SELECT không FOR UPDATE, updateHeader UPDATE không kèm version và không transaction — app/Services/NangSuatService.php:679,799 · F-016 khảo sát · 2026-11-25
 - [ ] (bug?) submitBaoCao tính ket_qua_luy_ke rồi đổi trạng thái không trong transaction — app/Services/NangSuatService.php:841 · F-016 khảo sát · 2026-11-25
-- [ ] (bug?) app.js đọc session.role (không tồn tại, key đúng là vai_tro) → nhánh admin không bao giờ chạy — public/assets/js/app.js:298,332,772 · F-016 khảo sát · 2026-11-25
+- [x] F-017 (không còn: `rg "session\.role" public/assets/js` = 0) (bug?) app.js đọc session.role (không tồn tại, key đúng là vai_tro) → nhánh admin không bao giờ chạy — public/assets/js/app.js:298,332,772 · F-016 khảo sát · 2026-11-25
 - [ ] (debt) ImportController nhận preview_stats/preview_errors từ client rồi ghi vào lịch sử; lịch sử ghi sau commit — app/Controllers/ImportController.php:70, app/Services/ImportService.php:409 · F-016 khảo sát · 2026-11-25
 - [ ] (debt) ChartService có bản sao riêng getMocGioList/getRouting và 3 khối lookup lặp — app/Services/ChartService.php:204,252 · F-016 khảo sát · 2026-11-25
 - [ ] (debt) Auth.php hard-code /baonangsuat/ ở loginUrl/logoutUrl và chứa SQL — app/Auth/Auth.php:81,88 · F-016 khảo sát · 2026-11-25
@@ -34,7 +34,9 @@
 - [ ] (debt) Router chỉ bắt `Exception`; TypeError ra HTML fatal thay vì JSON 500 — app/Http/Router.php · F-016 verifier · 2026-11-25
 - [ ] (debt) AdminController nhận 7 service nên bulk-create mở cả kết nối mysqli + nhân sự; ImportController mở DB trước khi kiểm file — app/Controllers/AdminController.php:24 · F-016 · 2026-11-25
 - [ ] (debt) toast.php bị include 2 lần ở bieu-do (view + navbar); `window.initialParams`, `window.historyModule` không ai đọc; popstate trong app.js còn nhánh chết — views/bieu-do.php:318 · F-016 · 2026-11-25
-- [ ] (debt) network-monitor.js, time-manager.js có thể là code chết; khối "Tailwind handles it" trong style.css chưa cắt — public/assets/js/modules/ · F-016 · 2026-11-25
+- [ ] (debt) khối "Tailwind handles it" trong style.css chưa cắt (network-monitor.js, time-manager.js KHÔNG phải code chết: app.js:6, modules/nhap/autosave.js:3, modules/luy-ke-calculator.js:2 import — sửa ở F-017) — public/assets/css/style.css · F-016 · 2026-11-25
 - [ ] (debt) history.js `showConfirmModal(..., isHtml)` vẫn gán innerHTML, chưa soát caller — public/assets/js/modules/history.js:301 · F-016 · 2026-11-25
 - [ ] (doc) README còn "PHP 7.4+", "13 bảng", mục mật khẩu/đăng nhập cũ — README.md · F-016 · 2026-11-25
-- [ ] (cleanup) tailwindcss-windows-x64.exe 129 MB ở gốc repo (đã ignore) trùng tools/tailwindcss.exe · F-016 · 2026-11-25
+- [x] F-017 (cleanup) tailwindcss-windows-x64.exe 129 MB ở gốc repo (đã ignore) trùng tools/tailwindcss.exe · F-016 · 2026-11-25
+- [ ] (debt) Build Tailwind không tất định: tự dò source quét cả `.brain/`, docs → thêm `source(none)` cho import utilities hoặc tương đương — public/assets/tailwind/src/app.css:19 · F-017 · 2026-11-25
+- [ ] (nit) `.gitattributes` có thể khai thêm binary `*.xls *.jpg *.ico *.gif *.woff2` (text=auto đã tự nhận) — .gitattributes:3 · F-017 verifier · 2026-11-25

@@ -1,5 +1,5 @@
 <?php
-// Khoá cây thư mục sau đợt refactor (spec .scratch/folder-structure, ADR 0001).
+// Khoá cây thư mục sau đợt refactor (spec docs/archive/folder-structure, ADR 0001).
 
 test('structure_no_php_file_at_repo_root', function () {
     $found = [];
