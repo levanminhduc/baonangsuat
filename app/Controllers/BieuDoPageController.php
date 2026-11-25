@@ -17,6 +17,6 @@ class BieuDoPageController
             return new RedirectResponse(Auth::getDefaultPage());
         }
 
-        return new HtmlResponse(View::render('bieu-do', ['session' => Auth::getSession(), 'isAdmin' => $isAdmin]));
+        return new HtmlResponse(View::page('bieu-do', ['session' => Auth::getSession(), 'isAdmin' => $isAdmin]));
     }
 }

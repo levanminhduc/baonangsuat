@@ -1,4 +1,5 @@
-const API_BASE = '/baonangsuat/api';
+import { API_BASE } from './config.js';
+
 let csrfToken = null;
 
 export async function fetchCsrfToken() {

@@ -1,37 +1,14 @@
 <?php use App\Auth\Auth; ?>
-<!DOCTYPE html>
-<html lang="vi">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Chưa được phân LINE - Hệ thống Nhập Năng Suất</title>
-    <link rel="stylesheet" href="assets/css/style.css">
-    <link rel="stylesheet" href="assets/css/layout.css">
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script>
-      tailwind.config = {
-        theme: {
-          extend: {
-            colors: {
-              primary: '#2196F3',
-              'primary-dark': '#1976D2',
-              success: '#4CAF50',
-              warning: '#ff9800',
-              danger: '#f44336',
-            }
-          }
-        }
-      }
-    </script>
-</head>
-<body>
-    <?php
-    $navTitle = 'Hệ thống nhập năng suất';
-    $navActive = '';
-    $showAddBtn = false;
-    $showHomeBtn = false;
-    include __DIR__ . '/partials/navbar.php';
-    ?>
+<?php
+$page = [
+    'title' => 'Chưa được phân LINE - Hệ thống Nhập Năng Suất',
+    'bodyClass' => 'theme-no-line',
+    'navTitle' => 'Hệ thống nhập năng suất',
+    'navActive' => '',
+    'showAddBtn' => false,
+    'showHomeBtn' => false,
+];
+?>
     <div class="login-container">
         <div class="login-box text-center">
             <div class="mb-6">
@@ -51,5 +28,3 @@
             <a href="<?= htmlspecialchars(Auth::logoutUrl()) ?>" class="btn btn-primary">Đăng xuất</a>
         </div>
     </div>
-</body>
-</html>

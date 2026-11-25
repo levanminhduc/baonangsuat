@@ -10,6 +10,7 @@ yarn-error.log*
 
 # Build
 dist/
+!public/assets/tailwind/dist/
 build/
 specs/
 
@@ -22,7 +23,7 @@ specs/
 .vscode/
 .idea/
 .roo/
-vendor/
+/vendor/
 .kilocode/
 .claude/*
 !.claude/rules/
@@ -39,3 +40,4 @@ nul
 # Baseline smoke đăng nhập chứa dữ liệu nhân viên thật — chỉ giữ local
 tests/smoke/baseline-auth.json
 .php-cs-fixer.cache
+.playwright-mcp/

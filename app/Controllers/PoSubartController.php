@@ -10,9 +10,13 @@ use App\Services\PoSubartService;
 // Vai trò admin và CSRF khai ở route.
 class PoSubartController
 {
+    public function __construct(private PoSubartService $poSubart)
+    {
+    }
+
     public function index(Request $request)
     {
-        $result = (new PoSubartService())->list(
+        $result = $this->poSubart->list(
             $request->query('po_number'),
             $request->hasQuery('ma_hang_id') ? intval($request->query('ma_hang_id')) : 0,
         );
@@ -23,7 +27,7 @@ class PoSubartController
     public function save(Request $request)
     {
         $input = $request->jsonBody();
-        $result = (new PoSubartService())->save(
+        $result = $this->poSubart->save(
             $input['po_number'] ?? '',
             intval($input['ma_hang_id'] ?? 0),
             $input['sub_art_code'] ?? '',
@@ -37,7 +41,7 @@ class PoSubartController
     public function destroy(Request $request)
     {
         $input = $request->jsonBody();
-        $result = (new PoSubartService())->delete(
+        $result = $this->poSubart->delete(
             $input['po_number'] ?? '',
             intval($input['ma_hang_id'] ?? 0),
             $input['sub_art_code'] ?? '',

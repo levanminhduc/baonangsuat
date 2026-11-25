@@ -10,6 +10,10 @@ use App\Services\HistoryService;
 // Quyền xem lịch sử kiểm ở middleware nhóm `history`.
 class BaoCaoHistoryController
 {
+    public function __construct(private HistoryService $history)
+    {
+    }
+
     public function index(Request $request)
     {
         $session = Auth::getSession();
@@ -29,7 +33,7 @@ class BaoCaoHistoryController
             $filters['line_id'] = $session['line_id'];
         }
 
-        $result = (new HistoryService())->getReportList($filters);
+        $result = $this->history->getReportList($filters);
 
         return new JsonResponse(['success' => true, 'data' => $result['data'], 'pagination' => $result['pagination']]);
     }
@@ -38,7 +42,7 @@ class BaoCaoHistoryController
     {
         $reportId = intval($request->param('id'));
         $session = Auth::getSession();
-        $historyService = new HistoryService();
+        $historyService = $this->history;
         $reportLineId = $historyService->getReportLineId($reportId);
 
         if ($reportLineId === null) {

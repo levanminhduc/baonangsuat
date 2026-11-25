@@ -1,3 +1,5 @@
+import { BASE_PATH } from './config.js';
+
 class RealtimeService {
     constructor() {
         this.worker = null;
@@ -10,7 +12,7 @@ class RealtimeService {
         const clientTimestamp = Math.floor(Date.now() / 1000);
         this.serverOffset = serverTimestamp - clientTimestamp;
         
-        this.worker = new Worker('/baonangsuat/assets/js/workers/realtime-worker.js');
+        this.worker = new Worker(BASE_PATH + '/assets/js/workers/realtime-worker.js');
         this.worker.onmessage = (e) => this.handleMessage(e);
         
         window.addEventListener('beforeunload', () => this.destroy());

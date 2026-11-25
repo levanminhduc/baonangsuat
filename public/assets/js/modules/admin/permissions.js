@@ -72,13 +72,13 @@ export function renderPermissionsTable() {
         <tr>
             <td>${escapeHtml(u.name)}</td>
             <td>${escapeHtml(u.ho_ten || '-')}</td>
-            <td><span class="status-badge ${u.role === 'admin' ? 'status-approved' : 'status-draft'}">${u.role}</span></td>
+            <td><span class="status-badge ${isAdmin ? 'status-approved' : 'status-draft'}">${escapeHtml(u.role)}</span></td>
             <td>
                 <label class="switch">
                     <input type="checkbox"
                         ${hasHistoryPerm || isAdmin ? 'checked' : ''}
                         ${isAdmin ? 'disabled' : ''}
-                        onchange="window.toggleHistoryPermission(${u.id}, this.checked)">
+                        data-change-fn="toggleHistoryPermission" data-args="[${u.id}]">
                     <span class="slider round ${isAdmin ? 'disabled' : ''}"></span>
                 </label>
             </td>
@@ -87,7 +87,7 @@ export function renderPermissionsTable() {
                     <input type="checkbox"
                         ${hasCreateReportPerm || isAdmin ? 'checked' : ''}
                         ${isAdmin ? 'disabled' : ''}
-                        onchange="window.toggleCreateReportPermission(${u.id}, this.checked)">
+                        data-change-fn="toggleCreateReportPermission" data-args="[${u.id}]">
                     <span class="slider round ${isAdmin ? 'disabled' : ''}"></span>
                 </label>
             </td>
@@ -96,7 +96,7 @@ export function renderPermissionsTable() {
                     <input type="checkbox"
                         ${hasCreateReportAnyLinePerm || isAdmin ? 'checked' : ''}
                         ${isAdmin ? 'disabled' : ''}
-                        onchange="window.toggleCreateReportAnyLinePermission(${u.id}, this.checked)">
+                        data-change-fn="toggleCreateReportAnyLinePermission" data-args="[${u.id}]">
                     <span class="slider round ${isAdmin ? 'disabled' : ''}"></span>
                 </label>
             </td>
@@ -105,7 +105,7 @@ export function renderPermissionsTable() {
                     <input type="checkbox"
                         ${hasImportPerm || isAdmin ? 'checked' : ''}
                         ${isAdmin ? 'disabled' : ''}
-                        onchange="window.toggleImportPermission(${u.id}, this.checked)">
+                        data-change-fn="toggleImportPermission" data-args="[${u.id}]">
                     <span class="slider round ${isAdmin ? 'disabled' : ''}"></span>
                 </label>
             </td>

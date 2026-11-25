@@ -30,3 +30,19 @@ Rejected: ghi SL subart ngược vào datchi (vi phạm chỉ đọc).
 Date: 2026-11-14 · Status: Active · Scope: bao-cao, db · From: F-015
 Why: một LINE may nhiều PO/subart của cùng mã hàng trong một ca. Lưu chuỗi (không id datchi) để báo cáo đọc được khi datchi chết. UNIQUE coi NULL là khác nhau → `po_key`/`sub_art_key` = IFNULL(…,'') STORED. Mã hàng ↔ style khớp UPPER(TRIM).
 Rejected: giữ khoá cũ (chặn nghiệp vụ thật); FK sang id datchi (khác DB).
+
+### D-005 Tailwind offline: một bundle v4 không layer, giữ cascade của thời CDN
+Date: 2026-11-25 · Status: Active · Scope: pages, fe-*, css · From: F-016
+Why: xưởng mất mạng là vỡ giao diện. Đo computed style cho thấy dưới Play CDN, CSS tay có specificity cao đang thắng utility; đưa CSS tay vào `layer(components)` làm đổi 30+ control. Nên bundle giữ thứ tự CSS tay → preflight → v3-compat → utility, tất cả không layer, kèm bảng màu/line-height/space của v3. `dist/app.css` được commit để server không cần build.
+Rejected: `layer(components)` (đổi giao diện); CLI v3 (user đã duyệt v4); build trên server (thêm bước deploy).
+Hệ quả: trình duyệt tối thiểu Chrome 111 / Safari 16.4 / Firefox 128.
+
+### D-006 Container autowire thay facade và `new` trong controller
+Date: 2026-11-25 · Status: Active · Scope: http, support, services · From: F-016
+Why: NangSuatService/AdminService phình, controller tự `new` nên không test được. Container reflection ~60 dòng, mỗi class một instance mỗi request, không cần file cấu hình.
+Rejected: thư viện DI ngoài (thừa cho quy mô này); giữ facade AdminService (chỉ chuyển tiếp).
+
+### D-007 Sự kiện giao diện qua `data-action` / `data-fn`, không `on*=`
+Date: 2026-11-25 · Status: Active · Scope: fe-app, fe-admin, views · From: F-016
+Why: handler inline buộc hàm phải global và chặn việc siết CSP; HTML sinh từ JS nối chuỗi tham số dễ XSS. Tham số đi qua `data-args` (JSON đã escape).
+Rejected: giữ inline cho HTML sinh từ JS.

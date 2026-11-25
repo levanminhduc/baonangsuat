@@ -53,16 +53,19 @@ Tính năng Import Excel cho phép admin import danh sách công đoạn và rou
 
 | File | Mô tả |
 |------|-------|
-| [`classes/services/ImportService.php`](../classes/services/ImportService.php) | Service xử lý logic import |
-| [`assets/js/modules/admin/import.js`](../assets/js/modules/admin/import.js) | Frontend module cho tab Import |
-| [`api/index.php`](../api/index.php) | API router (route `import/*`) |
+| [`app/Services/ImportService.php`](../app/Services/ImportService.php) | Preview + confirm import |
+| [`app/Services/ImportExcelParser.php`](../app/Services/ImportExcelParser.php) | Đọc file Excel (`parseExcel`, `extractMaHang`, `extractCongDoanList`) |
+| [`app/Services/ImportLookupService.php`](../app/Services/ImportLookupService.php) | Truy vấn hỗ trợ (tìm công đoạn/LINE/mã hàng, kiểm tra báo cáo chặn) |
+| [`app/Services/ImportHistoryService.php`](../app/Services/ImportHistoryService.php) | Ghi và đọc lịch sử import |
+| [`public/assets/js/modules/admin/import.js`](../public/assets/js/modules/admin/import.js) | Frontend module cho tab Import |
+| [`config/routes.php`](../config/routes.php) | Bảng route (nhóm `import/*`) → `ImportController` |
 
 ### 3.2 Luồng Dữ Liệu
 
 ```
 ┌─────────────────┐     ┌─────────────────┐     ┌─────────────────┐
-│   Frontend      │     │   API Router    │     │  ImportService  │
-│   (import.js)   │────▶│  (index.php)    │────▶│                 │
+│   Frontend      │     │   Router        │     │  ImportService  │
+│   (import.js)   │────▶│  (routes.php)   │────▶│                 │
 └─────────────────┘     └─────────────────┘     └────────┬────────┘
                                                          │
                         ┌────────────────────────────────┼────────────────────────────────┐
@@ -385,7 +388,7 @@ try {
 
 Nếu cần đọc thêm cột khác (VD: cột D cho thời gian chuẩn):
 
-1. Sửa [`ImportService::extractCongDoanList()`](../classes/services/ImportService.php:390):
+1. Sửa [`ImportExcelParser::extractCongDoanList()`](../app/Services/ImportExcelParser.php):
 ```php
 private function extractCongDoanList($sheet) {
     // ...
@@ -400,7 +403,7 @@ private function extractCongDoanList($sheet) {
 
 ### 10.2 Thay Đổi Vị Trí Ô
 
-Sửa trong [`ImportService::extractMaHang()`](../classes/services/ImportService.php:366):
+Sửa trong [`ImportExcelParser::extractMaHang()`](../app/Services/ImportExcelParser.php):
 ```php
 private function extractMaHang($sheet) {
     $cellValue = $sheet->getCell('C2')->getValue(); // Đổi 'C2' thành ô khác
@@ -410,7 +413,7 @@ private function extractMaHang($sheet) {
 
 ### 10.3 Thêm Validation Mới
 
-Thêm trong [`ImportService::preview()`](../classes/services/ImportService.php:15):
+Thêm trong [`ImportService::preview()`](../app/Services/ImportService.php):
 ```php
 // Ví dụ: validate tên công đoạn không quá 100 ký tự
 if (mb_strlen($tenCongDoan) > 100) {
@@ -425,16 +428,10 @@ if (mb_strlen($tenCongDoan) > 100) {
 
 ### 10.4 Thêm Tính Năng Export Template
 
-Tạo endpoint mới để download file Excel mẫu:
-
-```php
-// Trong api/index.php
-case 'import/template':
-    if ($method === 'GET') {
-        // Generate và return file Excel mẫu
-    }
-    break;
-```
+Tạo endpoint mới để download file Excel mẫu: thêm một dòng vào `config/routes.php`
+(`['GET', '/api/import/template', ImportController::class, 'template']`; middleware `import` đã gắn ở cấp nhóm) và method
+`template(Request $request)` trả file trong `ImportController`. File mẫu hiện sinh bằng
+`php tools/generate-import-template.php`.
 
 ---
 

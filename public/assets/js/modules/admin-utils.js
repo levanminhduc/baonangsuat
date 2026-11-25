@@ -1,12 +1,6 @@
-export function escapeHtml(str) {
-    if (!str) return '';
-    return str.toString()
-        .replace(/&/g, '&amp;')
-        .replace(/</g, '&lt;')
-        .replace(/>/g, '&gt;')
-        .replace(/"/g, '&quot;')
-        .replace(/'/g, '&#039;');
-}
+import { escapeHtml } from './utils.js';
+
+export { escapeHtml };
 
 export function showToast(message, type = 'success') {
     if (window.toast && typeof window.toast.show === 'function') {

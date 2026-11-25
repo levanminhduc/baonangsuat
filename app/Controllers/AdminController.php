@@ -5,22 +5,38 @@ namespace App\Controllers;
 use App\Auth\Auth;
 use App\Http\JsonResponse;
 use App\Http\Request;
-use App\Services\AdminService;
-use App\Services\NangSuatService;
+use App\Services\BaoCaoBulkService;
+use App\Services\CongDoanService;
+use App\Services\LineService;
+use App\Services\MaHangService;
+use App\Services\MocGioService;
+use App\Services\RoutingService;
+use App\Services\UserService;
 
 // `/api/admin/...`: chỉ admin (middleware nhóm `role:admin`); thao tác ghi khai `csrf` trong route.
 class AdminController
 {
+    public function __construct(
+        private LineService $lineService,
+        private UserService $userService,
+        private MaHangService $maHangService,
+        private CongDoanService $congDoanService,
+        private RoutingService $routingService,
+        private MocGioService $mocGioService,
+        private BaoCaoBulkService $bulk,
+    ) {
+    }
+
     // --- lines ---
 
     public function lines(Request $request)
     {
-        return new JsonResponse(['success' => true, 'data' => (new AdminService())->getLineList()]);
+        return new JsonResponse(['success' => true, 'data' => $this->lineService->getListSynced()]);
     }
 
     public function line(Request $request)
     {
-        $line = (new AdminService())->getLine($this->id($request));
+        $line = $this->lineService->get($this->id($request));
         if (!$line) {
             return JsonResponse::error('LINE không tồn tại', 404);
         }
@@ -34,7 +50,7 @@ class AdminController
         $ma_line = $input['ma_line'] ?? '';
         $ten_line = $input['ten_line'] ?? '';
 
-        return new JsonResponse((new AdminService())->createLine($ma_line, $ten_line));
+        return new JsonResponse($this->lineService->create($ma_line, $ten_line));
     }
 
     public function updateLine(Request $request)
@@ -44,24 +60,24 @@ class AdminController
         $ten_line = $input['ten_line'] ?? '';
         $is_active = isset($input['is_active']) ? intval($input['is_active']) : 1;
 
-        return new JsonResponse((new AdminService())->updateLine($this->id($request), $ma_line, $ten_line, $is_active));
+        return new JsonResponse($this->lineService->update($this->id($request), $ma_line, $ten_line, $is_active));
     }
 
     public function deleteLine(Request $request)
     {
-        return new JsonResponse((new AdminService())->deleteLine($this->id($request)));
+        return new JsonResponse($this->lineService->delete($this->id($request)));
     }
 
     // --- users / user-lines ---
 
     public function users(Request $request)
     {
-        return new JsonResponse(['success' => true, 'data' => (new AdminService())->getUsersWithInfo()]);
+        return new JsonResponse(['success' => true, 'data' => $this->userService->getAllWithInfo()]);
     }
 
     public function userLines(Request $request)
     {
-        return new JsonResponse(['success' => true, 'data' => (new AdminService())->getUserLineListWithInfo()]);
+        return new JsonResponse(['success' => true, 'data' => $this->userService->getUserLineListWithInfo()]);
     }
 
     public function addUserLine(Request $request)
@@ -70,7 +86,7 @@ class AdminController
         $ma_nv = $input['ma_nv'] ?? '';
         $line_id = intval($input['line_id'] ?? 0);
 
-        return new JsonResponse((new AdminService())->addUserLine($ma_nv, $line_id));
+        return new JsonResponse($this->userService->addUserLine($ma_nv, $line_id));
     }
 
     public function removeUserLine(Request $request)
@@ -79,19 +95,19 @@ class AdminController
         $ma_nv = $input['ma_nv'] ?? '';
         $line_id = intval($input['line_id'] ?? 0);
 
-        return new JsonResponse((new AdminService())->removeUserLine($ma_nv, $line_id));
+        return new JsonResponse($this->userService->removeUserLine($ma_nv, $line_id));
     }
 
     // --- ma-hang ---
 
     public function maHangList(Request $request)
     {
-        return new JsonResponse(['success' => true, 'data' => (new AdminService())->getMaHangList()]);
+        return new JsonResponse(['success' => true, 'data' => $this->maHangService->getList()]);
     }
 
     public function maHang(Request $request)
     {
-        $maHang = (new AdminService())->getMaHang($this->id($request));
+        $maHang = $this->maHangService->get($this->id($request));
         if (!$maHang) {
             return JsonResponse::error('Mã hàng không tồn tại', 404);
         }
@@ -105,7 +121,7 @@ class AdminController
         $ma_hang = $input['ma_hang'] ?? '';
         $ten_hang = $input['ten_hang'] ?? '';
 
-        return new JsonResponse((new AdminService())->createMaHang($ma_hang, $ten_hang));
+        return new JsonResponse($this->maHangService->create($ma_hang, $ten_hang));
     }
 
     public function updateMaHang(Request $request)
@@ -115,24 +131,24 @@ class AdminController
         $ten_hang = $input['ten_hang'] ?? '';
         $is_active = isset($input['is_active']) ? intval($input['is_active']) : 1;
 
-        return new JsonResponse((new AdminService())->updateMaHang($this->id($request), $ma_hang, $ten_hang, $is_active));
+        return new JsonResponse($this->maHangService->update($this->id($request), $ma_hang, $ten_hang, $is_active));
     }
 
     public function deleteMaHang(Request $request)
     {
-        return new JsonResponse((new AdminService())->deleteMaHang($this->id($request)));
+        return new JsonResponse($this->maHangService->delete($this->id($request)));
     }
 
     // --- cong-doan ---
 
     public function congDoanList(Request $request)
     {
-        return new JsonResponse(['success' => true, 'data' => (new AdminService())->getCongDoanList()]);
+        return new JsonResponse(['success' => true, 'data' => $this->congDoanService->getList()]);
     }
 
     public function congDoan(Request $request)
     {
-        $congDoan = (new AdminService())->getCongDoan($this->id($request));
+        $congDoan = $this->congDoanService->get($this->id($request));
         if (!$congDoan) {
             return JsonResponse::error('Công đoạn không tồn tại', 404);
         }
@@ -147,7 +163,7 @@ class AdminController
         $ten_cong_doan = $input['ten_cong_doan'] ?? '';
         $la_cong_doan_thanh_pham = isset($input['la_cong_doan_thanh_pham']) ? intval($input['la_cong_doan_thanh_pham']) : 0;
 
-        return new JsonResponse((new AdminService())->createCongDoan($ma_cong_doan, $ten_cong_doan, $la_cong_doan_thanh_pham));
+        return new JsonResponse($this->congDoanService->create($ma_cong_doan, $ten_cong_doan, $la_cong_doan_thanh_pham));
     }
 
     public function updateCongDoan(Request $request)
@@ -158,12 +174,12 @@ class AdminController
         $is_active = isset($input['is_active']) ? intval($input['is_active']) : 1;
         $la_cong_doan_thanh_pham = isset($input['la_cong_doan_thanh_pham']) ? intval($input['la_cong_doan_thanh_pham']) : 0;
 
-        return new JsonResponse((new AdminService())->updateCongDoan($this->id($request), $ma_cong_doan, $ten_cong_doan, $is_active, $la_cong_doan_thanh_pham));
+        return new JsonResponse($this->congDoanService->update($this->id($request), $ma_cong_doan, $ten_cong_doan, $is_active, $la_cong_doan_thanh_pham));
     }
 
     public function deleteCongDoan(Request $request)
     {
-        return new JsonResponse((new AdminService())->deleteCongDoan($this->id($request)));
+        return new JsonResponse($this->congDoanService->delete($this->id($request)));
     }
 
     // --- routing ---
@@ -172,12 +188,12 @@ class AdminController
     {
         $ma_hang_id = $request->hasQuery('ma_hang_id') ? intval($request->query('ma_hang_id')) : 0;
 
-        return new JsonResponse(['success' => true, 'data' => (new AdminService())->getRoutingList($ma_hang_id)]);
+        return new JsonResponse(['success' => true, 'data' => $this->routingService->getList($ma_hang_id)]);
     }
 
     public function routing(Request $request)
     {
-        $routing = (new AdminService())->getRouting($this->id($request));
+        $routing = $this->routingService->get($this->id($request));
         if (!$routing) {
             return JsonResponse::error('Routing không tồn tại', 404);
         }
@@ -196,7 +212,7 @@ class AdminController
         $line_id = isset($input['line_id']) && $input['line_id'] !== '' ? intval($input['line_id']) : null;
         $ghi_chu = $input['ghi_chu'] ?? '';
 
-        return new JsonResponse((new AdminService())->addRouting($ma_hang_id, $cong_doan_id, $thu_tu, $bat_buoc, $la_cong_doan_tinh_luy_ke, $line_id, $ghi_chu));
+        return new JsonResponse($this->routingService->add($ma_hang_id, $cong_doan_id, $thu_tu, $bat_buoc, $la_cong_doan_tinh_luy_ke, $line_id, $ghi_chu));
     }
 
     public function updateRouting(Request $request)
@@ -208,19 +224,19 @@ class AdminController
         $line_id = isset($input['line_id']) && $input['line_id'] !== '' ? intval($input['line_id']) : null;
         $ghi_chu = $input['ghi_chu'] ?? '';
 
-        return new JsonResponse((new AdminService())->updateRouting($this->id($request), $thu_tu, $bat_buoc, $la_cong_doan_tinh_luy_ke, $line_id, $ghi_chu));
+        return new JsonResponse($this->routingService->update($this->id($request), $thu_tu, $bat_buoc, $la_cong_doan_tinh_luy_ke, $line_id, $ghi_chu));
     }
 
     public function removeRouting(Request $request)
     {
-        return new JsonResponse((new AdminService())->removeRouting($this->id($request)));
+        return new JsonResponse($this->routingService->remove($this->id($request)));
     }
 
     // --- moc-gio ---
 
     public function mocGioCaList(Request $request)
     {
-        return new JsonResponse(['success' => true, 'data' => (new AdminService())->getCaListForMocGio()]);
+        return new JsonResponse(['success' => true, 'data' => $this->mocGioService->getCaList()]);
     }
 
     public function mocGioList(Request $request)
@@ -228,12 +244,12 @@ class AdminController
         $ca_id = $request->hasQuery('ca_id') ? intval($request->query('ca_id')) : null;
         $line_id = $request->query('line_id');
 
-        return new JsonResponse(['success' => true, 'data' => (new AdminService())->getMocGioList($ca_id, $line_id)]);
+        return new JsonResponse(['success' => true, 'data' => $this->mocGioService->getList($ca_id, $line_id)]);
     }
 
     public function mocGio(Request $request)
     {
-        $mocGio = (new AdminService())->getMocGio($this->id($request));
+        $mocGio = $this->mocGioService->get($this->id($request));
         if (!$mocGio) {
             return JsonResponse::error('Mốc giờ không tồn tại', 404);
         }
@@ -247,7 +263,7 @@ class AdminController
         $ca_id = intval($input['ca_id'] ?? 0);
         $line_id = intval($input['line_id'] ?? 0);
 
-        return new JsonResponse((new AdminService())->copyMocGioDefaultToLine($ca_id, $line_id));
+        return new JsonResponse($this->mocGioService->copyDefaultToLine($ca_id, $line_id));
     }
 
     public function createMocGio(Request $request)
@@ -259,7 +275,7 @@ class AdminController
         $thu_tu = intval($input['thu_tu'] ?? 1);
         $so_phut_hieu_dung_luy_ke = intval($input['so_phut_hieu_dung_luy_ke'] ?? 0);
 
-        return new JsonResponse((new AdminService())->createMocGio($ca_id, $line_id, $gio, $thu_tu, $so_phut_hieu_dung_luy_ke));
+        return new JsonResponse($this->mocGioService->create($ca_id, $line_id, $gio, $thu_tu, $so_phut_hieu_dung_luy_ke));
     }
 
     public function updateMocGio(Request $request)
@@ -270,12 +286,12 @@ class AdminController
         $so_phut_hieu_dung_luy_ke = intval($input['so_phut_hieu_dung_luy_ke'] ?? 0);
         $is_active = isset($input['is_active']) ? intval($input['is_active']) : 1;
 
-        return new JsonResponse((new AdminService())->updateMocGio($this->id($request), $gio, $thu_tu, $so_phut_hieu_dung_luy_ke, $is_active));
+        return new JsonResponse($this->mocGioService->update($this->id($request), $gio, $thu_tu, $so_phut_hieu_dung_luy_ke, $is_active));
     }
 
     public function deleteMocGio(Request $request)
     {
-        return new JsonResponse((new AdminService())->deleteMocGio($this->id($request)));
+        return new JsonResponse($this->mocGioService->delete($this->id($request)));
     }
 
     // --- bao-cao ---
@@ -300,7 +316,7 @@ class AdminController
             }
         }
 
-        return new JsonResponse((new NangSuatService())->bulkCreateBaoCao($items, $session['ma_nv'], $skipExisting));
+        return new JsonResponse($this->bulk->bulkCreateBaoCao($items, $session['ma_nv'], $skipExisting));
     }
 
     // `/api/admin/<tài nguyên không có>`: router cũ trả message riêng.

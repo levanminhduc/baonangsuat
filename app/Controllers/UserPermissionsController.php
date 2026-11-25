@@ -5,11 +5,15 @@ namespace App\Controllers;
 use App\Auth\Auth;
 use App\Http\JsonResponse;
 use App\Http\Request;
-use App\Support\Database;
+use App\Services\UserPermissionService;
 
 // Chỉ admin (middleware nhóm `role:admin`). `bulk` chỉ đọc nên không đòi CSRF (như router cũ).
 class UserPermissionsController
 {
+    public function __construct(private UserPermissionService $permissions)
+    {
+    }
+
     public function bulk(Request $request)
     {
         $userIds = $request->jsonBody()['userIds'] ?? [];
@@ -31,71 +35,40 @@ class UserPermissionsController
 
     public function grant(Request $request)
     {
-        $mysqli = Database::getMysqli();
         $input = $request->jsonBody();
         $userId = intval($input['nguoi_dung_id'] ?? 0);
-        $permissionKey = $input['quyen'] ?? '';
+        $permissionKey = is_string($input['quyen'] ?? null) ? $input['quyen'] : '';
 
         if ($userId <= 0 || empty($permissionKey)) {
             return JsonResponse::error('Thiếu thông tin nguoi_dung_id hoặc quyen', 400);
         }
 
-        $stmt = mysqli_prepare($mysqli, 'SELECT id FROM user WHERE id = ?');
-        mysqli_stmt_bind_param($stmt, 'i', $userId);
-        mysqli_stmt_execute($stmt);
-        $result = mysqli_stmt_get_result($stmt);
-        if (!mysqli_fetch_assoc($result)) {
-            mysqli_stmt_close($stmt);
-
+        if (!$this->permissions->userExists($userId)) {
             return JsonResponse::error('User không tồn tại', 404);
         }
-        mysqli_stmt_close($stmt);
 
-        $stmt = mysqli_prepare($mysqli, 'SELECT id FROM user_permissions WHERE nguoi_dung_id = ? AND quyen = ?');
-        mysqli_stmt_bind_param($stmt, 'is', $userId, $permissionKey);
-        mysqli_stmt_execute($stmt);
-        $result = mysqli_stmt_get_result($stmt);
-        if (mysqli_fetch_assoc($result)) {
-            mysqli_stmt_close($stmt);
-
+        if ($this->permissions->hasPermission($userId, $permissionKey)) {
             return new JsonResponse(['success' => true, 'message' => 'Permission đã tồn tại']);
         }
-        mysqli_stmt_close($stmt);
 
-        $nguoiTao = Auth::getSession()['ma_nv'];
-        $stmt = mysqli_prepare($mysqli, 'INSERT INTO user_permissions (nguoi_dung_id, quyen, nguoi_tao) VALUES (?, ?, ?)');
-        mysqli_stmt_bind_param($stmt, 'iss', $userId, $permissionKey, $nguoiTao);
-
-        if (mysqli_stmt_execute($stmt)) {
-            mysqli_stmt_close($stmt);
-
+        if ($this->permissions->grant($userId, $permissionKey, Auth::getSession()['ma_nv'])) {
             return new JsonResponse(['success' => true, 'message' => 'Đã cấp quyền thành công']);
         }
-        mysqli_stmt_close($stmt);
 
         return JsonResponse::error('Không thể cấp quyền', 500);
     }
 
     public function revoke(Request $request)
     {
-        $mysqli = Database::getMysqli();
-        $userId = intval($request->param('id'));
-        $permissionKey = $request->param('quyen');
+        $affected = $this->permissions->revoke(intval($request->param('id')), $request->param('quyen'));
 
-        $stmt = mysqli_prepare($mysqli, 'DELETE FROM user_permissions WHERE nguoi_dung_id = ? AND quyen = ?');
-        mysqli_stmt_bind_param($stmt, 'is', $userId, $permissionKey);
-
-        if (mysqli_stmt_execute($stmt)) {
-            $affected = mysqli_stmt_affected_rows($stmt);
-            mysqli_stmt_close($stmt);
-            if ($affected > 0) {
-                return new JsonResponse(['success' => true, 'message' => 'Đã thu hồi quyền thành công']);
-            }
-
-            return new JsonResponse(['success' => true, 'message' => 'Permission không tồn tại']);
+        if ($affected === null) {
+            return JsonResponse::error('Không thể thu hồi quyền', 500);
         }
-        mysqli_stmt_close($stmt);
+        if ($affected > 0) {
+            return new JsonResponse(['success' => true, 'message' => 'Đã thu hồi quyền thành công']);
+        }
 
-        return JsonResponse::error('Không thể thu hồi quyền', 500);
+        return new JsonResponse(['success' => true, 'message' => 'Permission không tồn tại']);
     }
 }

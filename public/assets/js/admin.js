@@ -251,7 +251,40 @@ async function switchTab(tabName, updateHistory = true) {
     }
 }
 
+function callDataFn(name, rawArgs, extra) {
+    const fn = /^\w+$/.test(name || '') ? window[name] : null;
+    if (typeof fn !== 'function') return;
+    const args = rawArgs ? JSON.parse(rawArgs) : [];
+    if (extra !== undefined) args.push(extra);
+    fn(...args);
+}
+
 function bindGlobalEvents() {
+    document.addEventListener('click', (e) => {
+        const closeEl = e.target.closest('[data-action="close-modal"]');
+        if (closeEl && (e.target === closeEl || !closeEl.classList.contains('modal'))) {
+            closeModal(closeEl.dataset.target);
+            return;
+        }
+
+        const fnEl = e.target.closest('[data-fn]');
+        if (fnEl) {
+            callDataFn(fnEl.dataset.fn, fnEl.dataset.args);
+            return;
+        }
+
+        const assignEl = e.target.closest('[data-action="show-assign-lines"]');
+        if (assignEl && window.showAssignLinesModal) {
+            const detail = getState().currentPresetDetail;
+            if (detail) window.showAssignLinesModal(detail.id);
+        }
+    });
+
+    document.addEventListener('change', (e) => {
+        const fnEl = e.target.closest('[data-change-fn]');
+        if (fnEl) callDataFn(fnEl.dataset.changeFn, fnEl.dataset.args, fnEl.checked);
+    });
+
     document.querySelectorAll('.admin-tab').forEach(tab => {
         tab.addEventListener('click', (e) => {
             e.preventDefault();

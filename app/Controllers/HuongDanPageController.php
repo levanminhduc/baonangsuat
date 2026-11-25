@@ -11,6 +11,6 @@ class HuongDanPageController
 {
     public function show(Request $request)
     {
-        return new HtmlResponse(View::render('huong-dan', ['session' => Auth::getSession()]));
+        return new HtmlResponse(View::page('huong-dan', ['session' => Auth::getSession()]));
     }
 }

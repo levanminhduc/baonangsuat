@@ -30,6 +30,12 @@ class LineService
         return $list;
     }
 
+    public function getListSynced()
+    {
+        $this->syncFromPhongBan();
+        return $this->getList();
+    }
+
     public function syncFromPhongBan()
     {
         $result = mysqli_query(

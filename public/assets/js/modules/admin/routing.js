@@ -52,8 +52,8 @@ export function renderRoutingTable() {
             <td><span class="status-badge ${r.bat_buoc == 1 ? 'status-approved' : 'status-draft'}">${r.bat_buoc == 1 ? 'Có' : 'Không'}</span></td>
             <td>${escapeHtml(r.ghi_chu || '')}</td>
             <td>
-                <button class="btn btn-sm btn-primary" onclick="window.editRouting(${r.id})">Sửa</button>
-                <button class="btn btn-sm btn-danger" onclick="window.deleteRouting(${r.id})">Xóa</button>
+                <button class="btn btn-sm btn-primary" data-fn="editRouting" data-args="[${r.id}]">Sửa</button>
+                <button class="btn btn-sm btn-danger" data-fn="deleteRouting" data-args="[${r.id}]">Xóa</button>
             </td>
         </tr>
     `).join('');

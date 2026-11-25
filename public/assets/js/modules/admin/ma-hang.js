@@ -30,8 +30,8 @@ export function renderMaHangTable() {
             <td>${escapeHtml(mh.ten_hang)}</td>
             <td><span class="status-badge ${mh.is_active == 1 ? 'status-approved' : 'status-locked'}">${mh.is_active == 1 ? 'Hoạt động' : 'Tắt'}</span></td>
             <td>
-                <button class="btn btn-sm btn-primary" onclick="window.editMaHang(${mh.id})">Sửa</button>
-                <button class="btn btn-sm btn-danger" onclick="window.deleteMaHang(${mh.id})">Xóa</button>
+                <button class="btn btn-sm btn-primary" data-fn="editMaHang" data-args="[${mh.id}]">Sửa</button>
+                <button class="btn btn-sm btn-danger" data-fn="deleteMaHang" data-args="[${mh.id}]">Xóa</button>
             </td>
         </tr>
     `).join('');

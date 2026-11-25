@@ -1,59 +1,43 @@
 <?php use App\Auth\Auth; ?>
-<!DOCTYPE html>
-<html lang="vi">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Chọn LINE - Hệ thống Báo Năng Suất</title>
-    
-    <!-- Dependencies -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    
-    <!-- Custom CSS -->
-    <link rel="stylesheet" href="assets/css/login.css">
-</head>
-<body>
-    <div class="login-wrapper">
-        <div class="login-box">
-            <div class="login-header text-center">
-                <div class="hoatho-logo">
-                    <img src="img/logoht.svg" alt="Hoa Tho Logo" width="100" height="100">
-                </div>
-                <h3 class="login-title">HỆ THỐNG BÁO NĂNG SUẤT</h3>
+<?php
+$page = [
+    'title' => 'Chọn LINE - Hệ thống Báo Năng Suất',
+    'nav' => false,
+    'modules' => ['assets/js/login.js'],
+];
+?>
+<div class="absolute inset-0 flex items-center justify-center bg-linear-to-br from-[#5b73e8] to-[#44c4fa] p-2.5 max-[576px]:bg-none max-[576px]:bg-white max-[576px]:p-0">
+    <div class="w-full max-w-[400px] overflow-hidden rounded-[10px] bg-white shadow-[0_5px_20px_rgba(0,0,0,0.1)] max-[576px]:min-h-screen max-[576px]:max-w-full max-[576px]:rounded-none max-[576px]:shadow-none">
+        <div class="px-5 pb-5 pt-[30px] text-center">
+            <div class="mb-[15px]">
+                <img src="img/logoht.svg" alt="Hoa Tho Logo" width="100" height="100" class="mx-auto">
             </div>
-
-            <div class="login-body text-center">
-                <p class="mb-3">Vui lòng chọn LINE làm việc</p>
-                <a href="<?php echo htmlspecialchars(Auth::logoutUrl()); ?>" id="logoutLink">Đăng xuất</a>
-            </div>
-
-            <footer class="login-footer text-center">
-                <p>© 2025 - HỆ THỐNG BÁO NĂNG SUẤT - CÔNG TY MAY HOÀ THỌ ĐIỆN BÀN</p>
-            </footer>
+            <h3 class="m-0 text-[1.3rem] font-semibold text-[#3d4465]">HỆ THỐNG BÁO NĂNG SUẤT</h3>
         </div>
-    </div>
 
-    <!-- Line Selection Modal -->
-    <div class="modal fade" id="lineSelectModal" tabindex="-1" aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false">
-        <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title">Chọn LINE làm việc</h5>
-                </div>
-                <div class="modal-body p-0">
-                    <ul id="lineList" class="line-list"></ul>
-                </div>
-            </div>
+        <div class="px-[30px] pb-5 text-center max-[576px]:px-5">
+            <p class="mb-3 text-gray-700">Vui lòng chọn LINE làm việc</p>
+            <a href="<?php echo htmlspecialchars(Auth::logoutUrl()); ?>" id="logoutLink" class="inline-flex items-center gap-1.5 text-[#5b73e8] hover:underline">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+                Đăng xuất
+            </a>
         </div>
+
+        <footer class="border-t border-[#eee] bg-[#f8f9fa] p-[15px] text-center">
+            <p class="m-0 text-xs text-[#888]">© 2025 - HỆ THỐNG BÁO NĂNG SUẤT - CÔNG TY MAY HOÀ THỌ ĐIỆN BÀN</p>
+        </footer>
     </div>
+</div>
 
-    <script id="allowedLines" type="application/json"><?php echo json_encode($allowedLines, JSON_HEX_TAG | JSON_HEX_AMP | JSON_UNESCAPED_UNICODE); ?></script>
+<div id="lineSelectModal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/50 p-4" aria-hidden="true">
+    <div class="w-full max-w-[500px] overflow-hidden rounded-[10px] bg-white shadow-[0_5px_15px_rgba(0,0,0,0.2)]" role="dialog" aria-modal="true" aria-labelledby="lineSelectTitle">
+        <div class="border-b border-gray-200 px-4 py-3">
+            <h5 id="lineSelectTitle" class="m-0 text-xl font-medium text-gray-800">Chọn LINE làm việc</h5>
+        </div>
+        <ul id="lineList" class="m-0 max-h-[300px] list-none overflow-y-auto p-0"></ul>
+    </div>
+</div>
 
-    <?php include BNS_ROOT . '/components/toast.php'; ?>
+<script id="allowedLines" type="application/json"><?php echo json_encode($allowedLines, JSON_HEX_TAG | JSON_HEX_AMP | JSON_UNESCAPED_UNICODE); ?></script>
 
-    <!-- Scripts -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="assets/js/login.js"></script>
-</body>
-</html>
+<?php include BNS_ROOT . '/components/toast.php'; ?>

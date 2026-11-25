@@ -13,11 +13,11 @@ baonangsuat/
 ├── bootstrap/       autoload.php (hằng BNS_ROOT + Composer), app.php (+ phiên authV2)
 ├── config/          routes.php (bảng route trang + API)
 ├── app/             PSR-4 App\ : Auth/, Controllers/, Http/ (Router, Request, Response,
-│                    Middleware), Services/, Support/ (Database, View)
-├── views/           HTML trang + partials/ (navbar)
+│                    Middleware), Services/, Support/ (Database, View, Container)
+├── views/           HTML trang + layouts/ (app.php) + partials/ (navbar) + admin/ (tab, modal)
 ├── components/      UI component dùng chung (toast, modal, tabs...)
 ├── database/        schema + migrations
-├── tests/           php/ (runner + test), smoke/ (baseline URL)
+├── tests/           php/ (runner + test), fixtures/, smoke/ (baseline URL)
 ├── tools/           build-css.bat, smoke.php, script phụ
 └── docs/            adr/, plans/, tài liệu thiết kế
 ```
@@ -29,8 +29,8 @@ URL cũ (/baonangsuat/admin.php, /baonangsuat/api/bao-cao/5)
   → .htaccess gốc → public/index.php
   → bootstrap/autoload.php; API: Cors (OPTIONS dừng ở đây, chưa mở phiên)
   → bootstrap/app.php (phiên authV2)
-  → App\Http\Router + config/routes.php → middleware → Controller::method
-  → JsonResponse | HtmlResponse (View::render) | RedirectResponse → send()
+  → App\Http\Router + config/routes.php → middleware → Controller::method (Container dựng theo constructor)
+  → JsonResponse | HtmlResponse (View::page) | RedirectResponse → send()
 ```
 
 ## Từ vựng

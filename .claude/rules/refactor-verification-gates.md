@@ -6,6 +6,7 @@
 while read -r f; do php -l "$f" >/dev/null || echo "LINT FAIL $f"; done < <(rg --files -g '*.php' -g '!vendor/**')
 vendor/bin/php-cs-fixer fix --dry-run          # 0 file
 php tests/php/run.php                          # 0 fail (gồm structure_test)
+BNS_DB_CONFIG=<config DB *_test> php tests/php/run.php   # thêm test tích hợp, 0 skip
 php tools/smoke.php                            # chưa đăng nhập: khớp baseline
 php tools/smoke.php --cookie=<HTSSOSESSID>     # đăng nhập: chỉ gọi GET, khớp baseline
 ```
@@ -18,7 +19,7 @@ php tools/smoke.php --cookie=<HTSSOSESSID>     # đăng nhập: chỉ gọi GET,
 ## Khi đổi trang / view / JS
 
 - So header + HTML trang trước/sau (curl có cookie) — chỉ được khác đồng hồ server.
-- Đổi file trong content glob của Tailwind → chạy `tools\build-css.bat`, CSS phải không mất class.
+- Đổi file trong content glob của Tailwind → chạy `tools\build-css.bat`, CSS phải không mất class; commit `dist/app.css`.
 - Thao tác ghi (POST/PUT/DELETE, import confirm) không chạy bằng phiên thật; để user thử tay.
 
 ## Commit

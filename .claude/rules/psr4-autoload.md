@@ -12,8 +12,8 @@
 | `App\Controllers` | `app/Controllers` | `XxxController` (API), `XxxPageController` (trang) |
 | `App\Http` | `app/Http` | Router, Request, Cors, CsrfToken, các Response |
 | `App\Http\Middleware` | `app/Http/Middleware` | `MiddlewareInterface` + middleware |
-| `App\Services` | `app/Services` | logic nghiệp vụ (NangSuatService, AdminService...) |
-| `App\Support` | `app/Support` | Database, View |
+| `App\Services` | `app/Services` | logic nghiệp vụ (BaoCaoService, LuyKeCalculator, ImportService...) |
+| `App\Support` | `app/Support` | Database, View, Container |
 
 ## Cách nạp
 

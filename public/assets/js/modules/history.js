@@ -1,5 +1,5 @@
 import { api } from './api.js';
-import { showLoading, hideLoading, showToast, getStatusText } from './utils.js';
+import { showLoading, hideLoading, showToast, getStatusText, escapeHtml } from './utils.js';
 import { GridManager } from './grid.js';
 import { svgIcon, reportInfoHtml, bindInfoToggle, updateLuyKeSummary } from './report-view.js';
 
@@ -34,6 +34,29 @@ export class HistoryModule {
                 this.loadHistoryList(true); // Force refresh
             });
         }
+
+        document.getElementById('historyTable')?.addEventListener('click', (e) => {
+            const deleteEl = e.target.closest('[data-action="delete-report"]');
+            if (deleteEl) {
+                this.deleteReport(Number(deleteEl.dataset.id));
+                return;
+            }
+            const rowEl = e.target.closest('[data-action="open-report"]');
+            if (!rowEl) return;
+            const id = Number(rowEl.dataset.id);
+            if (this.app.router) this.app.router.navigate('/lich-su/' + id);
+            else this.showDetail(id);
+        });
+
+        document.getElementById('historyPagination')?.addEventListener('click', (e) => {
+            const pageEl = e.target.closest('[data-action="go-page"]');
+            if (pageEl && !pageEl.disabled) this.goToPage(Number(pageEl.dataset.page));
+        });
+
+        document.getElementById('bnsBarSlot')?.addEventListener('click', (e) => {
+            const unlockEl = e.target.closest('[data-action="unlock-report"]');
+            if (unlockEl) this.unlockReport(Number(unlockEl.dataset.id));
+        });
     }
 
     async loadHistoryList(forceRefresh = false) {
@@ -102,7 +125,7 @@ export class HistoryModule {
             else hieuSuatClass = 'text-red-600 font-bold';
 
             const deleteBtn = isAdmin ? `
-                <button onclick="event.stopPropagation(); window.historyModule.deleteReport(${item.id})"
+                <button data-action="delete-report" data-id="${item.id}"
                     class="ml-2 text-red-600 hover:text-red-800 p-1" title="Xóa báo cáo">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
@@ -111,16 +134,16 @@ export class HistoryModule {
             ` : '';
 
             return `
-                <tr class="hover:bg-gray-50 cursor-pointer transition-colors" onclick="if(window.app && window.app.router) { window.app.router.navigate('/lich-su/' + ${item.id}) } else { window.historyModule.showDetail(${item.id}) }">
-                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${item.ngay_bao_cao}</td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${item.ten_ca || item.ca_id}</td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 font-medium">${item.ma_hang}</td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-center">${item.so_lao_dong}</td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-center">${item.chi_tieu}</td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 text-center font-medium">${item.thuc_te}</td>
+                <tr class="hover:bg-gray-50 cursor-pointer transition-colors" data-action="open-report" data-id="${item.id}">
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${escapeHtml(item.ngay_bao_cao)}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${escapeHtml(item.ten_ca || item.ca_id)}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 font-medium">${escapeHtml(item.ma_hang)}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-center">${escapeHtml(item.so_lao_dong)}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-center">${escapeHtml(item.chi_tieu)}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 text-center font-medium">${escapeHtml(item.thuc_te)}</td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm text-center ${hieuSuatClass}">${hieuSuat}%</td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm text-center">
-                        <span class="status-badge status-${item.trang_thai}">${getStatusText(item.trang_thai)}</span>
+                        <span class="status-badge status-${escapeHtml(item.trang_thai)}">${escapeHtml(getStatusText(item.trang_thai))}</span>
                         ${deleteBtn}
                     </td>
                 </tr>
@@ -147,7 +170,7 @@ export class HistoryModule {
 
         // Previous button
         html += `
-            <button onclick="window.historyModule.goToPage(${page - 1})" ${page <= 1 ? 'disabled' : ''} class="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 ${page <= 1 ? 'opacity-50 cursor-not-allowed' : ''}">
+            <button data-action="go-page" data-page="${page - 1}" ${page <= 1 ? 'disabled' : ''} class="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 ${page <= 1 ? 'opacity-50 cursor-not-allowed' : ''}">
                 <span class="sr-only">Previous</span>
                 <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
                     <path fill-rule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clip-rule="evenodd" />
@@ -168,7 +191,7 @@ export class HistoryModule {
         for (let i = startPage; i <= endPage; i++) {
             const activeClass = i === page ? 'z-10 bg-indigo-50 border-indigo-500 text-indigo-600' : 'bg-white border-gray-300 text-gray-500 hover:bg-gray-50';
             html += `
-                <button onclick="window.historyModule.goToPage(${i})" aria-current="${i === page ? 'page' : 'false'}" class="relative inline-flex items-center px-4 py-2 border text-sm font-medium ${activeClass}">
+                <button data-action="go-page" data-page="${i}" aria-current="${i === page ? 'page' : 'false'}" class="relative inline-flex items-center px-4 py-2 border text-sm font-medium ${activeClass}">
                     ${i}
                 </button>
             `;
@@ -176,7 +199,7 @@ export class HistoryModule {
 
         // Next button
         html += `
-            <button onclick="window.historyModule.goToPage(${page + 1})" ${page >= total_pages ? 'disabled' : ''} class="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 ${page >= total_pages ? 'opacity-50 cursor-not-allowed' : ''}">
+            <button data-action="go-page" data-page="${page + 1}" ${page >= total_pages ? 'disabled' : ''} class="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 ${page >= total_pages ? 'opacity-50 cursor-not-allowed' : ''}">
                 <span class="sr-only">Next</span>
                 <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
                     <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd" />
@@ -236,7 +259,7 @@ export class HistoryModule {
         const isAdmin = window.appContext?.session?.vai_tro === 'admin';
         const canUnlock = isAdmin && ['submitted', 'approved', 'locked'].includes(baoCao.trang_thai);
         const unlockBtn = canUnlock
-            ? `<button type="button" class="bns-bar-btn is-ghost" title="Mở khóa báo cáo để chỉnh sửa" onclick="window.historyModule.unlockReport(${parseInt(baoCao.id)})">${svgIcon('<rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 9.9-1"/>')}<span>Mở khóa</span></button>`
+            ? `<button type="button" class="bns-bar-btn is-ghost" title="Mở khóa báo cáo để chỉnh sửa" data-action="unlock-report" data-id="${parseInt(baoCao.id)}">${svgIcon('<rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 9.9-1"/>')}<span>Mở khóa</span></button>`
             : '';
         this.app.renderAppBar(baoCao, {
             actions: unlockBtn,

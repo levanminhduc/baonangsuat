@@ -10,8 +10,9 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ```bash
 composer install                 # vendor/ is gitignored (autoload App\, PhpSpreadsheet, php-cs-fixer)
-tools\build-css.bat              # Tailwind CSS → public/assets/tailwind/dist/ (gitignored)
-php tests/php/run.php            # unit + structure tests
+tools\build-css.bat              # Tailwind v4 → public/assets/tailwind/dist/app.css (COMMITTED; rebuild + commit after changing classes in views/, components/, public/assets/js/)
+php tests/php/run.php [filter]   # unit + structure tests; prints "N pass, M fail, K skip"
+BNS_DB_CONFIG=<config of a *_test DB> php tests/php/run.php   # also runs DB integration tests (otherwise skipped)
 vendor/bin/php-cs-fixer fix --dry-run
 php tools/smoke.php [--cookie=<HTSSOSESSID>]   # compare every URL with tests/smoke baseline
 
@@ -30,7 +31,7 @@ single-entry-point-routing, refactor-verification-gates, tailwind-js).
 public/index.php      → the only PHP entry; Router + config/routes.php
 bootstrap/app.php     → BNS_ROOT, Composer autoload, authV2 shared session
 app/                  → PSR-4 App\: Auth, Controllers, Http (Router, Middleware), Services, Support
-views/ + partials/    → page HTML; components/ → shared UI components
+views/ + partials/    → page body HTML (views/layouts/app.php wraps it); components/ → shared UI components
 ```
 
 URLs are unchanged: pages stay `/baonangsuat/<page>.php`, API stays `/baonangsuat/api/<group>/...`.
@@ -54,33 +55,63 @@ Database::getNangSuat() → nang_suat database  → all productivity data
 Database::getNhanSu()   → quan_ly_nhan_su     → employee info (read-only)
 ```
 
-Config file: `C:/xampp/config/db.php` (outside project root)
+Config file: `C:/xampp/config/db.php` (outside project root); env `BNS_DB_CONFIG` overrides the path (read via `getenv` only; used by integration tests, which refuse any DB whose name does not end in `_test`).
+
+### Page layout and CSS
+
+`App\Support\View::page($template, $data, $layout = 'app')` renders `views/<template>.php` as body content inside `views/layouts/app.php`. The view declares `$page = [...]` (`title`, `bodyClass`, `navTitle`, `navActive`, `showAddBtn`, `addBtnId`, `showHomeBtn`, `nav`, `scripts`, `modules`, `head`, `foot`); the layout emits `<meta name="bns-base">`, the single CSS link, the navbar partial and the script tags. `<head>` is written only in the layout. `views/admin.php` is a shell that includes `views/admin/tab-*.php` and `modal-*.php`.
+
+Everything runs offline: no CDN, no Bootstrap/Font Awesome. One CSS bundle `public/assets/tailwind/dist/app.css`, built from `public/assets/tailwind/src/app.css` (Tailwind v4.1 standalone CLI, `tools/tailwindcss.exe` is gitignored). The import order in `src/app.css` is a contract and nothing is in `@layer`: legacy CSS (`public/assets/css/{style,layout,luy-ke-status,entry,admin}.css`) → page CSS (`guide.css`, `chart.css`) → Tailwind preflight → `v3-compat.css` → utilities → `v3-space.css`; `v3-palette.css` restores the v3 hex palette. Legacy rules with higher specificity must keep winning over utilities as they did under the old CDN, so do not add `layer()`. Theme tokens: `primary`, `primary-dark`, `success`, `warning`, `danger`; `<body class="theme-no-line">` switches `primary` to blue (no second build). Class scanning uses `@source` for `views/`, `components/`, `public/assets/js/`. Browser floor of the output: Chrome 111+, Safari 16.4+, Firefox 128+. Chart.js 4.6.2 is vendored in `public/assets/vendor/` (see its README).
 
 ### Frontend Module System
 
 ```
-public/assets/js/app.js          → Main app (NangSuatApp class)
-public/assets/js/admin.js        → Admin SPA with lazy-loaded modules
-public/assets/js/modules/        → Shared modules (api, router, grid, utils)
-public/assets/js/modules/admin/  → Admin-specific modules (lazy-loaded)
+public/assets/js/app.js            → Entry of the main page (NangSuatApp class)
+public/assets/js/modules/nhap/     → NangSuatApp parts: report-list, create-modal, editor, po-editor, autosave, workflow
+public/assets/js/admin.js          → Admin SPA with lazy-loaded modules
+public/assets/js/bieu-do.js        → Chart page entry
+public/assets/js/modules/bieu-do/  → state, format, filters, data, charts, chart-type, matrix
+public/assets/js/modules/          → Shared modules (config, api, router, grid, utils, history)
+public/assets/js/modules/admin/    → Admin-specific modules (lazy-loaded)
 ```
 
 Key patterns:
 
 - ES6 modules with dynamic imports for admin tabs
+- `modules/config.js` exports `BASE_PATH` (from `<meta name="bns-base">`) and `API_BASE`; never hard-code `/baonangsuat` in JS (`login.js`, a classic script, reads the meta itself)
+- One `escapeHtml`, in `modules/utils.js`; escape every API value put into `innerHTML`
+- No inline `on*=` handlers: use `data-action` / `data-fn` plus delegated listeners (`admin.js` `bindGlobalEvents`, `app.js` `bindEvents`, `modules/history.js`)
 - Hash-based routing (`Router` class in router.js)
 - CSRF token auto-fetched and attached to POST/PUT/DELETE requests
 - Auto-save with debounce for grid inputs
 
 ### Service Layer (`app/Services`)
 
+`App\Support\Container` (reflection autowiring by constructor type, one instance per class per request) builds controllers and middleware from the Router. Controllers receive services through the constructor; never `new XxxService()` in a controller (`tests/php/structure_test.php` enforces).
+
 ```
-NangSuatService     → Report CRUD, entry updates, submission workflow
-AdminService        → Facade for all admin services
-MocGioSetService    → Moc gio preset management with LINE fallback
-HistoryService      → Report history with pagination
-ImportService       → Excel import with PhpSpreadsheet
+DanhMucLookup           → Context, ca, moc gio, ma hang, routing lookups
+LuyKeCalculator         → Pure cumulative target/actual + ket_qua_luy_ke builder
+BaoCaoService           → Report create/get/list, entries, header (optimistic lock)
+BaoCaoBulkService       → Bulk create and delete of reports
+BaoCaoWorkflowService   → submit / approve / unlock / complete / reopen
+BaoCaoPoService         → PO / Subart validation and PO block (uses DatchiPoService)
+MocGioSetService        → Moc gio preset management with LINE fallback
+HistoryService          → Report history with pagination
+ChartService            → Chart data
+ImportService           → Excel import preview/confirm
+ImportExcelParser       → Reads the Excel file
+ImportLookupService     → DB lookups for import
+ImportHistoryService    → Import history save/list/detail
+UserPermissionService   → user_permissions grant/revoke
+LineService             → Lines (getListSynced() syncs from HR before listing)
 ```
+
+Other admin services: `MaHangService`, `CongDoanService`, `RoutingService`, `MocGioService`, `UserService`, `PoSubartService`, plus `PoTienDo`, `DatchiPoService` and `SubartSoLuong/`. There is no `NangSuatService` or `AdminService` facade anymore.
+
+### Tests
+
+`tests/` has only `php/` (runner + tests; `support/db.php` helper), `fixtures/` and `smoke/`. `tests/php/bao_cao_db_test.php` runs only when `BNS_DB_CONFIG` points to a config whose DB name ends with `_test` (it rebuilds schema + seed there); otherwise it is skipped. Dev scripts live in `tools/` (`generate-test-excel.php`, `check-routing-snapshot.php`, `generate-import-template.php`, `smoke.php`).
 
 ## Critical Business Logic
 
@@ -98,7 +129,7 @@ const entry = baoCao.entries[key];
 When creating a report, ALL entries are pre-generated with `so_luong = 0`:
 
 ```php
-private function preGenerateEntries($bao_cao_id, $routing, $mocGioList, $ma_nv)
+public function preGenerateEntries($bao_cao_id, $routing, $mocGioList, $ma_nv)
 ```
 
 ### Lũy Kế (Cumulative) Calculation
@@ -139,20 +170,25 @@ $routingSnapshot = json_encode([
 
 ### Kết Quả Lũy Kế
 
-Calculated at submit time and stored in `ket_qua_luy_ke` JSON column:
+Built by `LuyKeCalculator::buildKetQua()` at submit time (`BaoCaoWorkflowService::submitBaoCao`) and stored in `ket_qua_luy_ke` JSON column. `trang_thai` is `dat` / `chua_dat` / `na`:
 
 ```json
 {
   "version": 1,
-  "tong_phut_hieu_dung": 510,
-  "ctns": 600,
-  "moc_gio": {
-    "1": {
-      "chi_tieu_luy_ke": 100,
-      "luy_ke_thuc_te": 98,
+  "generated_at": "2026-01-20T10:30:00+07:00",
+  "source": { "bao_cao_id": 1, "ngay": "2026-01-20", "line_id": 1, "ca_id": 1, "ma_hang_id": 1 },
+  "inputs": { "so_lao_dong": 20, "ctns": 600, "tong_phut_hieu_dung": 510 },
+  "tong_hop": { "ct_gio": 70.59, "luy_ke_thuc_te": 598, "chi_tieu_luy_ke": 600, "trang_thai": "chua_dat" },
+  "cong_doan": [
+    {
+      "cong_doan_id": 5,
+      "cong_doan_ten": "Cắt",
+      "la_cong_doan_tinh_luy_ke": 1,
+      "luy_ke_thuc_te": 598,
+      "chi_tieu_luy_ke": 600,
       "trang_thai": "chua_dat"
     }
-  }
+  ]
 }
 ```
 

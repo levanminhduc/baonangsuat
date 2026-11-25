@@ -15,7 +15,7 @@ class Database
     {
         static $config = null;
         if ($config === null) {
-            $configFile = 'C:/xampp/config/db.php';
+            $configFile = getenv('BNS_DB_CONFIG') ?: 'C:/xampp/config/db.php';
             if (!file_exists($configFile)) {
                 throw new Exception('Database configuration file not found');
             }

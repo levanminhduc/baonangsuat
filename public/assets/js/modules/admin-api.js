@@ -1,4 +1,4 @@
-const API_BASE = '/baonangsuat/api';
+import { API_BASE } from './config.js';
 let csrfToken = null;
 
 async function ensureCsrfToken() {
@@ -33,8 +33,4 @@ export async function api(method, endpoint, data = null) {
     
     const response = await fetch(API_BASE + endpoint, options);
     return await response.json();
-}
-
-export function resetCsrfToken() {
-    csrfToken = null;
 }

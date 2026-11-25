@@ -32,10 +32,10 @@ export function renderPresetsTable() {
             <td><span class="status-badge ${preset.is_default == 1 ? 'status-approved' : 'status-draft'}">${preset.is_default == 1 ? 'Có' : 'Không'}</span></td>
             <td><span class="status-badge ${preset.is_active == 1 ? 'status-approved' : 'status-locked'}">${preset.is_active == 1 ? 'Hoạt động' : 'Tắt'}</span></td>
             <td>
-                <button class="btn btn-sm btn-secondary" onclick="window.viewPresetDetail(${preset.id})">Chi tiết</button>
-                <button class="btn btn-sm btn-primary" onclick="window.editPreset(${preset.id})">Sửa</button>
-                <button class="btn btn-sm btn-info" onclick="window.showCopyPresetModal(${preset.id})">Copy</button>
-                <button class="btn btn-sm btn-danger" onclick="window.deletePreset(${preset.id})">Xóa</button>
+                <button class="btn btn-sm btn-secondary" data-fn="viewPresetDetail" data-args="[${preset.id}]">Chi tiết</button>
+                <button class="btn btn-sm btn-primary" data-fn="editPreset" data-args="[${preset.id}]">Sửa</button>
+                <button class="btn btn-sm btn-info" data-fn="showCopyPresetModal" data-args="[${preset.id}]">Copy</button>
+                <button class="btn btn-sm btn-danger" data-fn="deletePreset" data-args="[${preset.id}]">Xóa</button>
             </td>
         </tr>
     `).join('');
@@ -275,7 +275,7 @@ export function renderAssignedLinesSection() {
                                 <td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-gray-900 sm:pl-6">${escapeHtml(line.ma_line)}</td>
                                 <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">${escapeHtml(line.ten_line)}</td>
                                 <td class="relative whitespace-nowrap py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-6">
-                                    <button class="text-red-600 hover:text-red-900 px-3 py-1 rounded-md hover:bg-red-50 transition-colors border border-transparent hover:border-red-200" onclick="window.unassignLine(${state.currentPresetDetail.id}, ${line.line_id})">
+                                    <button class="text-red-600 hover:text-red-900 px-3 py-1 rounded-md hover:bg-red-50 transition-colors border border-transparent hover:border-red-200" data-fn="unassignLine" data-args="[${state.currentPresetDetail.id}, ${line.line_id}]">
                                         Bỏ gán
                                     </button>
                                 </td>

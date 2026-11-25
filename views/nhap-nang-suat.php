@@ -1,40 +1,15 @@
-<!DOCTYPE html>
-<html lang="vi">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Nhập Năng Suất - <?php echo htmlspecialchars($session['line_ten'] ?? ''); ?></title>
-    <link rel="stylesheet" href="assets/css/style.css">
-    <link rel="stylesheet" href="assets/css/layout.css">
-    <link rel="stylesheet" href="assets/css/luy-ke-status.css">
-    <link rel="stylesheet" href="assets/css/entry.css">
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script>
-      tailwind.config = {
-        theme: {
-          extend: {
-            colors: {
-              primary: '#143583',
-              'primary-dark': '#0f2a66',
-              success: '#4CAF50',
-              warning: '#ff9800',
-              danger: '#f44336',
-            }
-          }
-        }
-      }
-    </script>
-</head>
-<body>
-    <?php
-    $navTitle = 'Nhập năng suất theo giờ';
-    $navActive = 'nhap';
-    $showAddBtn = true;
-    $addBtnUrl = '#';
-    $addBtnId = 'navCreateReportBtn';
-    $showHomeBtn = true;
-    include __DIR__ . '/partials/navbar.php';
-    ?>
+<?php
+$page = [
+    'title' => 'Nhập Năng Suất - ' . ($session['line_ten'] ?? ''),
+    'navTitle' => 'Nhập năng suất theo giờ',
+    'navActive' => 'nhap',
+    'showAddBtn' => true,
+    'addBtnUrl' => '#',
+    'addBtnId' => 'navCreateReportBtn',
+    'showHomeBtn' => true,
+    'modules' => ['assets/js/app.js'],
+];
+?>
     <div class="app-container">
         
         <!-- Main Tabs -->
@@ -163,15 +138,15 @@
         </footer>
     </div>
     
-    <div id="createModal" class="modal hidden fixed inset-0 z-50 flex items-center justify-center bg-gray-900/50 backdrop-blur-sm" onclick="window.app.closeModal()">
-        <div class="modal-content bg-white rounded-xl shadow-2xl w-full max-w-lg p-0 overflow-hidden" onclick="event.stopPropagation()">
+    <div id="createModal" class="modal hidden fixed inset-0 z-50 flex items-center justify-center bg-gray-900/50 backdrop-blur-sm" data-action="close-modal" data-target="createModal">
+        <div class="modal-content bg-white rounded-xl shadow-2xl w-full max-w-lg p-0 overflow-hidden">
             <div class="px-6 py-4 border-b border-gray-100 bg-gray-50 flex justify-between items-center">
                 <h2 class="text-xl font-bold text-gray-800 m-0">Tạo báo cáo mới</h2>
-                <button type="button" class="w-8 h-8 flex items-center justify-center bg-red-500 hover:bg-red-700 rounded text-white transition-colors" onclick="window.app.closeModal()">
+                <button type="button" class="w-8 h-8 flex items-center justify-center bg-red-500 hover:bg-red-700 rounded text-white transition-colors" data-action="close-modal" data-target="createModal">
                     <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
                 </button>
             </div>
-            <form id="createForm" onsubmit="event.preventDefault(); window.app.createReport();" class="p-6 space-y-4">
+            <form id="createForm" class="p-6 space-y-4">
                 <div class="form-group space-y-1" id="modalLineGroup" style="display: none;">
                     <label for="modalLine" class="block text-sm font-medium text-gray-700">Chọn LINE</label>
                     <select id="modalLine" required class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary transition-colors outline-none bg-white"></select>
@@ -208,7 +183,7 @@
                     </div>
                 </div>
                 <div class="modal-actions flex justify-end gap-3 pt-4 border-t border-gray-100 mt-6">
-                    <button type="button" class="btn px-4 py-2 rounded-lg bg-red-500 hover:bg-red-700 text-white transition-colors font-medium" onclick="window.app.closeModal()">Hủy</button>
+                    <button type="button" class="btn px-4 py-2 rounded-lg bg-red-500 hover:bg-red-700 text-white transition-colors font-medium" data-action="close-modal" data-target="createModal">Hủy</button>
                     <button type="submit" class="btn btn-primary px-4 py-2 rounded-lg bg-primary hover:bg-primary-dark text-white shadow-md hover:shadow-lg transition-all font-medium">Tạo báo cáo</button>
                 </div>
             </form>
@@ -219,13 +194,9 @@
     <?php include BNS_ROOT . '/components/loading-overlay.php'; ?>
     
     <script>
-        function closeModal(id) { document.getElementById(id).classList.add('hidden'); }
         window.initialParams = {
             line: "<?php echo isset($_GET['line']) ? htmlspecialchars($_GET['line']) : ''; ?>",
             ma_hang: "<?php echo isset($_GET['ma_hang']) ? htmlspecialchars($_GET['ma_hang']) : ''; ?>",
             ngay: "<?php echo isset($_GET['ngay']) ? htmlspecialchars($_GET['ngay']) : ''; ?>"
         };
     </script>
-    <script type="module" src="assets/js/app.js"></script>
-</body>
-</html>

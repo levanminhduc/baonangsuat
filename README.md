@@ -7,7 +7,7 @@ Hệ thống nhập năng suất là một ứng dụng web cho phép nhập li�
 *   **PHP**: 7.4 trở lên
 *   **MySQL**: 5.7 trở lên (hoặc MariaDB tương đương)
 *   **Web Server**: Apache (có hỗ trợ mod_rewrite)
-*   **Browser**: Chrome, Firefox, Edge (phiên bản mới nhất)
+*   **Browser**: Chrome 111+, Edge 111+, Safari 16.4+, Firefox 128+ (yêu cầu của Tailwind v4)
 
 ## 3. Cài đặt
 
@@ -25,7 +25,7 @@ Hệ thống sử dụng **3 database riêng biệt** với các mục đích kh
 3.  Đảm bảo database `mysqli` và `quan_ly_nhan_su` đã tồn tại và có dữ liệu phù hợp.
 
 ### Bước 2: Cấu hình kết nối
-Hệ thống sử dụng file cấu hình **bên ngoài thư mục dự án** tại đường dẫn `C:/xampp/config/db.php`.
+Hệ thống sử dụng file cấu hình **bên ngoài thư mục dự án** tại đường dẫn `C:/xampp/config/db.php` (đặt biến môi trường `BNS_DB_CONFIG` để dùng đường dẫn khác, ví dụ khi chạy test).
 
 > ⚠️ **Lưu ý quan trọng**: File cấu hình nằm ngoài thư mục gốc dự án để bảo mật thông tin đăng nhập database.
 
@@ -45,7 +45,7 @@ return [
 
 ### Bước 3: Cấu hình Web Server
 Đảm bảo thư mục dự án `baonangsuat` nằm trong thư mục gốc của Web Server (ví dụ: `C:/xampp/htdocs/baonangsuat`), cạnh `authV2`.
-Apache cần `mod_rewrite` và `AllowOverride All`; chạy `composer install` và `tools\build-css.bat`. Xem `docs/deploy-checklist.md`.
+Apache cần `mod_rewrite` và `AllowOverride All`; chạy `composer install`. Không cần build CSS trên server: `public/assets/tailwind/dist/app.css` đã được commit (chỉ chạy `tools\build-css.bat` trên máy dev sau khi đổi class trong `views/`, `components/`, `public/assets/js/`). Giao diện chạy hoàn toàn offline, không nạp CDN. Xem `docs/deploy-checklist.md`.
 
 Truy cập hệ thống qua địa chỉ: `http://localhost/baonangsuat/`
 
@@ -59,9 +59,11 @@ Truy cập hệ thống qua địa chỉ: `http://localhost/baonangsuat/`
 | [`config/routes.php`](config/routes.php) | Bảng route trang và API |
 | [`app/Support/Database.php`](app/Support/Database.php) | Multi-DB singleton với 3 kết nối database |
 | [`app/Auth/Auth.php`](app/Auth/Auth.php) | Xác thực (authV2) + ánh xạ người dùng LINE |
-| [`app/Services/NangSuatService.php`](app/Services/NangSuatService.php) | Logic nghiệp vụ chính |
-| [`app/Services/AdminService.php`](app/Services/AdminService.php) | Logic quản trị hệ thống |
+| [`app/Support/Container.php`](app/Support/Container.php) | Container autowire; Router dùng để dựng controller/service |
+| [`app/Services/BaoCaoService.php`](app/Services/BaoCaoService.php) | Tạo/đọc báo cáo, nhập entries, header (kèm `BaoCaoBulkService`, `BaoCaoWorkflowService`, `BaoCaoPoService`) |
+| [`app/Services/LuyKeCalculator.php`](app/Services/LuyKeCalculator.php) | Tính lũy kế và `ket_qua_luy_ke` (thuần, không DB) |
 | [`app/Services/MocGioSetService.php`](app/Services/MocGioSetService.php) | Quản lý preset mốc giờ |
+| [`views/layouts/app.php`](views/layouts/app.php) | Layout duy nhất của mọi trang |
 | [`app/Http/CsrfToken.php`](app/Http/CsrfToken.php) | CSRF token management |
 | [`app/Http/Middleware/SecurityHeaders.php`](app/Http/Middleware/SecurityHeaders.php) | Security headers |
 
@@ -74,7 +76,7 @@ Cây thư mục: `public/` (web root), `bootstrap/`, `config/`, `app/` (PSR-4 `A
 | :--- | :--- |
 | `ma_nv` phải UPPERCASE | Tất cả code sử dụng `strtoupper(trim($ma_nv))` trước khi truy vấn |
 | Hỗ trợ mật khẩu plaintext | Auth chấp nhận CẢ bcrypt VÀ plaintext passwords |
-| Base path cố định | `/baonangsuat/` được hardcode trong PHP redirects và JS fetch calls |
+| Base path | JS lấy base path từ `<meta name="bns-base">` do layout xuất (`modules/config.js`); chỉ còn `Auth.php:81,88` hardcode `/baonangsuat/index.php` làm URL quay về |
 | Pre-generated entries | Tạo báo cáo sẽ tự động tạo TẤT CẢ entries với `so_luong = 0` |
 | Cờ `la_cong_doan_tinh_luy_ke` | Chỉ các công đoạn có flag=1 mới được tính lũy kế |
 | CSRF protection | Tất cả POST/PUT/DELETE endpoints (trừ login) yêu cầu X-CSRF-Token header. Token lấy qua GET /api/csrf-token |

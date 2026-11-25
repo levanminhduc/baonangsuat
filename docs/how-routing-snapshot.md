@@ -9,13 +9,13 @@
 ```mermaid
 sequenceDiagram
     participant User
-    participant API as API (handleBaoCao)
-    participant Service as NangSuatService
+    participant API as BaoCaoController::store
+    participant Service as BaoCaoService
     participant DB as Database
 
     User->>API: POST /api/bao-cao (tạo báo cáo mới)
     API->>Service: createBaoCao(input, ma_nv)
-    Service->>DB: getRouting(ma_hang_id, line_id)
+    Service->>DB: DanhMucLookup::getRouting(ma_hang_id, line_id)
     DB-->>Service: routing hiện tại
     Service->>Service: Tạo routing_snapshot JSON
     Service->>DB: INSERT bao_cao_nang_suat (với routing_snapshot)
@@ -26,14 +26,14 @@ sequenceDiagram
 
 ### Code thực hiện
 
-Trong [`classes/NangSuatService.php`](../classes/NangSuatService.php:156-171):
+Trong [`app/Services/BaoCaoService.php`](../app/Services/BaoCaoService.php) (`createBaoCao`):
 
 ```php
-public function createBaoCao($input, $ma_nv) {
+public function createBaoCao($data, $ma_nv) {
     // ... validation ...
     
     // Lấy routing hiện tại từ database
-    $routing = $this->getRouting($ma_hang_id, $line_id);
+    $routing = $this->danhMuc->getRouting($ma_hang_id, $line_id);
     
     // Tạo snapshot JSON
     $routingSnapshot = json_encode([
@@ -67,7 +67,7 @@ Báo cáo không có routing_snapshot sẽ:
 
 ## Cách routing_snapshot được sử dụng
 
-Trong [`classes/NangSuatService.php::getBaoCao()`](../classes/NangSuatService.php:205-240):
+Trong [`BaoCaoService::getBaoCao()`](../app/Services/BaoCaoService.php):
 
 ```php
 public function getBaoCao($bao_cao_id) {
@@ -81,7 +81,7 @@ public function getBaoCao($bao_cao_id) {
         $baoCao['routing_is_snapshot'] = true;
     } else {
         // KHÔNG CÓ snapshot → Lấy routing hiện tại từ database
-        $baoCao['routing'] = $this->getRouting($baoCao['ma_hang_id'], $baoCao['line_id']);
+        $baoCao['routing'] = $this->danhMuc->getRouting($baoCao['ma_hang_id'], $baoCao['line_id']);
         $baoCao['routing_is_snapshot'] = false;
     }
     
@@ -116,7 +116,7 @@ public function getBaoCao($bao_cao_id) {
 
 ## Các trạng thái báo cáo
 
-Hệ thống hỗ trợ **5 trạng thái** (định nghĩa trong [`database/schema.sql`](../database/schema.sql:102)):
+Hệ thống hỗ trợ **5 trạng thái** (định nghĩa trong [`database/schema.sql`](../database/schema.sql:153)):
 
 | Trạng thái | Mô tả | Có thể chỉnh sửa? |
 |------------|-------|-------------------|
@@ -153,6 +153,6 @@ stateDiagram-v2
 
 ### Trước khi import Excel
 
-1. Kiểm tra các báo cáo không có routing_snapshot bằng script [`tests/check-routing-snapshot.php`](../tests/check-routing-snapshot.php)
+1. Kiểm tra các báo cáo không có routing_snapshot bằng script [`tools/check-routing-snapshot.php`](../tools/check-routing-snapshot.php)
 2. Backup database trước khi import
 3. Xem xét tạo routing_snapshot cho các báo cáo cũ (cần viết migration script)

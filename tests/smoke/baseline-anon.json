@@ -117,7 +117,7 @@
             "content-type": "text/css"
         },
         "body": {
-            "sha1": "3f36e702520a4c22425762c0f69d3dccc9d3876f"
+            "sha1": "99d43f8c6c3048f9b9a9551d1ae8cd8b6790ebe6"
         }
     },
     "GET /assets/css/admin.css": {
@@ -135,7 +135,7 @@
             "content-type": "text/javascript"
         },
         "body": {
-            "sha1": "15ab01b14d6b1415376ac689c111f5d1c7648daf"
+            "sha1": "d4c67cfdd5bc192cc8c2dbea2865bf7f9bfe9814"
         }
     },
     "GET /assets/js/modules/api.js": {
@@ -144,7 +144,7 @@
             "content-type": "text/javascript"
         },
         "body": {
-            "sha1": "d29ee72f392a796b5d50c7b71f19d1b374b395db"
+            "sha1": "b1f5e4377ee64b166119cfcf2efc74d1f8cd5c5b"
         }
     },
     "GET /assets/js/workers/realtime-worker.js": {
@@ -156,13 +156,31 @@
             "sha1": "f9c034d7d97cf47e197c040db6bfdff86e2ed84d"
         }
     },
-    "GET /assets/tailwind/dist/main.css": {
+    "GET /assets/tailwind/dist/app.css": {
         "status": 200,
         "headers": {
             "content-type": "text/css"
         },
         "body": {
-            "sha1": "abe46c6d816823141d466960ba524c60df7acead"
+            "sha1": "6121bc55245b017ff3105fa7eb0407b4cd9fad09"
+        }
+    },
+    "GET /assets/vendor/chart.umd.min.js": {
+        "status": 200,
+        "headers": {
+            "content-type": "text/javascript"
+        },
+        "body": {
+            "sha1": "2f45291dce568ac7cc20e54152147395cb83b0df"
+        }
+    },
+    "GET /assets/js/modules/config.js": {
+        "status": 200,
+        "headers": {
+            "content-type": "text/javascript"
+        },
+        "body": {
+            "sha1": "89a1e3a78b59b017cc22fae50113b9d5aa08428e"
         }
     },
     "GET /img/logoht.svg": {

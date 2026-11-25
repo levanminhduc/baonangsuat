@@ -26,6 +26,6 @@ class IndexPageController
             return new RedirectResponse('no-line.php');
         }
 
-        return new HtmlResponse(View::render('index', ['allowedLines' => $allowedLines]));
+        return new HtmlResponse(View::page('index', ['allowedLines' => $allowedLines]));
     }
 }

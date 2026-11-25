@@ -114,7 +114,7 @@ function renderHistoryList(data, pagination) {
                     </span>
                 </td>
                 <td class="px-4 py-3 text-center">
-                    <button onclick="viewImportDetail(${item.id})" class="text-primary hover:text-primary-dark transition-colors" title="Xem chi tiết">
+                    <button data-fn="viewImportDetail" data-args="[${item.id}]" class="text-primary hover:text-primary-dark transition-colors" title="Xem chi tiết">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
@@ -143,7 +143,7 @@ function renderPagination(pagination) {
     for (let i = 1; i <= total_pages; i++) {
         if (i === 1 || i === total_pages || (i >= page - 2 && i <= page + 2)) {
             const activeClass = i === page ? 'bg-primary text-white' : 'bg-white text-gray-700 hover:bg-gray-100';
-            pagesHtml += `<button onclick="loadImportHistory(${i})" class="px-3 py-1 rounded border ${activeClass}">${i}</button>`;
+            pagesHtml += `<button data-fn="loadImportHistory" data-args="[${i}]" class="px-3 py-1 rounded border ${activeClass}">${i}</button>`;
         } else if (i === page - 3 || i === page + 3) {
             pagesHtml += `<span class="px-2">...</span>`;
         }
@@ -153,9 +153,9 @@ function renderPagination(pagination) {
         <div class="flex items-center justify-between">
             <div class="text-sm text-gray-500">Tổng: ${total} bản ghi</div>
             <div class="flex items-center gap-2">
-                <button onclick="loadImportHistory(${page - 1})" ${page <= 1 ? 'disabled' : ''} class="px-3 py-1 rounded border bg-white text-gray-700 hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed">← Trước</button>
+                <button data-fn="loadImportHistory" data-args="[${page - 1}]" ${page <= 1 ? 'disabled' : ''} class="px-3 py-1 rounded border bg-white text-gray-700 hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed">← Trước</button>
                 ${pagesHtml}
-                <button onclick="loadImportHistory(${page + 1})" ${page >= total_pages ? 'disabled' : ''} class="px-3 py-1 rounded border bg-white text-gray-700 hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed">Sau →</button>
+                <button data-fn="loadImportHistory" data-args="[${page + 1}]" ${page >= total_pages ? 'disabled' : ''} class="px-3 py-1 rounded border bg-white text-gray-700 hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed">Sau →</button>
             </div>
         </div>
     `;
@@ -181,7 +181,7 @@ function renderDetailModal(detail) {
         <div class="bg-white rounded-lg shadow-xl max-w-3xl w-full max-h-[90vh] overflow-hidden flex flex-col">
             <div class="bg-primary text-white px-6 py-4 flex justify-between items-center">
                 <h3 class="text-lg font-bold">Chi tiết Import #${detail.id}</h3>
-                <button onclick="closeImportHistoryModal()" class="text-white hover:text-gray-200">
+                <button data-fn="closeImportHistoryModal" data-args="[]" class="text-white hover:text-gray-200">
                     <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
                     </svg>
@@ -203,7 +203,7 @@ function renderDetailModal(detail) {
                         </div>
                         <div>
                             <div class="text-gray-500">🕐 Thời gian</div>
-                            <div class="font-medium">${importTime.date} ${importTime.time}</div>
+                            <div class="font-medium">${escapeHtml(importTime.date)} ${escapeHtml(importTime.time)}</div>
                             <div class="text-xs text-gray-400">${detail.thoi_gian_xu_ly_ms}ms</div>
                         </div>
                         <div>
@@ -309,7 +309,7 @@ function renderDetailModal(detail) {
             </div>
             
             <div class="border-t border-gray-200 px-6 py-4 bg-gray-50 flex justify-end">
-                <button onclick="closeImportHistoryModal()" class="px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600 transition-colors">
+                <button data-fn="closeImportHistoryModal" data-args="[]" class="px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600 transition-colors">
                     Đóng
                 </button>
             </div>

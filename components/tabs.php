@@ -21,7 +21,7 @@ if (!$hasActive && !empty($tabs)) {
 }
 ?>
 
-<div class="<?= $class ?>" id="<?= $id ?>">
+<div class="<?= $class ?>" id="<?= $id ?>" data-tabs>
     <div class="border-b border-gray-200">
         <nav class="-mb-px flex space-x-8" aria-label="Tabs">
             <?php foreach ($tabs as $index => $tab): 
@@ -34,7 +34,7 @@ if (!$hasActive && !empty($tabs)) {
                     : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300';
             ?>
                 <button 
-                    onclick="switchTab('<?= $id ?>', '<?= $contentId ?>', this)"
+                    data-tabs-target="<?= $contentId ?>"
                     class="<?= $linkClass ?> whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm transition-colors focus:outline-none"
                     aria-current="<?= $isActive ? 'page' : 'false' ?>"
                 >
@@ -58,30 +58,27 @@ if (!$hasActive && !empty($tabs)) {
 </div>
 
 <script>
-if (typeof switchTab !== 'function') {
-    function switchTab(containerId, contentId, button) {
-        const container = document.getElementById(containerId);
-        if (!container) return;
+(function () {
+    const container = document.getElementById('<?= $id ?>');
+    if (!container) return;
 
-        // Hide all contents in this container
-        const contents = container.querySelectorAll('.tab-content');
-        contents.forEach(el => el.classList.add('hidden'));
+    container.querySelector('nav').addEventListener('click', (e) => {
+        const button = e.target.closest('button[data-tabs-target]');
+        if (!button) return;
 
-        // Reset all buttons in this container
-        const buttons = container.querySelectorAll('nav button');
-        buttons.forEach(btn => {
+        container.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+
+        container.querySelectorAll('nav button').forEach(btn => {
             btn.classList.remove('border-[#143583]', 'text-[#143583]');
             btn.classList.add('border-transparent', 'text-gray-500', 'hover:text-gray-700', 'hover:border-gray-300');
             btn.setAttribute('aria-current', 'false');
         });
 
-        // Show selected content
-        document.getElementById(contentId).classList.remove('hidden');
+        document.getElementById(button.dataset.tabsTarget).classList.remove('hidden');
 
-        // Activate selected button
         button.classList.remove('border-transparent', 'text-gray-500', 'hover:text-gray-700', 'hover:border-gray-300');
         button.classList.add('border-[#143583]', 'text-[#143583]');
         button.setAttribute('aria-current', 'page');
-    }
-}
+    });
+})();
 </script>

@@ -64,3 +64,21 @@ test('structure_app_has_no_manual_class_require', function () {
     }
     assertSame([], $found);
 });
+
+test('structure_controllers_do_not_instantiate_services', function () {
+    $found = [];
+    foreach (['/app/Controllers', '/app/Http/Middleware'] as $dir) {
+        $files = new RecursiveIteratorIterator(new RecursiveDirectoryIterator(BNS_ROOT . $dir, FilesystemIterator::SKIP_DOTS));
+        foreach ($files as $file) {
+            if ($file->getExtension() !== 'php') {
+                continue;
+            }
+            foreach (file($file->getPathname()) as $i => $line) {
+                if (preg_match('/new\s+\w*Service\s*\(/', $line) === 1) {
+                    $found[] = basename($file->getPathname()) . ':' . ($i + 1);
+                }
+            }
+        }
+    }
+    assertSame([], $found);
+});

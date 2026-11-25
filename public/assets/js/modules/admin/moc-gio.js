@@ -121,8 +121,8 @@ export function renderMocGioTable() {
             <td>${isDefault ? '<span class="text-gray-500 italic">Mặc định</span>' : escapeHtml(mg.ma_line)}</td>
             <td><span class="status-badge ${mg.is_active == 1 ? 'status-approved' : 'status-locked'}">${mg.is_active == 1 ? 'Hoạt động' : 'Tắt'}</span></td>
             <td>
-                <button class="btn btn-sm btn-primary" onclick="window.editMocGio(${mg.id})">Sửa</button>
-                ${canDelete ? `<button class="btn btn-sm btn-danger" onclick="window.deleteMocGio(${mg.id})">Xóa</button>` : ''}
+                <button class="btn btn-sm btn-primary" data-fn="editMocGio" data-args="[${mg.id}]">Sửa</button>
+                ${canDelete ? `<button class="btn btn-sm btn-danger" data-fn="deleteMocGio" data-args="[${mg.id}]">Xóa</button>` : ''}
             </td>
         </tr>
     `}).join('');

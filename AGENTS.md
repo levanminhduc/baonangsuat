@@ -4,7 +4,7 @@ This file provides guidance to agents when working with code in this repository.
 
 ## Critical Configuration
 
-- **Database config is EXTERNAL**: `C:/xampp/config/db.php` - outside project root
+- **Database config is EXTERNAL**: `C:/xampp/config/db.php` - outside project root; env `BNS_DB_CONFIG` overrides the path (process env only, used by integration tests)
 - **Admin whitelist config is EXTERNAL**: `C:/xampp/config/admin_whitelist.php` - controls which admin users can access admin panel
 - **Multi-database pattern**: 3 separate databases with different purposes:
   - `mysqli` → User authentication + permissions (table `user`, `user_permissions`)
@@ -18,7 +18,12 @@ This file provides guidance to agents when working with code in this repository.
 - **Session keys prefixed `bns_`**: Only `bns_line` (selected LINE + owner) and `bns_csrf_token` are written to the shared session. Role/employee context is rebuilt from DB on every request (`Auth::boot()`), never stored in session
 - **LINE selection reconciled each request**: `LineSelection::reconcile()` drops a stored LINE if it belongs to another user or is no longer allowed; auto-picks when a non-admin has exactly one allowed LINE. `auth/select-line` only accepts allowed LINEs (403 otherwise)
 - **Logout is a page navigation** to `Auth::logoutUrl()` (authV2 `logout.php` rejects `fetch`), and logs out all projects
-- **Hardcoded base path**: `API_BASE = '/baonangsuat/api'` is hardcoded in JS (`api.js`, `admin-api.js`, `admin/import.js`, `login.js`). PHP redirects are relative (`admin.php`), so PHP itself works under a vhost
+- **Base path comes from PHP**: the layout emits `<meta name="bns-base">`; `public/assets/js/modules/config.js` exports `BASE_PATH` and `API_BASE` from it (`login.js` reads the meta itself). No hard-coded `/baonangsuat` in JS. Known leftovers: `Auth.php:81,88` still hard-codes `/baonangsuat/index.php` as the login/logout return URL
+- **Offline UI**: no CDN, Bootstrap or Font Awesome. One committed bundle `public/assets/tailwind/dist/app.css` (Tailwind v4.1, `tools\build-css.bat`); rebuild and commit it after changing classes in `views/`, `components/` or `public/assets/js/`. The `@import` order in `public/assets/tailwind/src/app.css` is a contract (nothing in `@layer`). `<body class="theme-no-line">` switches `primary` to blue. Chart.js is vendored in `public/assets/vendor/`
+- **Layout**: `View::page($template, $data)` wraps the view in `views/layouts/app.php`; the view declares `$page = [...]`. `<head>` exists only in the layout
+- **No inline handlers**: use `data-action` / `data-fn` and delegated listeners; escape API data with the single `escapeHtml` from `modules/utils.js` before `innerHTML`
+- **DI**: `App\Support\Container` autowires controllers/middleware/services by constructor type; never `new XxxService()` in a controller (`structure_test` enforces)
+- **Tests**: `php tests/php/run.php [filter]` prints "N pass, M fail, K skip". DB integration tests run only when `BNS_DB_CONFIG` points to a config whose DB name ends with `_test`; they rebuild schema + seed there and refuse any other DB
 - **Pre-generated entries**: Creating a report auto-generates ALL entries with `so_luong = 0`
 - **Entry key format**: `{cong_doan_id}_{moc_gio_id}` - composite key for entry lookup
 - **`la_cong_doan_tinh_luy_ke` flag**: Only stages with this flag=1 are cumulative-calculated
@@ -45,11 +50,17 @@ This file provides guidance to agents when working with code in this repository.
 - [`app/Http/Router.php`](app/Http/Router.php) - METHOD + path router, group middleware, error messages
 - [`app/Support/Database.php`](app/Support/Database.php) - Multi-DB singleton with 3 static methods
 - [`app/Auth/Auth.php`](app/Auth/Auth.php) - Authentication + LINE user mapping + Permissions
-- [`app/Services/NangSuatService.php`](app/Services/NangSuatService.php) - Core business logic
+- [`app/Support/Container.php`](app/Support/Container.php) - Autowiring container used by the Router
+- [`app/Services/BaoCaoService.php`](app/Services/BaoCaoService.php) - Report create/get/list, entries, header (with `BaoCaoBulkService`, `BaoCaoWorkflowService`, `BaoCaoPoService`)
+- [`app/Services/LuyKeCalculator.php`](app/Services/LuyKeCalculator.php) - Pure cumulative calculation + `ket_qua_luy_ke`
+- [`app/Services/DanhMucLookup.php`](app/Services/DanhMucLookup.php) - Context, ca, moc gio, ma hang, routing lookups
 - [`app/Services/MocGioSetService.php`](app/Services/MocGioSetService.php) - Moc gio preset management
 - [`app/Services/HistoryService.php`](app/Services/HistoryService.php) - Report history with pagination
-- [`app/Services/ImportService.php`](app/Services/ImportService.php) - Excel import with PhpSpreadsheet
-- [`public/assets/js/app.js`](public/assets/js/app.js) - Main frontend app (NangSuatApp class)
+- [`app/Services/ImportService.php`](app/Services/ImportService.php) - Excel import preview/confirm (with `ImportExcelParser`, `ImportLookupService`, `ImportHistoryService`)
+- [`app/Services/UserPermissionService.php`](app/Services/UserPermissionService.php) - `user_permissions` grant/revoke
+- [`views/layouts/app.php`](views/layouts/app.php) - The only layout (`<head>`, navbar, scripts)
+- [`public/assets/js/app.js`](public/assets/js/app.js) - Main frontend entry (NangSuatApp class; parts in `modules/nhap/`)
+- [`public/assets/js/bieu-do.js`](public/assets/js/bieu-do.js) - Chart page entry (parts in `modules/bieu-do/`)
 - [`public/assets/js/admin.js`](public/assets/js/admin.js) - Admin SPA with lazy-loaded modules
 - [`public/assets/js/modules/router.js`](public/assets/js/modules/router.js) - Hash-based router
 

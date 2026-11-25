@@ -13,6 +13,7 @@ use App\Http\Middleware\RequireReportScope;
 use App\Http\Middleware\RequireRole;
 use App\Http\Middleware\SecurityHeaders;
 use App\Http\Middleware\VerifyCsrfToken;
+use App\Support\Container;
 use Exception;
 
 /**
@@ -47,8 +48,11 @@ final class Router
     private const NOT_FOUND = [404, 'API không tồn tại'];
     private const METHOD_NOT_ALLOWED = [405, 'Method not allowed'];
 
-    public function __construct(private readonly array $config)
+    private readonly Container $container;
+
+    public function __construct(private readonly array $config, ?Container $container = null)
     {
+        $this->container = $container ?? new Container();
     }
 
     /**
@@ -111,7 +115,7 @@ final class Router
 
             [, , $class, $verb] = $route;
 
-            return (new $class())->{$verb}($request);
+            return $this->container->get($class)->{$verb}($request);
         } catch (Exception $e) {
             return JsonResponse::error($e->getMessage(), 500);
         }
@@ -136,7 +140,7 @@ final class Router
 
         [, , $class, $verb] = $route;
 
-        return (new $class())->{$verb}($request);
+        return $this->container->get($class)->{$verb}($request);
     }
 
     private static function matchPath(string $pattern, string $path): ?array
@@ -174,7 +178,7 @@ final class Router
 
         $arguments = $rest === '' ? [] : explode(',', $rest);
         /** @var MiddlewareInterface $middleware */
-        $middleware = new $class();
+        $middleware = $this->container->get($class);
 
         return $middleware->check($request, $arguments);
     }

@@ -1,0 +1,50 @@
+/* Mặc định của preflight Tailwind 3 mà view đang dựa vào (v4 đã đổi). Nằm ngay sau preflight, trước utility. */
+*,
+::after,
+::before,
+::backdrop,
+::file-selector-button {
+  border-color: var(--color-gray-200, currentColor);
+}
+
+input::placeholder,
+textarea::placeholder {
+  color: var(--color-gray-400);
+}
+
+button:not(:disabled),
+[role="button"]:not(:disabled) {
+  cursor: pointer;
+}
+
+/* v4 xoá nền, độ mờ khi disabled và padding ô ngày của control; v3 để nguyên mặc định trình duyệt. */
+input:where(:not([type="button"], [type="reset"], [type="submit"])),
+select,
+textarea {
+  background-color: revert;
+}
+
+select:where(:disabled) {
+  opacity: revert;
+}
+
+::-webkit-datetime-edit-fields-wrapper {
+  padding: revert;
+}
+
+::-webkit-datetime-edit,
+::-webkit-datetime-edit-year-field,
+::-webkit-datetime-edit-month-field,
+::-webkit-datetime-edit-day-field,
+::-webkit-datetime-edit-hour-field,
+::-webkit-datetime-edit-minute-field,
+::-webkit-datetime-edit-second-field,
+::-webkit-datetime-edit-millisecond-field,
+::-webkit-datetime-edit-meridiem-field {
+  padding-block: revert;
+}
+
+::-webkit-date-and-time-value {
+  min-height: revert;
+  text-align: revert;
+}

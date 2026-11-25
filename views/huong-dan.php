@@ -1,56 +1,13 @@
-<!DOCTYPE html>
-<html lang="vi">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Hướng Dẫn Sử Dụng - Hệ thống Năng suất</title>
-    <link rel="stylesheet" href="assets/css/style.css">
-    <link rel="stylesheet" href="assets/css/layout.css">
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script>
-      tailwind.config = {
-        theme: {
-          extend: {
-            colors: {
-              primary: '#143583',
-              'primary-dark': '#0f2a66',
-              success: '#4CAF50',
-              warning: '#ff9800',
-              danger: '#f44336',
-            }
-          }
-        }
-      }
-    </script>
-    <style>
-        /* Guide specific styles */
-        .guide-content h2 { font-size: 1.5rem; font-weight: bold; margin-bottom: 1rem; color: #143583; border-bottom: 2px solid #eee; padding-bottom: 0.5rem; }
-        .guide-content h3 { font-size: 1.25rem; font-weight: 600; margin-top: 1.5rem; margin-bottom: 0.75rem; color: #333; }
-        .guide-content h4 { font-size: 1.1rem; font-weight: 600; margin-top: 1rem; margin-bottom: 0.5rem; color: #555; }
-        .guide-content p { margin-bottom: 1rem; line-height: 1.6; color: #4b5563; }
-        .guide-content ul { list-style-type: disc; margin-left: 1.5rem; margin-bottom: 1rem; }
-        .guide-content ol { list-style-type: decimal; margin-left: 1.5rem; margin-bottom: 1rem; }
-        .guide-content li { margin-bottom: 0.5rem; color: #4b5563; }
-        .guide-content table { width: 100%; border-collapse: collapse; margin-bottom: 1.5rem; }
-        .guide-content th, .guide-content td { border: 1px solid #e5e7eb; padding: 0.75rem; text-align: left; }
-        .guide-content th { background-color: #f9fafb; font-weight: 600; color: #374151; }
-        .guide-content code { background-color: #f3f4f6; padding: 0.2rem 0.4rem; rounded: 0.25rem; font-family: monospace; font-size: 0.9em; color: #c7254e; }
-        .guide-content pre { background-color: #f8fafc; padding: 1rem; border-radius: 0.5rem; overflow-x: auto; margin-bottom: 1rem; border: 1px solid #e2e8f0; }
-        .step-card { background: white; border: 1px solid #e5e7eb; border-radius: 0.5rem; padding: 1.5rem; margin-bottom: 1rem; box-shadow: 0 1px 2px rgba(0,0,0,0.05); }
-        .step-number { display: inline-flex; align-items: center; justify-content: center; width: 2rem; height: 2rem; background-color: #143583; color: white; border-radius: 9999px; font-weight: bold; margin-right: 0.75rem; }
-        .note-box { background-color: #fffbeb; border-left: 4px solid #fbbf24; padding: 1rem; margin-bottom: 1rem; border-radius: 0.25rem; }
-        .warning-box { background-color: #fef2f2; border-left: 4px solid #ef4444; padding: 1rem; margin-bottom: 1rem; border-radius: 0.25rem; }
-        .keyboard-key { display: inline-block; padding: 0.25rem 0.5rem; background-color: #f3f4f6; border: 1px solid #d1d5db; border-radius: 0.25rem; font-family: monospace; font-size: 0.875rem; color: #374151; box-shadow: 0 1px 0 rgba(0,0,0,0.1); }
-    </style>
-</head>
-<body class="bg-gray-50">
-    <?php
-    $navTitle = 'Hướng dẫn sử dụng';
-    $navActive = 'huong-dan';
-    $showAddBtn = false;
-    $showHomeBtn = true;
-    include __DIR__ . '/partials/navbar.php';
-    ?>
+<?php
+$page = [
+    'title' => 'Hướng Dẫn Sử Dụng - Hệ thống Năng suất',
+    'bodyClass' => 'bg-gray-50',
+    'navTitle' => 'Hướng dẫn sử dụng',
+    'navActive' => 'huong-dan',
+    'showAddBtn' => false,
+    'showHomeBtn' => true,
+];
+?>
 
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div class="bg-white rounded-lg shadow-sm min-h-[600px]">
@@ -414,5 +371,3 @@
             ?>
         </div>
     </div>
-</body>
-</html>

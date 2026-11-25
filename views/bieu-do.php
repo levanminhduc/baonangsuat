@@ -1,76 +1,15 @@
-<!DOCTYPE html>
-<html lang="vi">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Biểu đồ năng suất - <?php echo htmlspecialchars($session['line_ten'] ?? 'Admin'); ?></title>
-    <link rel="stylesheet" href="assets/css/style.css">
-    <link rel="stylesheet" href="assets/css/layout.css">
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script>
-      tailwind.config = {
-        theme: {
-          extend: {
-            colors: {
-              primary: '#143583',
-              'primary-dark': '#0f2a66',
-              success: '#4CAF50',
-              warning: '#ff9800',
-              danger: '#f44336',
-            }
-          }
-        }
-      }
-    </script>
-    <style>
-        .chart-container {
-            position: relative;
-            height: 400px;
-            width: 100%;
-        }
-        @media (max-width: 640px) {
-            .chart-container {
-                height: 300px;
-            }
-        }
-        .filter-select {
-            appearance: none;
-            background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='m6 8 4 4 4-4'/%3e%3c/svg%3e");
-            background-position: right 0.5rem center;
-            background-repeat: no-repeat;
-            background-size: 1.5em 1.5em;
-            padding-right: 2.5rem;
-        }
-        .summary-card {
-            transition: all 0.2s ease;
-        }
-        .summary-card:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-        }
-        .loading-spinner {
-            border: 3px solid #f3f3f3;
-            border-top: 3px solid #143583;
-            border-radius: 50%;
-            width: 40px;
-            height: 40px;
-            animation: spin 1s linear infinite;
-        }
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-    </style>
-</head>
-<body class="bg-gray-100">
-    <?php
-    $navTitle = 'Biểu đồ năng suất';
-    $navActive = 'bieu-do';
-    $showAddBtn = false;
-    $showHomeBtn = true;
-    include __DIR__ . '/partials/navbar.php';
-    ?>
+<?php
+$page = [
+    'title' => 'Biểu đồ năng suất - ' . ($session['line_ten'] ?? 'Admin'),
+    'bodyClass' => 'bg-gray-100',
+    'navTitle' => 'Biểu đồ năng suất',
+    'navActive' => 'bieu-do',
+    'showAddBtn' => false,
+    'showHomeBtn' => true,
+    'scripts' => ['assets/vendor/chart.umd.min.js'],
+    'modules' => ['assets/js/bieu-do.js'],
+];
+?>
     
     <div class="app-container">
         <div class="px-4 sm:px-6 lg:px-8 py-6">
@@ -385,6 +324,3 @@
             lineTen: "<?php echo htmlspecialchars($session['line_ten'] ?? ''); ?>"
         };
     </script>
-    <script type="module" src="assets/js/bieu-do.js"></script>
-</body>
-</html>

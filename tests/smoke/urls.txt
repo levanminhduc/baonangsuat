@@ -18,7 +18,9 @@ GET /assets/css/admin.css
 GET /assets/js/app.js
 GET /assets/js/modules/api.js
 GET /assets/js/workers/realtime-worker.js
-GET /assets/tailwind/dist/main.css
+GET /assets/tailwind/dist/app.css
+GET /assets/vendor/chart.umd.min.js
+GET /assets/js/modules/config.js
 GET /img/logoht.svg
 
 # --- Thư mục code: sau refactor phải 403 ---

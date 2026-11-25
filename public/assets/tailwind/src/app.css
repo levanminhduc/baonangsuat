@@ -1,0 +1,64 @@
+/* Một bundle cho mọi trang. Thứ tự là hợp đồng: CSS cũ → CSS riêng trang → preflight → utility,
+   tất cả KHÔNG nằm trong @layer — giống hệt lúc dùng Play CDN (CDN chèn style sau các <link>),
+   nên CSS cũ có specificity cao hơn vẫn thắng utility như trước. Đừng thêm layer() vào các @import này. */
+@layer theme;
+
+@import "tailwindcss/theme.css" layer(theme);
+@import "./v3-palette.css";
+
+@import "../../css/style.css";
+@import "../../css/layout.css";
+@import "../../css/luy-ke-status.css";
+@import "../../css/entry.css";
+@import "../../css/admin.css";
+@import "../../css/guide.css";
+@import "../../css/chart.css";
+
+@import "tailwindcss/preflight.css";
+@import "./v3-compat.css";
+@import "tailwindcss/utilities.css";
+@import "./v3-space.css";
+
+@source "../../../../views/**/*.php";
+@source "../../../../components/**/*.php";
+@source "../../js/**/*.js";
+@source inline("z-[101]");
+
+@theme {
+  --color-primary: #143583;
+  --color-primary-dark: #0f2a66;
+  --color-success: #4CAF50;
+  --color-warning: #ff9800;
+  --color-danger: #f44336;
+
+  /* Giữ thang v3 cho các tên bị v4 đổi nghĩa. */
+  --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+  --blur-sm: 4px;
+  --radius-sm: 0.125rem;
+
+  /* v3 dùng line-height cố định theo rem; v4 dùng tỉ lệ nên phần tử con khác cỡ chữ bị lệch dòng. */
+  --text-xs--line-height: 1rem;
+  --text-sm--line-height: 1.25rem;
+  --text-base--line-height: 1.5rem;
+  --text-lg--line-height: 1.75rem;
+  --text-xl--line-height: 1.75rem;
+  --text-2xl--line-height: 2rem;
+  --text-3xl--line-height: 2.25rem;
+  --text-4xl--line-height: 2.5rem;
+}
+
+@custom-variant hover (&:hover);
+
+/* Trang no-line dùng tông xanh dương riêng: chỉ đổi hai biến màu, không build file thứ hai. */
+.theme-no-line {
+  --color-primary: #2196F3;
+  --color-primary-dark: #1976D2;
+}
+
+@utility flex-shrink-0 {
+  flex-shrink: 0;
+}
+
+@utility flex-grow {
+  flex-grow: 1;
+}

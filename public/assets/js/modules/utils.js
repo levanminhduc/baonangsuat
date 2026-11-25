@@ -1,8 +1,5 @@
-
-export function formatGio(gioString) {
-    const parts = gioString.split(':');
-    const hour = parseInt(parts[0], 10);
-    return `${hour}h`;
+export function escapeHtml(text) {
+    return String(text ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 }
 
 export function getStatusText(status) {

@@ -24,6 +24,6 @@ class NoLinePageController
             return new RedirectResponse('index.php');
         }
 
-        return new HtmlResponse(View::render('no-line', ['session' => Auth::getSession()]));
+        return new HtmlResponse(View::page('no-line', ['session' => Auth::getSession()]));
     }
 }

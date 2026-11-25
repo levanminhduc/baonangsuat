@@ -35,7 +35,7 @@ export function renderUserLinesTable() {
             <td>${escapeHtml(ul.ma_line)}</td>
             <td>${escapeHtml(ul.ten_line)}</td>
             <td>
-                <button class="btn btn-sm btn-danger" onclick="window.deleteUserLine('${escapeHtml(ul.ma_nv)}', ${ul.line_id})">Xóa</button>
+                <button class="btn btn-sm btn-danger" data-fn="deleteUserLine" data-args="${escapeHtml(JSON.stringify([ul.ma_nv, ul.line_id]))}">Xóa</button>
             </td>
         </tr>
     `).join('');

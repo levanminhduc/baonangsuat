@@ -21,4 +21,5 @@
 
 - Không thuộc PSR-12, không chạy cs-fixer. HTML chuyển gần như nguyên văn từ trang cũ.
 - Xuất dữ liệu luôn qua `htmlspecialchars()`; JSON nhúng trong `<script>` dùng `JSON_HEX_TAG | JSON_HEX_AMP`.
-- Không truy vấn DB trong view; dữ liệu do PageController truyền qua `View::render()`.
+- Không truy vấn DB trong view; dữ liệu do PageController truyền qua `View::page()`;
+  view chỉ là phần thân, khai `$page` (title, navActive, scripts...) cho `views/layouts/app.php`.

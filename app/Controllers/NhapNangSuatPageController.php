@@ -16,6 +16,6 @@ class NhapNangSuatPageController
             return new RedirectResponse(Auth::getDefaultPage());
         }
 
-        return new HtmlResponse(View::render('nhap-nang-suat', ['session' => Auth::getSession()]));
+        return new HtmlResponse(View::page('nhap-nang-suat', ['session' => Auth::getSession()]));
     }
 }

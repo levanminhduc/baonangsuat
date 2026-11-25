@@ -1,7 +1,8 @@
 import { api } from '../admin-api.js';
 import { escapeHtml, showToast, showLoading, hideLoading, showConfirmModal, closeModal } from '../admin-utils.js';
 
-const API_BASE = '/baonangsuat/api';
+import { API_BASE } from '../config.js';
+
 let previewData = null;
 let uploadedFileName = '';
 let uploadedFileSize = 0;

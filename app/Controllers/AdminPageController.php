@@ -21,6 +21,6 @@ class AdminPageController
             return new RedirectResponse('nhap-nang-suat.php');
         }
 
-        return new HtmlResponse(View::render('admin', ['session' => Auth::getSession()]));
+        return new HtmlResponse(View::page('admin', ['session' => Auth::getSession()]));
     }
 }

@@ -10,6 +10,10 @@ use App\Services\ChartService;
 // Đăng nhập kiểm ở middleware nhóm `auth`; quyền xem LINE kiểm theo tham số nên nằm ở đây.
 class BieuDoController
 {
+    public function __construct(private ChartService $chart)
+    {
+    }
+
     // GET /bieu-do/so-sanh — so sánh năng suất
     public function soSanh(Request $request)
     {
@@ -18,7 +22,7 @@ class BieuDoController
             return $denied;
         }
 
-        return new JsonResponse((new ChartService())->getProductivityComparison(...$this->comparisonArgs($request, 0)));
+        return new JsonResponse($this->chart->getProductivityComparison(...$this->comparisonArgs($request, 0)));
     }
 
     // GET /bieu-do/ma-hang-list — mã hàng có báo cáo của một LINE trong ngày
@@ -36,7 +40,7 @@ class BieuDoController
             return $denied;
         }
 
-        return new JsonResponse(['success' => true, 'data' => (new ChartService())->getMaHangListForChart($line_id, $ngay)]);
+        return new JsonResponse(['success' => true, 'data' => $this->chart->getMaHangListForChart($line_id, $ngay)]);
     }
 
     // GET /bieu-do/lines — danh sách LINE đang hoạt động (admin)
@@ -46,13 +50,13 @@ class BieuDoController
             return JsonResponse::error('Không có quyền', 403);
         }
 
-        return new JsonResponse(['success' => true, 'data' => (new ChartService())->getLineList()]);
+        return new JsonResponse(['success' => true, 'data' => $this->chart->getLineList()]);
     }
 
     // GET /bieu-do/ca-list — danh sách ca
     public function caList(Request $request)
     {
-        return new JsonResponse(['success' => true, 'data' => (new ChartService())->getCaList()]);
+        return new JsonResponse(['success' => true, 'data' => $this->chart->getCaList()]);
     }
 
     // GET /bieu-do/so-sanh-chi-tiet — so sánh chi tiết theo công đoạn
@@ -63,7 +67,7 @@ class BieuDoController
             return $denied;
         }
 
-        return new JsonResponse((new ChartService())->getProductivityComparisonDetailed(...$this->comparisonArgs($request, null)));
+        return new JsonResponse($this->chart->getProductivityComparisonDetailed(...$this->comparisonArgs($request, null)));
     }
 
     // GET /bieu-do/so-sanh-matrix — ma trận công đoạn × mốc giờ (heatmap)
@@ -74,7 +78,7 @@ class BieuDoController
             return $denied;
         }
 
-        return new JsonResponse((new ChartService())->getProductivityComparisonMatrix(...$this->comparisonArgs($request, null)));
+        return new JsonResponse($this->chart->getProductivityComparisonMatrix(...$this->comparisonArgs($request, null)));
     }
 
     // [line_id, ma_hang_id, ngay, ca_id, bao_cao_id|null]; $missing = giá trị khi thiếu tham số (endpoint cũ dùng 0 hoặc null).

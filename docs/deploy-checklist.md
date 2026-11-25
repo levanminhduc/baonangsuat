@@ -16,13 +16,15 @@
 - [ ] `authV2` nằm cạnh thư mục dự án (`htdocs/authV2`), cùng host — `bootstrap/app.php` nạp
       `../authV2/bootstrap.php`.
 - [ ] File cấu hình ngoài repo còn nguyên: `C:/xampp/config/db.php`, `C:/xampp/config/admin_whitelist.php`.
+      Không đặt biến môi trường `BNS_DB_CONFIG` trên server (chỉ dùng cho test, đổi đường dẫn `db.php`).
 
 ## Chép code và build
 
 - [ ] `composer install --no-dev --optimize-autoloader` (`vendor/` không nằm trong git; PhpSpreadsheet
       + autoload `App\`).
-- [ ] (Tuỳ chọn) `tools\build-css.bat` (`public/assets/tailwind/dist/` không nằm trong git). Hiện các
-      trang vẫn nạp Tailwind CDN, chưa trang nào link `dist/`, nên bước này chưa ảnh hưởng giao diện.
+- [ ] Không cần build CSS trên server: `public/assets/tailwind/dist/app.css` đã nằm trong git. Chỉ chạy
+      `tools\build-css.bat` trên máy dev khi đổi class trong `views/`, `components/`, `public/assets/js/`,
+      rồi commit file `dist/app.css` cùng thay đổi đó.
 - [ ] Xoá trên server các file/thư mục cũ không còn trong repo nếu chép đè: `classes/`, `includes/`,
       `api/`, `csrf.php`, `config/Database.php`, các trang `*.php` ở gốc. File trang cũ còn sót ở
       gốc vẫn bị `.htaccess` đưa vào front controller, nhưng nên dọn.
@@ -34,12 +36,17 @@
 - [ ] Đăng nhập: chọn LINE, nhập năng suất (auto-save), admin các tab, biểu đồ, import preview.
 - [ ] Response API có header CORS như trên local (`curl -I .../api/csrf-token`).
 - [ ] Nếu có thể: `php tools/smoke.php --base=<url>` so với baseline (chỉ GET).
+- [ ] Offline: rút dây mạng / tắt Internet của máy chủ và máy trạm, mở lần lượt 6 trang (`index.php`,
+      `nhap-nang-suat.php`, `admin.php`, `bieu-do.php`, `huong-dan.php`, `no-line.php`): giao diện và
+      biểu đồ vẫn đúng, tab Network không có request tới host ngoài.
+- [ ] Trình duyệt trạm tối thiểu (Tailwind v4): Chrome/Edge 111+, Safari 16.4+, Firefox 128+. Bản cũ hơn
+      hiển thị vỡ màu và khoảng cách.
 
 ## F-015: PO / Subart từ datchi
 
 Màn nhập chọn PO + Subart đọc master data từ Postgres `datchi` (chỉ đọc). Làm theo thứ tự dưới đây;
 bước 1–4 là cấu hình, bước 5 đổi schema MySQL.
-Migration 013 (bước 5) phải chạy TRƯỚC khi deploy code mới: `ChartService` và `NangSuatService` đọc cột
+Migration 013 (bước 5) phải chạy TRƯỚC khi deploy code mới: `ChartService` và `BaoCaoService` đọc cột
 `po_number`, thiếu cột thì các màn nhập/biểu đồ lỗi SQL.
 
 - [ ] **1. PHP bật `pdo_pgsql`** (PHP 8.2 production). Trong `php.ini` bỏ dấu `;` dòng

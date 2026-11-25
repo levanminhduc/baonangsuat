@@ -30,7 +30,7 @@
 - API: method nhận `Request`, trả `JsonResponse`. Shape `{success, message?, data?}` giữ như cũ;
   lỗi dùng `JsonResponse::error($message, $status)`. Exception → Router trả 500 kèm message.
 - Trang: `XxxPageController::show()` kiểm role/LINE/whitelist, trả `RedirectResponse('trang.php')`
-  (Location tương đối như cũ) hoặc `HtmlResponse(View::render('trang', [...]))`.
+  (Location tương đối như cũ) hoặc `HtmlResponse(View::page('trang', [...]))`.
 - Đọc input qua `Request` (`param`, `query`, `jsonBody`, `header`), không đọc `$_GET` trong controller
   mới (ngoại lệ: `$_FILES` cho import).
 
@@ -38,4 +38,5 @@
 
 - File PHP mới ở gốc repo hoặc `public/` (`structure_test` khoá).
 - Kiểm đăng nhập/CSRF bằng tay đầu controller khi đã có middleware.
+- `new XxxService()` trong controller: khai service ở constructor, `Container` tự dựng (`structure_test` khoá).
 - Đổi URL hoặc shape JSON mà JS đang dùng mà không sửa JS cùng commit.

@@ -5,11 +5,22 @@ namespace App\Controllers;
 use App\Auth\Auth;
 use App\Http\JsonResponse;
 use App\Http\Request;
-use App\Services\NangSuatService;
+use App\Services\BaoCaoBulkService;
+use App\Services\BaoCaoService;
+use App\Services\BaoCaoWorkflowService;
+use App\Services\DanhMucLookup;
 
 // Phạm vi (đăng nhập / LINE) kiểm ở middleware nhóm `report`; vai trò + CSRF khai trong route.
 class BaoCaoController
 {
+    public function __construct(
+        private BaoCaoService $baoCao,
+        private BaoCaoWorkflowService $workflow,
+        private BaoCaoBulkService $bulk,
+        private DanhMucLookup $danhMuc,
+    ) {
+    }
+
     public function index(Request $request)
     {
         $session = Auth::getSession();
@@ -20,7 +31,7 @@ class BaoCaoController
             'ma_hang_id' => $request->hasQuery('ma_hang_id') ? intval($request->query('ma_hang_id')) : null,
             'include_completed' => $request->hasQuery('include_completed') && $request->query('include_completed') === '1',
         ];
-        $list = (new NangSuatService())->getBaoCaoList($session['line_id'], $filters);
+        $list = $this->baoCao->getBaoCaoList($session['line_id'], $filters);
 
         return new JsonResponse(['success' => true, 'data' => $list]);
     }
@@ -38,12 +49,12 @@ class BaoCaoController
             $input['line_id'] = $session['line_id'];
         }
 
-        return $this->withStatus((new NangSuatService())->createBaoCao($input, $session['ma_nv']));
+        return $this->withStatus($this->baoCao->createBaoCao($input, $session['ma_nv']));
     }
 
     public function show(Request $request)
     {
-        $baoCao = (new NangSuatService())->getBaoCao($this->id($request));
+        $baoCao = $this->baoCao->getBaoCao($this->id($request));
         if (!$baoCao) {
             return JsonResponse::error('Báo cáo không tồn tại', 404);
         }
@@ -53,13 +64,12 @@ class BaoCaoController
 
     public function routing(Request $request)
     {
-        $service = new NangSuatService();
-        $baoCao = $service->getBaoCao($this->id($request));
+        $baoCao = $this->baoCao->getBaoCao($this->id($request));
         if (!$baoCao) {
             return JsonResponse::error('Báo cáo không tồn tại', 404);
         }
 
-        return new JsonResponse(['success' => true, 'data' => $service->getRouting($baoCao['ma_hang_id'], $baoCao['line_id'])]);
+        return new JsonResponse(['success' => true, 'data' => $this->danhMuc->getRouting($baoCao['ma_hang_id'], $baoCao['line_id'])]);
     }
 
     public function updateEntries(Request $request)
@@ -68,7 +78,7 @@ class BaoCaoController
         $entries = $input['entries'] ?? [];
         $version = $input['version'] ?? 1;
 
-        return new JsonResponse((new NangSuatService())->updateEntries($this->id($request), $entries, $version, $this->maNv()));
+        return new JsonResponse($this->baoCao->updateEntries($this->id($request), $entries, $version, $this->maNv()));
     }
 
     public function updateHeader(Request $request)
@@ -76,37 +86,37 @@ class BaoCaoController
         $input = $request->jsonBody();
         $version = $input['version'] ?? 1;
 
-        return $this->withStatus((new NangSuatService())->updateHeader($this->id($request), $input, $version));
+        return $this->withStatus($this->baoCao->updateHeader($this->id($request), $input, $version));
     }
 
     public function submit(Request $request)
     {
-        return new JsonResponse((new NangSuatService())->submitBaoCao($this->id($request), $this->maNv()));
+        return new JsonResponse($this->workflow->submitBaoCao($this->id($request), $this->maNv()));
     }
 
     public function approve(Request $request)
     {
-        return new JsonResponse((new NangSuatService())->approveBaoCao($this->id($request), $this->maNv()));
+        return new JsonResponse($this->workflow->approveBaoCao($this->id($request), $this->maNv()));
     }
 
     public function unlock(Request $request)
     {
-        return new JsonResponse((new NangSuatService())->unlockBaoCao($this->id($request), $this->maNv()));
+        return new JsonResponse($this->workflow->unlockBaoCao($this->id($request), $this->maNv()));
     }
 
     public function complete(Request $request)
     {
-        return new JsonResponse((new NangSuatService())->completeBaoCao($this->id($request), $this->maNv()));
+        return new JsonResponse($this->workflow->completeBaoCao($this->id($request), $this->maNv()));
     }
 
     public function reopen(Request $request)
     {
-        return new JsonResponse((new NangSuatService())->reopenBaoCao($this->id($request), $this->maNv()));
+        return new JsonResponse($this->workflow->reopenBaoCao($this->id($request), $this->maNv()));
     }
 
     public function destroy(Request $request)
     {
-        return new JsonResponse((new NangSuatService())->deleteBaoCao($this->id($request)));
+        return new JsonResponse($this->bulk->deleteBaoCao($this->id($request)));
     }
 
     // Service trả 'status' (422/503) chỉ khi cần mã HTTP khác 200; không đưa vào body.

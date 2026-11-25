@@ -115,16 +115,6 @@ select.custom-select {
     background: var(--primary-dark);
 }
 
-.btn-success {
-    background: var(--success-color);
-    color: #fff;
-}
-
-.btn-warning {
-    background: var(--warning-color);
-    color: #fff;
-}
-
 .btn-danger {
     background: var(--danger-color);
     color: #fff;
@@ -139,11 +129,6 @@ select.custom-select {
     background: #5a6268;
 }
 
-.btn-block {
-    display: block;
-    width: 100%;
-}
-
 .btn:disabled {
     opacity: 0.6;
     cursor: not-allowed;
@@ -155,44 +140,7 @@ select.custom-select {
     margin-bottom: 15px;
 }
 
-.alert-error {
-    background: #ffebee;
-    color: var(--danger-color);
-    border: 1px solid #ffcdd2;
-}
-
-.alert-success {
-    background: #e8f5e9;
-    color: var(--success-color);
-    border: 1px solid #c8e6c9;
-}
-
 /* Legacy overrides for line select modal */
-.line-select-modal {
-    /* Tailwind handles positioning */
-}
-
-.line-select-box h2 {
-    /* Handled by Tailwind classes */
-    margin-bottom: 0;
-}
-
-.line-list li {
-    /* Enhance list items to match Tailwind style */
-    padding: 12px 16px;
-    border: 1px solid #e5e7eb; /* gray-200 */
-    margin-bottom: 8px;
-    border-radius: 0.5rem; /* rounded-lg */
-    cursor: pointer;
-    transition: all 0.2s;
-    background-color: white;
-}
-
-.line-list li:hover {
-    background: #f0f9ff; /* sky-50 */
-    border-color: #143583; /* primary */
-    transform: translateX(4px);
-}
 
 .app-container {
     display: flex;
@@ -215,196 +163,8 @@ select.custom-select {
     font-weight: 500;
 }
 
-.header-right {
-    display: flex;
-    align-items: center;
-    gap: 15px;
-}
-
 .user-info {
     font-size: 13px;
-}
-
-.btn-logout {
-    background: rgba(255,255,255,0.2);
-    color: #fff;
-    padding: 6px 12px;
-    font-size: 12px;
-}
-
-.report-header {
-    background: #fff;
-    padding: 15px 20px;
-    border-bottom: 1px solid var(--border-color);
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-}
-
-.header-info-container {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 15px;
-    align-items: center;
-    width: 100%;
-}
-
-.header-info-container.hidden {
-    display: none !important;
-}
-
-.header-field {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-}
-
-.header-field label {
-    font-weight: 500;
-    white-space: nowrap;
-}
-
-.header-field input,
-.header-field select {
-    padding: 6px 10px;
-    border: 1px solid var(--border-color);
-    border-radius: 4px;
-    font-size: 13px;
-}
-
-.header-field input:focus,
-.header-field select:focus {
-    outline: none;
-    border-color: var(--primary-color);
-}
-
-.header-field .value {
-    font-weight: 600;
-    color: var(--primary-color);
-}
-
-.header-actions {
-    margin-left: auto;
-    display: flex;
-    gap: 10px;
-    width: 100%;
-    justify-content: flex-end;
-}
-
-#toggleInfoBtn {
-    margin-right: auto; /* Push other buttons to right */
-    padding: 0;
-    width: 36px;
-    height: 36px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border: 1px solid var(--border-color);
-    background: #fff;
-    color: #555;
-    border-radius: 4px;
-}
-
-#toggleInfoBtn:hover {
-    background: #f9f9f9;
-    color: var(--primary-color);
-    border-color: var(--primary-color);
-}
-
-.grid-container {
-    flex: 1;
-    overflow: auto;
-    padding: 1px;
-    background: #e8e8e8;
-}
-
-.excel-grid {
-    background: #fff;
-    border: 1px solid var(--grid-border);
-    border-collapse: separate;
-    border-spacing: 0;
-    width: 100%;
-    table-layout: fixed;
-}
-
-.excel-grid thead {
-    position: sticky;
-    top: 0;
-    z-index: 10;
-}
-
-.excel-grid th,
-.excel-grid td {
-    border: 1px solid var(--grid-border);
-    padding: 0;
-    text-align: center;
-    height: 32px;
-}
-
-.excel-grid th {
-    background: var(--header-bg);
-    font-weight: 600;
-    padding: 8px 5px;
-}
-
-.excel-grid thead tr:first-child th {
-    border-bottom: 2px solid var(--grid-border);
-}
-
-.excel-grid .col-stt {
-    width: 40px;
-}
-
-.excel-grid .col-name {
-    width: 200px;
-    text-align: left;
-}
-
-.excel-grid .col-hour {
-    width: 70px;
-}
-
-.excel-grid .col-luyke {
-    width: 80px;
-    background: #fffde7;
-}
-
-.excel-grid td.cell-name {
-    text-align: left;
-    padding: 0 8px;
-    font-size: 13px;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-}
-
-.excel-grid td.cell-readonly {
-    background: #f9f9f9;
-    color: #666;
-}
-
-.excel-grid .row-chitieu {
-    background: #e8f5e9;
-    font-weight: 500;
-    color: var(--success-color);
-}
-
-.excel-grid .row-chitieu td {
-    padding: 5px;
-}
-
-.excel-grid thead tr.row-chitieu td {
-    background-color: #e8f5e9;
-}
-
-.excel-grid .row-hieuSuat {
-    background: #f5f5f5;
-    font-weight: 600;
-    display: none;
-}
-
-.excel-grid .row-hieuSuat td {
-    padding: 5px;
 }
 
 .hieu-suat-green {
@@ -422,58 +182,9 @@ select.custom-select {
     background: #ffebee !important;
 }
 
-.cell-input {
-    width: 100%;
-    height: 100%;
-    border: none;
-    text-align: center;
-    font-size: 13px;
-    padding: 5px;
-    background: transparent;
-}
-
-.cell-input:focus {
-    outline: none;
-    background: var(--cell-focus);
-}
-
-.cell-input.modified {
-    background: #fff8e1;
-}
-
-.cell-input.saving {
-    background: #e3f2fd;
-}
-
-.cell-input.saved {
-    animation: saved-flash 0.5s ease;
-}
-
 @keyframes saved-flash {
     0% { background: #c8e6c9; }
     100% { background: transparent; }
-}
-
-.cell-input.error {
-    background: #ffebee;
-    color: var(--danger-color);
-}
-
-.cell-pass {
-    background-color: #e8f5e9 !important;
-    color: #2e7d32 !important;
-}
-.cell-fail {
-    background-color: #ffebee !important;
-    color: #c62828 !important;
-}
-.cell-pass:focus { background-color: #c8e6c9 !important; }
-.cell-fail:focus { background-color: #ffcdd2 !important; }
-
-.cell-input:disabled {
-    background: #f5f5f5;
-    color: #999;
-    cursor: not-allowed;
 }
 
 .cell-luyke {
@@ -588,21 +299,6 @@ select.custom-select {
 }
 
 /* Line Select Modal Specifics */
-.line-select-modal {
-    z-index: 1000;
-}
-
-.line-select-box {
-    /* Reset old styles */
-    background: transparent;
-    padding: 0;
-    border-radius: 0;
-    width: auto;
-    max-width: none;
-    
-    /* Animation entry */
-    animation: modalPopIn 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-}
 
 /* 
    Since we cannot change JS to add transition classes, 
@@ -746,11 +442,6 @@ select.custom-select {
         text-align: center;
     }
 
-    .header-right {
-        width: 100%;
-        justify-content: space-between;
-    }
-
     /* Report List */
     .report-list-header {
         flex-direction: column;
@@ -776,256 +467,13 @@ select.custom-select {
         padding: 10px;
     }
 
-    .report-header {
-        padding: 12px 10px;
-        background: #f8f9fa;
-        display: flex;
-        flex-direction: column;
-        gap: 10px;
-    }
-
-    .header-info-container {
-        display: grid;
-        grid-template-columns: 1fr 1.2fr 1fr;
-        gap: 8px;
-        align-items: stretch;
-    }
-
-    .header-field {
-        background: #fff;
-        padding: 8px 4px;
-        border: 1px solid #e0e0e0;
-        border-radius: 4px;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        gap: 4px;
-        width: 100%;
-        min-height: 64px;
-    }
-
-    .header-field label {
-        font-size: 11px;
-        color: #666;
-        text-transform: uppercase;
-        font-weight: 600;
-        margin-bottom: 0;
-        line-height: 1.2;
-    }
-
-    .header-field .value,
-    .header-field input,
-    .header-field select {
-        font-size: 16px;
-        font-weight: 700;
-        color: #333;
-        text-align: center;
-        width: 100% !important;
-    }
-
-    .header-field input {
-        border: 1px solid #ddd;
-        padding: 4px;
-        border-radius: 4px;
-        height: 32px;
-    }
-
-    .header-info-container .header-field:nth-child(1) {
-        grid-column: 1 / 2;
-        grid-row: 1;
-        background: transparent;
-        border: none;
-        padding: 0 4px;
-        min-height: auto;
-        align-items: flex-start;
-        justify-content: flex-end;
-        margin-bottom: 4px;
-    }
-    .header-info-container .header-field:nth-child(1) label { display: inline-block; margin-right: 4px; }
-    .header-info-container .header-field:nth-child(1) .value {
-        display: inline-block;
-        font-size: 13px;
-        font-weight: 600;
-        width: auto !important; 
-        text-align: left; 
-    }
-
-    .header-info-container .header-field:nth-child(3) {
-        grid-column: 2 / 4;
-        grid-row: 1;
-        background: transparent;
-        border: none;
-        padding: 0 4px;
-        min-height: auto;
-        align-items: flex-end;
-        justify-content: flex-end;
-        margin-bottom: 4px;
-    }
-    .header-info-container .header-field:nth-child(3) label { display: inline-block; margin-right: 4px; }
-    .header-info-container .header-field:nth-child(3) .value {
-        display: inline-block;
-        font-size: 13px;
-        font-weight: 600; 
-        width: auto !important; 
-        text-align: right;
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        max-width: 100%;
-    }
-
-    .header-info-container .header-field:nth-child(2) {
-        grid-column: 1 / 2;
-        grid-row: 2;
-    }
-
-    .header-info-container .header-field:nth-child(4) {
-        grid-column: 2 / 3;
-        grid-row: 2;
-    }
-
-    .header-info-container .header-field:nth-child(5) {
-        grid-column: 3 / 4;
-        grid-row: 2;
-        background: #e3f2fd;
-        border-color: #143583;
-    }
-    .header-info-container .header-field:nth-child(5) .value {
-        color: #143583;
-        font-size: 18px;
-    }
-
-    .header-actions {
-        display: flex;
-        gap: 10px;
-        margin-top: 0;
-        margin-left: 0;
-        justify-content: space-between;
-        width: 100%;
-    }
-    
-    #toggleInfoBtn {
-        flex: 0 0 44px;
-        height: 44px;
-        margin-right: 8px;
-    }
-
-    .header-actions .btn {
-        flex: 1;
-        justify-content: center;
-        padding: 0 16px;
-        height: 44px;
-        font-size: 14px;
-        display: flex;
-        align-items: center;
-    }
-
     /* Grid Container & Excel Grid */
-    .grid-container {
-        padding: 5px;
-    }
-
-    .excel-grid {
-        font-size: 13px;
-        border: none;
-    }
-
-    .excel-grid th,
-    .excel-grid td {
-        height: 44px; /* Touch friendly height */
-        padding: 4px;
-    }
-
-    .excel-grid th {
-        height: auto;
-        padding: 8px 4px;
-    }
 
     /* Sticky Columns Logic */
-    .excel-grid th:nth-child(1),
-    .excel-grid td:nth-child(1) {
-        position: sticky;
-        left: 0;
-        z-index: 20;
-        background: #fff;
-        border-right: 1px solid #ccc;
-        width: 35px;
-    }
-
-    .excel-grid th:nth-child(2),
-    .excel-grid td:nth-child(2) {
-        position: sticky;
-        left: 35px;
-        z-index: 20;
-        background: #fff;
-        border-right: 2px solid #999;
-        width: 130px;
-        max-width: 130px;
-    }
-
-    .excel-grid thead {
-        z-index: 30;
-    }
-    
-    .excel-grid thead th:nth-child(1),
-    .excel-grid thead th:nth-child(2) {
-        z-index: 40;
-        background: var(--header-bg);
-    }
-
-    .excel-grid thead tr.row-chitieu td:nth-child(1),
-    .excel-grid thead tr.row-chitieu td:nth-child(2) {
-        position: sticky;
-        background-color: #e8f5e9;
-        z-index: 35;
-    }
-
-    .excel-grid thead tr.row-chitieu td:nth-child(1) {
-        left: 0;
-    }
-
-    .excel-grid thead tr.row-chitieu td:nth-child(2) {
-        left: 35px;
-    }
-
-    .excel-grid .col-stt { width: 35px; }
-    .excel-grid .col-name { width: 130px; }
-    .excel-grid .col-hour { width: 50px; }
-    .excel-grid .col-luyke { width: 60px; }
-
-    .excel-grid td.cell-name {
-        white-space: normal;
-        line-height: 1.2;
-        font-size: 12px;
-        padding: 2px 5px;
-    }
-
-    .cell-input {
-        font-size: 16px; /* Prevent iOS zoom on focus */
-        padding: 0;
-        text-align: center;
-    }
     
     /* Highlight readonly/system cells to distinguish from input */
-    .excel-grid td.cell-readonly {
-        background-color: #f5f5f5;
-    }
     
     /* Fix sticky background colors */
-    .excel-grid td:nth-child(1),
-    .excel-grid td:nth-child(2) {
-        background-color: #fff;
-    }
-    
-    .excel-grid tr.row-chitieu td:nth-child(1),
-    .excel-grid tr.row-chitieu td:nth-child(2) {
-        background-color: #e8f5e9;
-    }
-    
-    .excel-grid tr.row-hieuSuat td:nth-child(1),
-    .excel-grid tr.row-hieuSuat td:nth-child(2) {
-        background-color: #f5f5f5;
-    }
 
     /* Modal Mobile */
     .modal-content {
@@ -1057,22 +505,10 @@ select.custom-select {
     }
 
     /* Hide Luy Ke column on mobile */
-    .excel-grid .col-luyke,
-    .excel-grid td.cell-luyke {
-        display: none !important;
-    }
 }
 
 .admin-content {
     padding: 20px;
-}
-
-.admin-tabs {
-    display: flex;
-    gap: 5px;
-    margin-bottom: 20px;
-    border-bottom: 2px solid var(--border-color);
-    padding-bottom: 0;
 }
 
 .admin-tab {
@@ -1165,9 +601,6 @@ select.custom-select {
 }
 
 @media (max-width: 768px) {
-    .admin-tabs {
-        flex-wrap: wrap;
-    }
     
     .admin-tab {
         padding: 10px 16px;
@@ -1194,67 +627,6 @@ select.custom-select {
 /* =========================================
    Navbar Styles (from includes/navbar.php)
    ========================================= */
-.navbar-desktop-table {
-    display: table;
-    width: 100%;
-    margin-bottom: 0;
-}
-.navbar-mobile-container {
-    display: none;
-}
-.nav-clock-user {
-    font-size: 1.1em;
-    font-weight: bold;
-    color: white;
-    text-align: right;
-    padding-right: 15px;
-    white-space: nowrap;
-}
-.navbar-sub-bar {
-    text-align: right;
-    background: transparent;
-    padding: 5px 15px;
-    font-size: 0.85em;
-    color: #666;
-    display: flex;
-    justify-content: flex-end;
-    align-items: center;
-}
-.sub-bar-clock {
-    font-weight: bold;
-    margin-right: 5px;
-    color: #333;
-}
-.sub-bar-item {
-    font-weight: 500;
-}
-.sub-bar-separator {
-    margin: 0 5px;
-}
-.sub-bar-link {
-    color: #666;
-    text-decoration: none;
-    transition: color 0.2s, font-weight 0.2s;
-    padding: 0 4px;
-}
-
-.sub-bar-link:hover {
-    color: var(--primary-color);
-    text-decoration: underline;
-}
-
-.sub-bar-link.active {
-    color: var(--primary-color);
-    font-weight: bold;
-}
-@media (max-width: 768px) {
-    .navbar-desktop-table {
-        display: none;
-    }
-    .navbar-mobile-container {
-        display: block;
-    }
-}
 
 /* =======================================================
    Confirm Modal Styles (from includes/components/confirm-modal.php)
@@ -1288,194 +660,19 @@ select.custom-select {
 }
 
 /* History Table specifics */
-.history-report-header {
-    background: #f8f9fa;
-    border: 1px solid #e5e7eb;
-    border-radius: 0.5rem;
-    padding: 1rem;
-    margin-bottom: 1rem;
-    display: flex;
-    flex-wrap: wrap;
-    gap: 1rem;
-    justify-content: space-between;
-}
-
-.history-report-header .header-field {
-    background: white;
-    padding: 0.5rem 1rem;
-    border-radius: 0.375rem;
-    border: 1px solid #e5e7eb;
-    min-width: 120px;
-    display: flex;
-    flex-direction: column;
-}
-
-.history-report-header .header-field label {
-    font-size: 0.75rem;
-    color: #6b7280;
-    margin-bottom: 0.125rem;
-}
-
-.history-report-header .header-field .value {
-    font-size: 1rem;
-    font-weight: 600;
-    color: #111827;
-}
 
 /* History Header Mobile Responsive */
 @media (max-width: 768px) {
-    .history-report-header {
-        display: grid;
-        grid-template-columns: 1fr 1.2fr 1fr;
-        gap: 8px;
-        padding: 12px 10px;
-        align-items: stretch;
-    }
-
-    .history-report-header .header-field {
-        background: #fff;
-        padding: 8px 4px;
-        border: 1px solid #e0e0e0;
-        border-radius: 4px;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        gap: 4px;
-        width: 100%;
-        min-height: 64px;
-        min-width: 0;
-    }
-
-    .history-report-header .header-field label {
-        font-size: 11px;
-        color: #666;
-        text-transform: uppercase;
-        font-weight: 600;
-        margin-bottom: 0;
-        line-height: 1.2;
-    }
-
-    .history-report-header .header-field .value {
-        font-size: 16px;
-        font-weight: 700;
-        color: #333;
-        text-align: center;
-        width: 100% !important;
-    }
 
     /* LINE: Top left */
-    .history-report-header .header-field:nth-child(1) {
-        grid-column: 1 / 2;
-        grid-row: 1;
-        background: transparent;
-        border: none;
-        padding: 0 4px;
-        min-height: auto;
-        align-items: flex-start;
-        justify-content: flex-end;
-        margin-bottom: 4px;
-    }
-    .history-report-header .header-field:nth-child(1) label { display: inline-block; margin-right: 4px; }
-    .history-report-header .header-field:nth-child(1) .value {
-        display: inline-block;
-        font-size: 13px;
-        font-weight: 600;
-        width: auto !important;
-        text-align: left;
-    }
 
     /* MH: Top right */
-    .history-report-header .header-field:nth-child(3) {
-        grid-column: 2 / 4;
-        grid-row: 1;
-        background: transparent;
-        border: none;
-        padding: 0 4px;
-        min-height: auto;
-        align-items: flex-end;
-        justify-content: flex-end;
-        margin-bottom: 4px;
-    }
-    .history-report-header .header-field:nth-child(3) label { display: inline-block; margin-right: 4px; }
-    .history-report-header .header-field:nth-child(3) .value {
-        display: inline-block;
-        font-size: 13px;
-        font-weight: 600;
-        width: auto !important;
-        text-align: right;
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        max-width: 100%;
-    }
 
     /* Row 2: LĐ | CTNS | CT/Giờ */
-    .history-report-header .header-field:nth-child(2) {
-        grid-column: 1 / 2;
-        grid-row: 2;
-    }
-
-    .history-report-header .header-field:nth-child(4) {
-        grid-column: 2 / 3;
-        grid-row: 2;
-    }
-
-    .history-report-header .header-field:nth-child(5) {
-        grid-column: 3 / 4;
-        grid-row: 2;
-        background: #e3f2fd;
-        border-color: #143583;
-    }
-    .history-report-header .header-field:nth-child(5) .value {
-        color: #143583;
-        font-size: 18px;
-    }
 
     /* Row 3: Ngày (Full width) */
-    .history-report-header .header-field:nth-child(6) {
-        grid-column: 1 / -1;
-        grid-row: 3;
-        min-height: 40px;
-        flex-direction: row;
-        gap: 10px;
-    }
-    
-    .history-report-header .header-field:nth-child(6) label {
-        margin-bottom: 0;
-    }
-    
-    .history-report-header .header-field:nth-child(6) .value {
-        text-align: left;
-        width: auto !important;
-    }
 
     /* Header Actions (Unlock button) */
-    .history-report-header .header-actions {
-        grid-column: 1 / -1;
-        grid-row: 4;
-        display: flex;
-        gap: 10px;
-        margin-top: 8px;
-    }
-    
-    .history-report-header .header-actions .btn {
-        width: 100%;
-        height: 44px;
-    }
-}
-
-.history-grid-container .excel-grid th {
-    background-color: #f3f4f6;
-    color: #374151;
-}
-
-.history-grid-container .excel-grid td.cell-readonly {
-    background-color: #f9fafb;
-}
-
-.history-grid-container .excel-grid td.cell-luyke {
-    background-color: #fffbeb;
-    color: #92400e;
 }
 
 /* Pagination Styles Override (if needed) */
@@ -1530,10 +727,6 @@ select.custom-select {
     max-height: calc(100vh - 350px);
 }
 
-.excel-grid thead th {
-    box-shadow: 0 2px 4px -1px rgba(0, 0, 0, 0.1);
-}
-
 @media (max-width: 768px) {
     #gridContainer {
         max-height: calc(100vh - 330px);
@@ -1548,38 +741,6 @@ select.custom-select {
     #gridContainer,
     #historyGridContainer {
         max-height: 550px;
-    }
-}
-
-.grid-footer {
-    background: #fff;
-    padding: 15px 20px;
-    border-top: 1px solid var(--border-color);
-}
-
-.footer-actions {
-    display: flex;
-    gap: 10px;
-    justify-content: flex-end;
-}
-
-@media (max-width: 768px) {
-    .grid-footer {
-        padding: 12px 10px;
-    }
-    
-    .footer-actions {
-        justify-content: space-between;
-    }
-    
-    .footer-actions .btn {
-        flex: 1;
-        justify-content: center;
-        padding: 0 16px;
-        height: 44px;
-        font-size: 14px;
-        display: flex;
-        align-items: center;
     }
 }
 

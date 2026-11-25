@@ -30,8 +30,8 @@ export function renderCongDoanTable() {
             <td><span class="status-badge ${cd.la_cong_doan_thanh_pham == 1 ? 'status-approved' : 'status-draft'}">${cd.la_cong_doan_thanh_pham == 1 ? 'Có' : 'Không'}</span></td>
             <td><span class="status-badge ${cd.is_active == 1 ? 'status-approved' : 'status-locked'}">${cd.is_active == 1 ? 'Hoạt động' : 'Tắt'}</span></td>
             <td>
-                <button class="btn btn-sm btn-primary" onclick="window.editCongDoan(${cd.id})">Sửa</button>
-                <button class="btn btn-sm btn-danger" onclick="window.deleteCongDoan(${cd.id})">Xóa</button>
+                <button class="btn btn-sm btn-primary" data-fn="editCongDoan" data-args="[${cd.id}]">Sửa</button>
+                <button class="btn btn-sm btn-danger" data-fn="deleteCongDoan" data-args="[${cd.id}]">Xóa</button>
             </td>
         </tr>
     `).join('');

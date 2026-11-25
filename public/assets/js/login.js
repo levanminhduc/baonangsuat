@@ -1,7 +1,8 @@
+import { API_BASE } from './modules/config.js';
+
 // Dọn khoá "ghi nhớ tên đăng nhập" của form login cũ
 localStorage.removeItem('rememberedUsername');
 
-const API_BASE = '/baonangsuat/api';
 let loginCsrfToken = null;
 
 async function fetchLoginCsrfToken() {
@@ -40,6 +41,7 @@ async function showLineSelect(lines) {
     lines.forEach(line => {
         const li = document.createElement('li');
         li.dataset.id = line.id;
+        li.className = 'cursor-pointer border-b border-gray-200 px-4 py-3 transition-colors last:border-b-0 hover:bg-gray-50 hover:font-medium hover:text-[#5b73e8]';
         li.textContent = `${line.ma_line} - ${line.ten_line}`;
         list.appendChild(li);
     });
@@ -70,8 +72,9 @@ async function showLineSelect(lines) {
         });
     });
 
-    const modal = new bootstrap.Modal(modalEl);
-    modal.show();
+    modalEl.classList.remove('hidden');
+    modalEl.classList.add('flex');
+    modalEl.removeAttribute('aria-hidden');
 }
 
 document.addEventListener('DOMContentLoaded', function() {

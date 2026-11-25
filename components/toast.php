@@ -89,12 +89,14 @@ window.toast = {
         el.className = `pointer-events-auto flex items-center w-full max-w-xs p-4 space-x-3 text-white rounded-lg shadow-lg transform transition-all duration-300 translate-x-full opacity-0 ${bgClass}`;
         el.innerHTML = `
             <div class="flex-shrink-0">${iconHtml}</div>
-            <div class="flex-1 text-sm font-medium break-words">${message}</div>
+            <div class="flex-1 text-sm font-medium break-words"></div>
             <button class="flex-shrink-0 ml-auto -mx-1.5 -my-1.5 rounded-lg p-1.5 inline-flex h-8 w-8 hover:bg-white/20 focus:ring-2 focus:ring-white">
                 <span class="sr-only">Close</span>
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
             </button>
         `;
+
+        el.querySelector('.break-words').textContent = message;
 
         // Bind click event for close button
         const closeBtn = el.querySelector('button');

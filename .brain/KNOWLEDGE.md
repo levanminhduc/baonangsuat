@@ -37,3 +37,12 @@
 - [http] CORS `Access-Control-Allow-Origin: *` là rủi ro đã biết, giữ để tương thích — app/Http/Cors.php · brain-init · 2026-11-14
 
 ## Khác
+- [css] Tailwind v4 lệch v3 ở: bảng màu oklch, line-height dạng tỉ lệ, selector `space-x/y`, preflight xoá nền input + opacity select disabled + padding ô ngày. Đã vá trong `src/v3-*.css`; nâng Tailwind phải so lại computed style — public/assets/tailwind/src/ · F-016 · 2026-11-25
+- [css] `@utility` trùng tên built-in thì cả hai cùng sinh; muốn thay built-in: `@source not inline()` rồi viết CSS thường — src/v3-space.css · F-016 · 2026-11-25
+- [css] style.css định nghĩa `.modal`, `.hidden`, `.line-list`, `.login-*`; bundle áp cho MỌI trang nên view mới đừng dùng lại tên đó — public/assets/css/style.css · F-016 · 2026-11-25
+- [fe] components/confirm-modal.php dùng chung admin + nhập; mỗi trang tự bắt `close-modal` (admin.js / app.js) — trang mới include nó phải gắn listener · F-016 · 2026-11-25
+- [fe] API trả `session.vai_tro` (không có `role`); `role` chỉ có ở bản ghi user của tab Quyền — app/Auth/Auth.php:72 · F-016 · 2026-11-25
+- [test] Kiểm trang đã đăng nhập không cần cookie: PHP built-in server + phiên giả (reflection vào Auth) + `BNS_DB_CONFIG` trỏ DB `*_test`; DB test thiếu bảng HR (`phong_ban`, `nhan_vien`, `user`) nên tab LINE/User cần bảng giả — tests/php/support/db.php · F-016 · 2026-11-25
+- [tool] Git Bash đổi pattern `rg` bắt đầu bằng `/` thành đường dẫn Windows: viết `[/]baonangsuat` · F-016 · 2026-11-25
+- [tool] `.gitignore` phải neo `/vendor/`; `vendor/` trần nuốt luôn public/assets/vendor · F-016 · 2026-11-25
+- [php] cs-fixer báo cả file khi working tree là CRLF (autocrlf); chạy `fix` đổi sang LF là đủ, git không ghi nhận thay đổi · F-016 · 2026-11-25

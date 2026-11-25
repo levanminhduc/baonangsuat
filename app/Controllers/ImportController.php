@@ -10,6 +10,10 @@ use App\Services\ImportService;
 // Quyền import kiểm ở middleware nhóm `import`; CSRF khai trong route.
 class ImportController
 {
+    public function __construct(private ImportService $imports)
+    {
+    }
+
     public function preview(Request $request)
     {
         if (!isset($_FILES['file']) || $_FILES['file']['error'] !== UPLOAD_ERR_OK) {
@@ -51,9 +55,8 @@ class ImportController
             return JsonResponse::error('File vượt quá 10MB', 400, ['error_code' => 'FILE_TOO_LARGE']);
         }
 
-        $importService = new ImportService();
         try {
-            $result = $importService->preview($file['tmp_name']);
+            $result = $this->imports->preview($file['tmp_name']);
         } finally {
             @unlink($file['tmp_name']);
         }
@@ -74,10 +77,8 @@ class ImportController
             return JsonResponse::error('Danh sách mã hàng không được rỗng', 400, ['error_code' => 'VALIDATION_FAILED']);
         }
 
-        $importService = new ImportService();
-
         // Dữ liệu preview để ghi lịch sử import
-        $importService->setPreviewData([
+        $this->imports->setPreviewData([
             'stats' => $previewStats,
             'errors' => $previewErrors,
             'data' => $maHangList,
@@ -86,7 +87,7 @@ class ImportController
         $session = Auth::getSession();
         $importedBy = $session['ma_nv'] ?? '';
 
-        $result = $importService->confirm(
+        $result = $this->imports->confirm(
             $maHangList,
             $input['acknowledge_deletion'] ?? false,
             $fileName,

@@ -4,7 +4,10 @@ import {
     getStatusClass,
     buildLuyKeTooltip
 } from './luy-ke-config.js';
+import { escapeHtml } from './utils.js';
 import { computeLuyKeStatus, getLastInputMocId } from './luy-ke-calculator.js';
+
+export { escapeHtml };
 
 // "08:30:00" → "8:30"
 export function formatMoc(gio) {
@@ -25,10 +28,6 @@ export function hieuSuatLevel(value) {
 
 const LEVEL_COLOR = { ok: 'var(--bns-success)', warn: 'var(--bns-warning)', bad: 'var(--bns-error)' };
 const NUM_ATTRS = 'type="text" inputmode="numeric" pattern="[0-9]*" enterkeyhint="next" autocomplete="off"';
-
-export function escapeHtml(text) {
-    return String(text ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
-}
 
 function isLkStage(cd) {
     return cd.la_cong_doan_tinh_luy_ke === 1 || cd.la_cong_doan_tinh_luy_ke === '1';

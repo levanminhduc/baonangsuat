@@ -29,8 +29,8 @@ export function renderLinesTable() {
             <td>${escapeHtml(line.ten_line)}</td>
             <td><span class="status-badge ${line.is_active == 1 ? 'status-approved' : 'status-locked'}">${line.is_active == 1 ? 'Hoạt động' : 'Tắt'}</span></td>
             <td>
-                <button class="btn btn-sm btn-primary" onclick="window.editLine(${line.id})">Sửa</button>
-                <button class="btn btn-sm btn-danger" onclick="window.deleteLine(${line.id})">Xóa</button>
+                <button class="btn btn-sm btn-primary" data-fn="editLine" data-args="[${line.id}]">Sửa</button>
+                <button class="btn btn-sm btn-danger" data-fn="deleteLine" data-args="[${line.id}]">Xóa</button>
             </td>
         </tr>
     `).join('');
