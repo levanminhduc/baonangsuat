@@ -8,7 +8,7 @@
             "x-frame-options": "DENY",
             "x-content-type-options": "nosniff",
             "x-xss-protection": "1; mode=block",
-            "content-security-policy": "default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://cdn.tailwindcss.com; style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com https://cdn.jsdelivr.net; img-src 'self' data:;",
+            "content-security-policy": "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data:;",
             "referrer-policy": "strict-origin-when-cross-origin"
         },
         "body": {
@@ -24,7 +24,7 @@
             "x-frame-options": "DENY",
             "x-content-type-options": "nosniff",
             "x-xss-protection": "1; mode=block",
-            "content-security-policy": "default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://cdn.tailwindcss.com; style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com https://cdn.jsdelivr.net; img-src 'self' data:;",
+            "content-security-policy": "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data:;",
             "referrer-policy": "strict-origin-when-cross-origin"
         },
         "body": {
@@ -40,7 +40,7 @@
             "x-frame-options": "DENY",
             "x-content-type-options": "nosniff",
             "x-xss-protection": "1; mode=block",
-            "content-security-policy": "default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://cdn.tailwindcss.com; style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com https://cdn.jsdelivr.net; img-src 'self' data:;",
+            "content-security-policy": "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data:;",
             "referrer-policy": "strict-origin-when-cross-origin"
         },
         "body": {
@@ -56,7 +56,7 @@
             "x-frame-options": "DENY",
             "x-content-type-options": "nosniff",
             "x-xss-protection": "1; mode=block",
-            "content-security-policy": "default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://cdn.tailwindcss.com; style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com https://cdn.jsdelivr.net; img-src 'self' data:;",
+            "content-security-policy": "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data:;",
             "referrer-policy": "strict-origin-when-cross-origin"
         },
         "body": {
@@ -72,7 +72,7 @@
             "x-frame-options": "DENY",
             "x-content-type-options": "nosniff",
             "x-xss-protection": "1; mode=block",
-            "content-security-policy": "default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://cdn.tailwindcss.com; style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com https://cdn.jsdelivr.net; img-src 'self' data:;",
+            "content-security-policy": "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data:;",
             "referrer-policy": "strict-origin-when-cross-origin"
         },
         "body": {
@@ -88,7 +88,7 @@
             "x-frame-options": "DENY",
             "x-content-type-options": "nosniff",
             "x-xss-protection": "1; mode=block",
-            "content-security-policy": "default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://cdn.tailwindcss.com; style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com https://cdn.jsdelivr.net; img-src 'self' data:;",
+            "content-security-policy": "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data:;",
             "referrer-policy": "strict-origin-when-cross-origin"
         },
         "body": {
@@ -104,7 +104,7 @@
             "x-frame-options": "DENY",
             "x-content-type-options": "nosniff",
             "x-xss-protection": "1; mode=block",
-            "content-security-policy": "default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://cdn.tailwindcss.com; style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com https://cdn.jsdelivr.net; img-src 'self' data:;",
+            "content-security-policy": "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data:;",
             "referrer-policy": "strict-origin-when-cross-origin"
         },
         "body": {

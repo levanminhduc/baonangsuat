@@ -251,8 +251,34 @@ async function switchTab(tabName, updateHistory = true) {
     }
 }
 
+const DATA_FN_ALLOWED = new Set([
+    'closeImportHistoryModal',
+    'deleteCongDoan',
+    'deleteLine',
+    'deleteMaHang',
+    'deleteMocGio',
+    'deletePreset',
+    'deleteRouting',
+    'deleteUserLine',
+    'editCongDoan',
+    'editLine',
+    'editMaHang',
+    'editMocGio',
+    'editPreset',
+    'editRouting',
+    'loadImportHistory',
+    'showCopyPresetModal',
+    'toggleCreateReportAnyLinePermission',
+    'toggleCreateReportPermission',
+    'toggleHistoryPermission',
+    'toggleImportPermission',
+    'unassignLine',
+    'viewImportDetail',
+    'viewPresetDetail',
+]);
+
 function callDataFn(name, rawArgs, extra) {
-    const fn = /^\w+$/.test(name || '') ? window[name] : null;
+    const fn = DATA_FN_ALLOWED.has(name) ? window[name] : null;
     if (typeof fn !== 'function') return;
     const args = rawArgs ? JSON.parse(rawArgs) : [];
     if (extra !== undefined) args.push(extra);

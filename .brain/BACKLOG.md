@@ -27,9 +27,9 @@
 - [ ] (debt) ChartService có bản sao riêng getMocGioList/getRouting và 3 khối lookup lặp — app/Services/ChartService.php:204,252 · F-016 khảo sát · 2026-11-25
 - [ ] (debt) Auth.php hard-code /baonangsuat/ ở loginUrl/logoutUrl và chứa SQL — app/Auth/Auth.php:81,88 · F-016 khảo sát · 2026-11-25
 - [ ] (doc) install.sql ghi DB production là bao_nang_suat, README/AGENTS ghi nang_suat; docs/agents/domain.md trỏ GLOSSARY.md không tồn tại — database/install.sql:1 · F-016 khảo sát · 2026-11-25
-- [ ] (security) CSP còn cho phép cdn.tailwindcss.com, cdn.jsdelivr.net, Google Fonts dù không còn dùng; siết lại (đổi baseline smoke) — app/Http/Middleware/SecurityHeaders.php:19 · F-016 verifier · 2026-11-25
-- [ ] (security) `callDataFn` gọi được mọi hàm global; nên whitelist các hàm đã đăng ký trước khi bỏ unsafe-inline — public/assets/js/admin.js:254 · F-016 verifier · 2026-11-25
-- [ ] (security) `cd.ma_cong_doan` chèn innerHTML không escape — public/assets/js/modules/admin/import.js:334 · F-016 verifier · 2026-11-25
+- [x] (security) CSP còn cho phép cdn.tailwindcss.com, cdn.jsdelivr.net, Google Fonts dù không còn dùng; siết lại (đổi baseline smoke) — app/Http/Middleware/SecurityHeaders.php:19 · F-016 verifier · 2026-11-25
+- [x] (security) `callDataFn` gọi được mọi hàm global; nên whitelist các hàm đã đăng ký trước khi bỏ unsafe-inline — public/assets/js/admin.js:254 · F-016 verifier · 2026-11-25
+- [x] (security) `cd.ma_cong_doan` chèn innerHTML không escape — public/assets/js/modules/admin/import.js:334 · F-016 verifier · 2026-11-25
 - [ ] (security) tests/router.spec.js (đã xoá) còn tài khoản hard-code trong lịch sử git; đổi mật khẩu nếu là thật · F-016 verifier · 2026-11-25
 - [ ] (debt) Router chỉ bắt `Exception`; TypeError ra HTML fatal thay vì JSON 500 — app/Http/Router.php · F-016 verifier · 2026-11-25
 - [ ] (debt) AdminController nhận 7 service nên bulk-create mở cả kết nối mysqli + nhân sự; ImportController mở DB trước khi kiểm file — app/Controllers/AdminController.php:24 · F-016 · 2026-11-25
