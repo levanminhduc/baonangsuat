@@ -58,11 +58,11 @@ export const reportListMethods = {
     },
     
     updateCreateButtonVisibility() {
-        if (!window.appContext) return;
+        if (!this.context) return;
         
         // Admin always has permission, otherwise check can_create_report
-        const isAdmin = window.appContext.session && window.appContext.session.vai_tro === 'admin';
-        const canCreate = isAdmin || window.appContext.can_create_report;
+        const isAdmin = this.context.session && this.context.session.vai_tro === 'admin';
+        const canCreate = isAdmin || this.context.can_create_report;
         
         const createBtn = document.getElementById('createReportBtn');
         const navCreateBtn = document.getElementById('navCreateReportBtn');
@@ -94,9 +94,9 @@ export const reportListMethods = {
         if (reports.length === 0) {
             let message = 'Chưa có báo cáo nào đang xử lý';
             
-            if (window.appContext) {
-                const isAdmin = window.appContext.session && window.appContext.session.vai_tro === 'admin';
-                const canCreate = isAdmin || window.appContext.can_create_report;
+            if (this.context) {
+                const isAdmin = this.context.session && this.context.session.vai_tro === 'admin';
+                const canCreate = isAdmin || this.context.can_create_report;
                 if (!canCreate) {
                     message = 'Chưa có báo cáo. Vui lòng liên hệ quản trị viên.';
                 }

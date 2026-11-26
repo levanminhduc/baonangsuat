@@ -33,6 +33,9 @@ $showHomeBtn = $page['showHomeBtn'] ?? true;
 <?php foreach ($page['scripts'] ?? [] as $src) { ?>
     <script src="<?php echo $asset($src); ?>"></script>
 <?php } ?>
+<?php if (($page['nav'] ?? true) !== false) { ?>
+    <script type="module" src="assets/js/modules/nav.js"></script>
+<?php } ?>
 <?php foreach ($page['modules'] ?? [] as $src) { ?>
     <script type="module" src="<?php echo $asset($src); ?>"></script>
 <?php } ?>

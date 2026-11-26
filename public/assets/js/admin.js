@@ -1,10 +1,9 @@
 import { Router } from './modules/router.js';
-import { api } from './modules/admin-api.js';
-import { closeModal, showLoading, hideLoading, showToast } from './modules/admin-utils.js';
+import { api } from './modules/api.js';
+import { closeModal, showLoading, hideLoading, showToast } from './modules/utils.js';
 import { getState, setAdminRouter } from './modules/admin/state.js';
-
-// Global window assignments that are always needed
-window.closeModal = closeModal;
+import { runAction } from './modules/admin/actions.js';
+import { setActiveNav } from './modules/nav.js';
 
 // Module Configuration
 const modules = {
@@ -15,8 +14,6 @@ const modules = {
         loaded: false,
         init: async (m) => {
             m.init();
-            window.editLine = m.editLine;
-            window.deleteLine = m.deleteLine;
             await m.loadLines();
         }
     },
@@ -27,7 +24,6 @@ const modules = {
         loaded: false,
         init: async (m) => {
             m.init();
-            window.deleteUserLine = m.deleteUserLine;
             await m.loadUserLines();
             m.updateUserLineFilterSelect();
         }
@@ -39,10 +35,6 @@ const modules = {
         loaded: false,
         init: async (m) => {
             m.init();
-            window.toggleHistoryPermission = m.toggleHistoryPermission;
-            window.toggleCreateReportPermission = m.toggleCreateReportPermission;
-            window.toggleCreateReportAnyLinePermission = m.toggleCreateReportAnyLinePermission;
-            window.toggleImportPermission = m.toggleImportPermission;
             await m.loadUsers();
         }
     },
@@ -63,8 +55,6 @@ const modules = {
         loaded: false,
         init: async (m) => {
             m.init();
-            window.editMaHang = m.editMaHang;
-            window.deleteMaHang = m.deleteMaHang;
             await m.loadMaHang();
         }
     },
@@ -75,8 +65,6 @@ const modules = {
         loaded: false,
         init: async (m) => {
             m.init();
-            window.editCongDoan = m.editCongDoan;
-            window.deleteCongDoan = m.deleteCongDoan;
             await m.loadCongDoan();
         }
     },
@@ -87,8 +75,6 @@ const modules = {
         loaded: false,
         init: async (m) => {
             m.init();
-            window.editRouting = m.editRouting;
-            window.deleteRouting = m.deleteRouting;
             // Routing doesn't load data initially, waits for filter selection
         }
     },
@@ -99,12 +85,6 @@ const modules = {
         loaded: false,
         init: async (m) => {
             m.init();
-            window.viewPresetDetail = m.viewPresetDetail;
-            window.editPreset = m.editPreset;
-            window.deletePreset = m.deletePreset;
-            window.showCopyPresetModal = m.showCopyPresetModal;
-            window.showAssignLinesModal = m.showAssignLinesModal;
-            window.unassignLine = m.unassignLine;
             await m.loadPresets();
         }
     },
@@ -115,8 +95,6 @@ const modules = {
         loaded: false,
         init: async (m) => {
             m.init();
-            window.editMocGio = m.editMocGio;
-            window.deleteMocGio = m.deleteMocGio;
             await m.loadCaList();
             m.updateMocGioLineSelect();
         }
@@ -236,7 +214,7 @@ async function switchTab(tabName, updateHistory = true) {
         if (tabBtn) tabBtn.classList.add('active');
         if (tabContent) tabContent.classList.add('active');
         // Sidebar: đánh dấu màn đang xem, đổi tiêu đề thanh trên
-        if (window.bnsNav) window.bnsNav.setActive('admin:' + tabName, true);
+        setActiveNav('admin:' + tabName, true);
 
         if (updateHistory) {
             history.pushState(null, null, `#${tabName}`);
@@ -251,38 +229,10 @@ async function switchTab(tabName, updateHistory = true) {
     }
 }
 
-const DATA_FN_ALLOWED = new Set([
-    'closeImportHistoryModal',
-    'deleteCongDoan',
-    'deleteLine',
-    'deleteMaHang',
-    'deleteMocGio',
-    'deletePreset',
-    'deleteRouting',
-    'deleteUserLine',
-    'editCongDoan',
-    'editLine',
-    'editMaHang',
-    'editMocGio',
-    'editPreset',
-    'editRouting',
-    'loadImportHistory',
-    'showCopyPresetModal',
-    'toggleCreateReportAnyLinePermission',
-    'toggleCreateReportPermission',
-    'toggleHistoryPermission',
-    'toggleImportPermission',
-    'unassignLine',
-    'viewImportDetail',
-    'viewPresetDetail',
-]);
-
 function callDataFn(name, rawArgs, extra) {
-    const fn = DATA_FN_ALLOWED.has(name) ? window[name] : null;
-    if (typeof fn !== 'function') return;
     const args = rawArgs ? JSON.parse(rawArgs) : [];
     if (extra !== undefined) args.push(extra);
-    fn(...args);
+    runAction(name, args);
 }
 
 function bindGlobalEvents() {
@@ -300,9 +250,9 @@ function bindGlobalEvents() {
         }
 
         const assignEl = e.target.closest('[data-action="show-assign-lines"]');
-        if (assignEl && window.showAssignLinesModal) {
+        if (assignEl) {
             const detail = getState().currentPresetDetail;
-            if (detail) window.showAssignLinesModal(detail.id);
+            if (detail) runAction('showAssignLinesModal', [detail.id]);
         }
     });
 

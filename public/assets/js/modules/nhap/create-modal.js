@@ -16,20 +16,20 @@ export const createModalMethods = {
         const lineGroup = document.getElementById('modalLineGroup');
         const lineSelect = document.getElementById('modalLine');
         
-        if (caSelect && window.appContext?.ca_list) {
-            caSelect.innerHTML = window.appContext.ca_list.map(ca =>
+        if (caSelect && this.context?.ca_list) {
+            caSelect.innerHTML = this.context.ca_list.map(ca =>
                 `<option value="${escapeHtml(ca.id)}">${escapeHtml(ca.ma_ca)} - ${escapeHtml(ca.ten_ca)}</option>`
             ).join('');
         }
         
-        if (maHangSelect && window.appContext?.ma_hang_list) {
+        if (maHangSelect && this.context?.ma_hang_list) {
             maHangSelect.innerHTML = '<option value="">-- Chọn mã hàng --</option>' +
-                window.appContext.ma_hang_list.map(mh =>
+                this.context.ma_hang_list.map(mh =>
                     `<option value="${escapeHtml(mh.id)}">${escapeHtml(mh.ma_hang)} - ${escapeHtml(mh.ten_hang)}</option>`
                 ).join('');
         }
         
-        if (window.appContext?.can_create_report_any_line && lineGroup && lineSelect) {
+        if (this.context?.can_create_report_any_line && lineGroup && lineSelect) {
             lineGroup.style.display = 'block';
             try {
                 const response = await api('GET', '/admin/lines');
@@ -82,10 +82,10 @@ export const createModalMethods = {
         const ctnsInput = document.getElementById('modalCtns');
         if (!laoDongInput || !ctnsInput) return;
 
-        const lineId = window.appContext?.can_create_report_any_line
+        const lineId = this.context?.can_create_report_any_line
             ? document.getElementById('modalLine')?.value
-            : window.appContext?.line?.id;
-        const maHang = (window.appContext?.ma_hang_list || []).find(mh => String(mh.id) === String(maHangId));
+            : this.context?.line?.id;
+        const maHang = (this.context?.ma_hang_list || []).find(mh => String(mh.id) === String(maHangId));
         const dinhMuc = maHang?.dinh_muc?.[lineId];
 
         laoDongInput.value = dinhMuc ? dinhMuc.so_lao_dong : 0;
@@ -105,7 +105,7 @@ export const createModalMethods = {
             return;
         }
         
-        if (window.appContext?.can_create_report_any_line && !line_id) {
+        if (this.context?.can_create_report_any_line && !line_id) {
             showToast('Vui lòng chọn LINE', 'error');
             return;
         }
@@ -127,7 +127,7 @@ export const createModalMethods = {
                 if (sub_art_code) payload.sub_art_code = sub_art_code;
             }
             
-            if (window.appContext?.can_create_report_any_line && line_id) {
+            if (this.context?.can_create_report_any_line && line_id) {
                 payload.line_id = parseInt(line_id);
             }
             

@@ -40,4 +40,3 @@ $page = [
 
 <script id="allowedLines" type="application/json"><?php echo json_encode($allowedLines, JSON_HEX_TAG | JSON_HEX_AMP | JSON_UNESCAPED_UNICODE); ?></script>
 
-<?php include BNS_ROOT . '/components/toast.php'; ?>

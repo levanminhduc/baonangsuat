@@ -94,11 +94,7 @@ if ($isLoggedIn) {
 }
 ?>
 <?php if ($isLoggedIn): ?>
-<script>
-// Chạy trước khi nội dung vẽ: chừa chỗ cho sidebar và nhớ trạng thái thu gọn
-document.body.classList.add('bns-has-sidebar');
-try { if (localStorage.getItem('bns-sidebar-collapsed') === '1') document.documentElement.setAttribute('data-bns-collapsed', ''); } catch (e) {}
-</script>
+<script src="<?php echo $asset('assets/js/nav-early.js'); ?>"></script>
 <div class="bns-overlay" data-bns-close></div>
 <aside class="bns-sidebar" id="bnsSidebar" aria-label="Menu">
     <div class="bns-brand">
@@ -167,85 +163,11 @@ try { if (localStorage.getItem('bns-sidebar-collapsed') === '1') document.docume
     <h1 class="bns-title" id="bnsPageTitle"><?php echo htmlspecialchars($navTitle); ?></h1>
     <?php if ($isLoggedIn): ?>
     <div class="bns-bar-slot" id="bnsBarSlot" hidden></div>
-    <span class="bns-clock" title="Giờ máy chủ"><?php echo $bnsIcon('clock-3'); ?><span id="server-clock"><?php echo $serverTimeStr; ?></span></span>
+    <span class="bns-clock" title="Giờ máy chủ"><?php echo $bnsIcon('clock-3'); ?><span id="server-clock" data-server-time="<?php echo time(); ?>"><?php echo $serverTimeStr; ?></span></span>
     <?php endif; ?>
     <?php if ($showAddBtn): ?>
     <a href="<?php echo htmlspecialchars($addBtnUrl); ?>"<?php echo $addBtnId ? ' id="' . htmlspecialchars($addBtnId) . '"' : ''; ?> class="bns-icon-btn" aria-label="Tạo báo cáo" title="Tạo báo cáo"><?php echo $bnsIcon('plus'); ?></a>
     <?php endif; ?>
 </header>
 
-<?php if ($isLoggedIn): ?>
-<script>
-(function() {
-    const body = document.body;
-    const menuBtn = document.querySelector('[data-bns-menu]');
-    const titleEl = document.getElementById('bnsPageTitle');
 
-    function setMenuOpen(open) {
-        body.toggleAttribute('data-bns-menu-open', open);
-        if (menuBtn) menuBtn.setAttribute('aria-expanded', String(open));
-    }
-    if (menuBtn) menuBtn.addEventListener('click', () => setMenuOpen(true));
-    document.querySelectorAll('[data-bns-close]').forEach(el => el.addEventListener('click', () => setMenuOpen(false)));
-    document.addEventListener('keydown', (e) => { if (e.key === 'Escape') setMenuOpen(false); });
-    // Chọn mục trong panel trượt (mobile) thì đóng panel; trang khác thì trình duyệt tự chuyển
-    document.querySelectorAll('.bns-nav-link').forEach(a => a.addEventListener('click', () => setMenuOpen(false)));
-
-    document.querySelectorAll('[data-bns-group]').forEach(btn => {
-        btn.addEventListener('click', () => {
-            const groupBody = btn.nextElementSibling;
-            const open = btn.getAttribute('aria-expanded') === 'true';
-            btn.setAttribute('aria-expanded', String(!open));
-            groupBody.toggleAttribute('data-closed', open);
-            groupBody.inert = open;
-        });
-    });
-
-    const collapseBtn = document.querySelector('[data-bns-collapse]');
-    if (collapseBtn) {
-        collapseBtn.addEventListener('click', () => {
-            const collapsed = !document.documentElement.hasAttribute('data-bns-collapsed');
-            document.documentElement.toggleAttribute('data-bns-collapsed', collapsed);
-            try { localStorage.setItem('bns-sidebar-collapsed', collapsed ? '1' : '0'); } catch (e) {}
-        });
-    }
-
-    // Đánh dấu mục đang xem + nhóm cha; trang admin đổi tiêu đề theo màn (admin.js gọi khi đổi tab)
-    window.bnsNav = {
-        setActive(key, updateTitle) {
-            let activeLink = null;
-            document.querySelectorAll('.bns-nav-link').forEach(a => {
-                const on = a.dataset.nav === key;
-                if (on) {
-                    a.setAttribute('aria-current', 'page');
-                    activeLink = a;
-                } else {
-                    a.removeAttribute('aria-current');
-                }
-            });
-            document.querySelectorAll('[data-bns-group]').forEach(btn => {
-                btn.classList.toggle('is-active', !!activeLink && btn.nextElementSibling.contains(activeLink));
-            });
-            if (updateTitle && activeLink && titleEl) {
-                titleEl.textContent = activeLink.dataset.title;
-            }
-        }
-    };
-
-    // Trang nhập: Nhập năng suất / Lịch sử theo hash (#/lich-su...)
-    if (location.pathname.split('/').pop() === 'nhap-nang-suat.php') {
-        const syncHash = () => window.bnsNav.setActive(location.hash.startsWith('#/lich-su') ? 'lich-su' : 'nhap', false);
-        syncHash();
-        window.addEventListener('hashchange', syncHash);
-    }
-})();
-</script>
-<script type="module">
-const base = document.querySelector('meta[name="bns-base"]').content.replace(/\/$/, '');
-const { default: realtimeService } = await import(base + '/assets/js/modules/realtime-service.js');
-realtimeService.init(<?php echo time(); ?>);
-realtimeService.startClock('server-clock');
-</script>
-<?php endif; ?>
-
-<?php include BNS_ROOT . '/components/toast.php'; ?>

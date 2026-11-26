@@ -1,5 +1,5 @@
-import { api } from '../admin-api.js';
-import { showToast, showLoading, hideLoading, escapeHtml } from '../admin-utils.js';
+import { api } from '../api.js';
+import { showToast, showLoading, hideLoading, escapeHtml } from '../utils.js';
 import { getState } from './state.js';
 
 export function renderFormOptions() {

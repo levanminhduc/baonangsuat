@@ -11,6 +11,8 @@
  * networkMonitor.on('network:online', () => { ... });
  */
 
+import { toast } from './toast.js';
+
 const DEFAULT_CONFIG = {
     overlayId: 'networkOfflineOverlay',
     overlayZIndex: 101, // Cao hơn loading overlay (z-100)
@@ -123,8 +125,8 @@ class NetworkMonitor {
         }, this.config.autoHideDelay);
 
         // Show toast nếu enabled
-        if (this.config.showToastOnReconnect && window.toast) {
-            window.toast.show(this.config.messages.reconnected, 'success');
+        if (this.config.showToastOnReconnect) {
+            toast.show(this.config.messages.reconnected, 'success');
         }
 
         // Enable inputs trong editorContainer

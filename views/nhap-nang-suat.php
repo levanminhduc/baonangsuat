@@ -192,11 +192,3 @@ $page = [
     
     <?php include BNS_ROOT . '/components/confirm-modal.php'; ?>
     <?php include BNS_ROOT . '/components/loading-overlay.php'; ?>
-    
-    <script>
-        window.initialParams = {
-            line: "<?php echo isset($_GET['line']) ? htmlspecialchars($_GET['line']) : ''; ?>",
-            ma_hang: "<?php echo isset($_GET['ma_hang']) ? htmlspecialchars($_GET['ma_hang']) : ''; ?>",
-            ngay: "<?php echo isset($_GET['ngay']) ? htmlspecialchars($_GET['ngay']) : ''; ?>"
-        };
-    </script>

@@ -1,32 +1,12 @@
-import { API_BASE } from './modules/config.js';
+import { api, fetchCsrfToken } from './modules/api.js';
+import { toast } from './modules/toast.js';
+import { readPageData } from './modules/page-data.js';
 
 // Dọn khoá "ghi nhớ tên đăng nhập" của form login cũ
 localStorage.removeItem('rememberedUsername');
 
-let loginCsrfToken = null;
-
-async function fetchLoginCsrfToken() {
-    try {
-        const response = await fetch(API_BASE + '/csrf-token', {
-            method: 'GET',
-            credentials: 'include'
-        });
-        const result = await response.json();
-        if (result.success) {
-            loginCsrfToken = result.token;
-        }
-    } catch (error) {
-        console.error('Failed to fetch CSRF token:', error);
-    }
-    return loginCsrfToken;
-}
-
 function notifyError(message) {
-    if (window.toast && typeof window.toast.error === 'function') {
-        window.toast.error(message);
-    } else {
-        alert(message);
-    }
+    toast.error(message);
 }
 
 async function showLineSelect(lines) {
@@ -35,7 +15,7 @@ async function showLineSelect(lines) {
 
     if (!modalEl || !list) return;
 
-    await fetchLoginCsrfToken();
+    await fetchCsrfToken();
 
     list.textContent = '';
     lines.forEach(line => {
@@ -50,17 +30,7 @@ async function showLineSelect(lines) {
         li.addEventListener('click', async () => {
             const lineId = li.dataset.id;
             try {
-                const headers = { 'Content-Type': 'application/json' };
-                if (loginCsrfToken) {
-                    headers['X-CSRF-Token'] = loginCsrfToken;
-                }
-                const response = await fetch(API_BASE + '/auth/select-line', {
-                    method: 'POST',
-                    headers: headers,
-                    credentials: 'include',
-                    body: JSON.stringify({ line_id: parseInt(lineId) })
-                });
-                const result = await response.json();
+                const result = await api('POST', '/auth/select-line', { line_id: parseInt(lineId) });
                 if (result.success) {
                     window.location.href = result.redirect_url || 'nhap-nang-suat.php';
                 } else {
@@ -78,15 +48,8 @@ async function showLineSelect(lines) {
 }
 
 document.addEventListener('DOMContentLoaded', function() {
-    const dataEl = document.getElementById('allowedLines');
-    if (!dataEl) return;
-    let lines = [];
-    try {
-        lines = JSON.parse(dataEl.textContent);
-    } catch (error) {
-        console.error('Invalid allowedLines data:', error);
-    }
-    if (lines.length > 0) {
+    const lines = readPageData('allowedLines');
+    if (Array.isArray(lines) && lines.length > 0) {
         showLineSelect(lines);
     }
 });

@@ -1,6 +1,7 @@
 import { api } from '../api.js';
 import { showToast } from '../utils.js';
 import { state } from './state.js';
+import { readPageData } from '../page-data.js';
 import { loadChartData } from './data.js';
 
 /**
@@ -287,7 +288,7 @@ export async function loadInitialData() {
         }
     } else {
         // Non-admin: use assigned line
-        state.filters.line_id = window.appConfig.lineId;
+        state.filters.line_id = readPageData().lineId;
         await loadMaHangList();
     }
     

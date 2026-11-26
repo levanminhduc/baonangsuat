@@ -1,18 +1,25 @@
 # Lessons & upgrade proposals
 <!-- Do /retro quản lý. Bạn chỉ cần đổi Status của đề xuất: PROPOSED → APPROVED hoặc REJECTED, rồi chạy /retro apply. -->
 
-Reviewed runs: F-015
+Reviewed runs: F-015, F-016, F-017
 
 ## Lessons
 <!-- Mỗi bài học một dòng. Cause: agent-prompt | tagging | spec-quality | project-knowledge | verifier-miss | one-off
      ví dụ: | L-001 | implementer không chạy lint trước khi báo DONE | agent-prompt | implementer | F-012 S1, F-014 S3 | 2 | -->
 | ID | Lesson | Cause | Agent / file | Evidence | Count |
 |---|---|---|---|---|---|
-| L-001 | Spec tính số từ dữ liệu có sẵn (lũy kế PO) không kiểm ngữ nghĩa dữ liệu trong code → thiết kế SUM các mốc trong khi ô nhập đã là lũy kế tại mốc | spec-quality | commands/feature.md (bước 2) | F-015 S5 (implementer NOTICED, orchestrator sửa + amend spec) | 1 |
+| L-001 | Spec khẳng định điều về hành vi hiện có mà không kiểm trong code/test/runtime: ngữ nghĩa ô lũy kế (SUM mốc), cascade CSS dưới CDN (`layer(components)`), "bỏ `includes` không đổi hành vi" (urls.txt có /includes → 403→404) | spec-quality | commands/feature.md (bước 2) | F-015 S5; F-016 thiết kế CSS (phát hiện nhờ so computed style); F-017 S5 | 3 |
 | L-002 | Step thêm kết nối hệ thống ngoài chỉ Check đường "không cấu hình", không đo đường host không tới được → timeout DSN bị bỏ qua, treo 21s | spec-quality | features/_TEMPLATE.md (Check) | F-015 S2 → R1-B1 | 1 |
 | L-003 | implementer báo DONE nhưng bỏ sót một mục "Done when" (thêm URL smoke + chụp baseline) | agent-prompt | implementer | F-015 S3 → R1-B2 | 1 |
 | L-004 | Đường suy giảm khi phụ thuộc ngoài chết (available:false) không được xét ở luồng ghi FE → Lưu xoá PO | agent-prompt | implementer | F-015 S5 → R1-B3 | 1 |
 | L-005 | Verifier vòng 2 treo 600s, orchestrator tự soát → vòng 2 không có review độc lập | one-off | verifier | F-015 Verify R2 | 1 |
+| L-006 | Brief giao bước không nhắc danh sách global spec ghi phải giữ → agent xoá `window.historyModule` | agent-prompt | /go brief (orchestrator) | F-016 S9/S13 → R1 blocker | 1 |
+| L-007 | Orchestrator đổi cách làm giữa run (login.js đọc meta) mà không ghi Amended → verifier coi là lệch spec | spec-quality | /go (orchestrator) | F-016 S11 → R1 blocker; F-017 ghi Amended đủ, không tái diễn | 1 |
+| L-008 | Verifier vòng 1 soát toàn diff tốn ~240k token; vòng 2 phạm vi hẹp 32k | tagging | /go verify | F-016 R1 | 1 |
+| L-009 | Bước chuyển/xoá đường dẫn không liệt kê file test/smoke nhắc tới nó → chore báo PLAN_ISSUE (urls.txt) | spec-quality | commands/feature.md (Plan) | F-017 S4 | 1 |
+| L-010 | Bước có lệnh phá huỷ working tree (`reset --hard`) xếp sau các bước để lại sửa chưa commit → phải đảo thứ tự | spec-quality | commands/feature.md (Plan) | F-017 S3 | 1 |
+| L-011 | Spec giao sửa file trong `.claude/` cho bước `[haiku]` trong khi worker không được ghi `.claude/` → orchestrator phải làm | tagging | commands/feature.md (tag) | F-017 S5 | 1 |
+| L-012 | Agent S12 sót `session.role` ở renderAppBar, agent S9 bắt được | one-off | implementer | F-016 S12 | 1 |
 
 ## Proposals
 <!-- ví dụ:
@@ -56,3 +63,13 @@ Target: ~/.claude/commands/feature.md → ## 2
 Change: + "When the design computes from data that already exists, confirm in code what that data means (e.g. a cell holds a cumulative value vs. a per-slot value) before writing the formula. (P-004)"
 Expected: không còn amend spec giữa run vì hiểu sai dữ liệu
 Watch: số "Amended" do sai ngữ nghĩa dữ liệu trong report; SCORECARD "Runs PASS at verify round 1" (baseline 0 / 1)
+
+### P-005 /feature kiểm mọi khẳng định về hành vi hiện có, không chỉ ngữ nghĩa dữ liệu
+Status: APPLIED (2026-11-25)
+From: L-001 (3 run: F-015, F-016, F-017)
+Target: ~/.claude/commands/feature.md → ## 2 (THAY dòng P-004; file global, ảnh hưởng mọi repo)
+Change: ~ "When the design computes from data that already exists, confirm in code what that data means (e.g. a cell holds a cumulative value vs. a per-slot value) before writing the formula. (P-004)"
+  → "Verify every claim the spec makes about existing behaviour before relying on it — what stored data means, which CSS rule wins, 'no behaviour change' — in code, tests, smoke URL lists/baselines or a runtime measurement, and cite the evidence next to the claim. (P-004, P-005)"
+Expected: không còn amend spec / smoke lệch vì spec giả định sai hành vi đang có
+Watch: số Amended do giả định sai trong report (F-015 1, F-016 1, F-017 1 → mục tiêu 0); SCORECARD "Runs PASS at verify round 1" (baseline 1 / 3)
+

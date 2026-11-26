@@ -4,7 +4,6 @@
  */
 
 import { fetchCsrfToken } from './modules/api.js';
-import { state } from './modules/bieu-do/state.js';
 import {
     bindElements,
     loadFiltersFromURL,
@@ -28,5 +27,4 @@ async function init() {
     await loadInitialData();
 }
 
-window.bieuDoApp = state;
 init();

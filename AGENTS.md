@@ -18,10 +18,11 @@ This file provides guidance to agents when working with code in this repository.
 - **Session keys prefixed `bns_`**: Only `bns_line` (selected LINE + owner) and `bns_csrf_token` are written to the shared session. Role/employee context is rebuilt from DB on every request (`Auth::boot()`), never stored in session
 - **LINE selection reconciled each request**: `LineSelection::reconcile()` drops a stored LINE if it belongs to another user or is no longer allowed; auto-picks when a non-admin has exactly one allowed LINE. `auth/select-line` only accepts allowed LINEs (403 otherwise)
 - **Logout is a page navigation** to `Auth::logoutUrl()` (authV2 `logout.php` rejects `fetch`), and logs out all projects
-- **Base path comes from PHP**: the layout emits `<meta name="bns-base">`; `public/assets/js/modules/config.js` exports `BASE_PATH` and `API_BASE` from it (`login.js` reads the meta itself). No hard-coded `/baonangsuat` in JS. Known leftovers: `Auth.php:81,88` still hard-codes `/baonangsuat/index.php` as the login/logout return URL
+- **Base path comes from PHP**: the layout emits `<meta name="bns-base">`; `public/assets/js/modules/config.js` exports `BASE_PATH` and `API_BASE` from it. No hard-coded `/baonangsuat` in JS. Known leftovers: `Auth.php:81,88` still hard-codes `/baonangsuat/index.php` as the login/logout return URL
 - **Offline UI**: no CDN, Bootstrap or Font Awesome. One committed bundle `public/assets/tailwind/dist/app.css` (Tailwind v4.1, `tools\build-css.bat`); rebuild and commit it after changing classes in `views/`, `components/` or `public/assets/js/`. The `@import` order in `public/assets/tailwind/src/app.css` is a contract (nothing in `@layer`). `<body class="theme-no-line">` switches `primary` to blue. Chart.js is vendored in `public/assets/vendor/`
 - **Layout**: `View::page($template, $data)` wraps the view in `views/layouts/app.php`; the view declares `$page = [...]`. `<head>` exists only in the layout
-- **No inline handlers**: use `data-action` / `data-fn` and delegated listeners; escape API data with the single `escapeHtml` from `modules/utils.js` before `innerHTML`
+- **No inline handlers or inline scripts**: use `data-action` / `data-fn` and delegated listeners; admin `data-fn` handlers are registered with `registerActions(map)` (`modules/admin/actions.js`) and run via `runAction`; PHP→JS data goes in `<script type="application/json" id="...">` read with `readPageData(id)` (`modules/page-data.js`). No `window.*` globals. Escape API data with the single `escapeHtml` from `modules/utils.js` before `innerHTML`
+- **One API client, one utils**: all HTTP goes through `modules/api.js` (`api`, `apiUpload`, `fetchCsrfToken`; `fetch(` only there). Toast is `modules/toast.js`; confirmations use `confirmDialog` / `showConfirmModal` from `modules/utils.js`, never native `confirm()`/`alert()`. `tests/php/fe_structure_test.php` locks these rules
 - **DI**: `App\Support\Container` autowires controllers/middleware/services by constructor type; never `new XxxService()` in a controller (`structure_test` enforces)
 - **Tests**: `php tests/php/run.php [filter]` prints "N pass, M fail, K skip". DB integration tests run only when `BNS_DB_CONFIG` points to a config whose DB name ends with `_test`; they rebuild schema + seed there and refuse any other DB
 - **Pre-generated entries**: Creating a report auto-generates ALL entries with `so_luong = 0`
@@ -29,7 +30,7 @@ This file provides guidance to agents when working with code in this repository.
 - **`la_cong_doan_tinh_luy_ke` flag**: Only stages with this flag=1 are cumulative-calculated
 - **CSRF protection for API**: All POST/PUT/DELETE endpoints require X-CSRF-Token header. Token fetched via GET /api/csrf-token
 - **CSRF token persistence**: Token created once per session, reused until session expires
-- **Security headers**: pages get the `security-headers` middleware (nosniff, DENY, CSP...); API gets nosniff + DENY from `App\Http\Cors`
+- **Security headers**: pages get the `security-headers` middleware (nosniff, DENY, CSP with `script-src 'self'`, no `'unsafe-inline'` for scripts); API gets nosniff + DENY from `App\Http\Cors`
 - **CORS is loose (known risk)**: API sends `Access-Control-Allow-Origin: *` (what clients effectively got before, via the old `api/.htaccess`); `Allow-Credentials: true` only for localhost origins. See `App\Http\Cors`
 - **Permission-based history access**: `can_view_history` permission required for non-admin users to view report history
 - **Moc Gio Set fallback**: LINE-specific preset → default preset (is_default=1) for same ca_id
@@ -71,7 +72,8 @@ This file provides guidance to agents when working with code in this repository.
 - **Admin Lazy Loading**: Admin modules in `public/assets/js/modules/admin/` are lazy-loaded with declared dependencies
 - **Auto-save**: Grid inputs auto-save with debounce
 - **Realtime Clock**: Web Worker (`public/assets/js/workers/realtime-worker.js`) for server-time-synced clock display
-- **CSRF Auto-refresh**: API client auto-fetches new CSRF token when `csrf_error: true` in response
+- **CSRF Auto-refresh**: `api.js` auto-fetches the token for writes if missing; on `csrf_error: true` it refreshes the token and resends the request once
+- **Navbar**: `nav-early.js` (classic sync script, anti-flash) + `modules/nav.js` (sidebar, server clock from `data-server-time`, `setActiveNav`); `modules/tabs.js` binds `components/tabs.php`
 
 ## API Routes
 

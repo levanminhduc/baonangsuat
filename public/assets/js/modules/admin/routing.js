@@ -1,6 +1,7 @@
-import { api } from '../admin-api.js';
-import { escapeHtml, showToast, closeModal, showConfirmModal } from '../admin-utils.js';
+import { api } from '../api.js';
+import { escapeHtml, showToast, closeModal, showConfirmModal } from '../utils.js';
 import { getState, setRouting, setSelectedMaHangId } from './state.js';
+import { registerActions } from './actions.js';
 
 export async function handleRoutingMaHangChange() {
     const state = getState();
@@ -179,3 +180,5 @@ export function bindEvents() {
 export function init() {
     bindEvents();
 }
+
+registerActions({ editRouting, deleteRouting });

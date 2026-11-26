@@ -1,5 +1,5 @@
 import { api } from '../api.js';
-import { showLoading, hideLoading, showToast } from '../utils.js';
+import { showLoading, hideLoading, showToast, confirmDialog } from '../utils.js';
 
 export const workflowMethods = {
     async submitReport() {
@@ -9,7 +9,7 @@ export const workflowMethods = {
             await this.saveChanges();
         }
         
-        if (!confirm('Bạn có chắc muốn chốt báo cáo này?')) return;
+        if (!await confirmDialog('Bạn có chắc muốn chốt báo cáo này?')) return;
         
         try {
             showLoading();
@@ -30,7 +30,7 @@ export const workflowMethods = {
     async completeReport() {
         if (!this.baoCao) return;
         
-        if (!confirm('Bạn có chắc muốn đánh dấu hoàn tất đơn hàng này? Báo cáo sẽ không hiển thị trong danh sách hàng ngày nữa.')) return;
+        if (!await confirmDialog('Bạn có chắc muốn đánh dấu hoàn tất đơn hàng này? Báo cáo sẽ không hiển thị trong danh sách hàng ngày nữa.')) return;
         
         try {
             showLoading();
@@ -51,7 +51,7 @@ export const workflowMethods = {
     async reopenReport() {
         if (!this.baoCao) return;
         
-        if (!confirm('Bạn có chắc muốn mở lại báo cáo này?')) return;
+        if (!await confirmDialog('Bạn có chắc muốn mở lại báo cáo này?')) return;
         
         try {
             showLoading();
