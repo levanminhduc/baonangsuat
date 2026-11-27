@@ -1,5 +1,6 @@
-import { api } from '../admin-api.js';
-import { escapeHtml, showToast, showLoading, hideLoading } from '../admin-utils.js';
+import { api } from '../api.js';
+import { escapeHtml, showToast, showLoading, hideLoading } from '../utils.js';
+import { registerActions } from './actions.js';
 
 let currentPage = 1;
 const pageSize = 20;
@@ -410,7 +411,4 @@ export function init() {
     bindEvents();
 }
 
-// Export for global access
-window.loadImportHistory = loadImportHistory;
-window.viewImportDetail = viewImportDetail;
-window.closeImportHistoryModal = closeImportHistoryModal;
+registerActions({ viewImportDetail, loadImportHistory, closeImportHistoryModal });

@@ -1,6 +1,7 @@
-import { api } from '../admin-api.js';
-import { escapeHtml, showToast, closeModal, showConfirmModal } from '../admin-utils.js';
+import { api } from '../api.js';
+import { escapeHtml, showToast, closeModal, showConfirmModal } from '../utils.js';
 import { getState, setMocGio, setCaList, setSelectedCaId, setSelectedLineIdForMocGio } from './state.js';
+import { registerActions } from './actions.js';
 
 export async function loadCaList() {
     try {
@@ -259,3 +260,5 @@ export function bindEvents() {
 export function init() {
     bindEvents();
 }
+
+registerActions({ editMocGio, deleteMocGio });

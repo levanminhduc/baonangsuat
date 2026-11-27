@@ -1,5 +1,5 @@
-import { api } from '../admin-api.js';
-import { escapeHtml, showToast, closeModal, showConfirmModal } from '../admin-utils.js';
+import { api } from '../api.js';
+import { escapeHtml, showToast, closeModal, showConfirmModal } from '../utils.js';
 import { getState } from './state.js';
 
 const fmt = (n) => Number(n).toLocaleString('vi-VN');

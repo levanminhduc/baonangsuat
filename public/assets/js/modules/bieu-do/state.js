@@ -1,3 +1,5 @@
+import { readPageData } from '../page-data.js';
+
 export const state = {
     chart: null,
     congDoanChart: null,
@@ -12,7 +14,7 @@ export const state = {
         bao_cao_id: null
     },
     maHangList: [],
-    isAdmin: window.appConfig?.isAdmin ?? false,
+    isAdmin: readPageData().isAdmin ?? false,
     tongQuanChartType: 'line',
     tongQuanData: null,
     tongQuanMatrixData: null,

@@ -51,3 +51,23 @@ Rejected: giữ inline cho HTML sinh từ JS.
 Date: 2026-11-25 · Status: Active · Scope: repo · From: F-017
 Why: `core.autocrlf=true` (cấu hình máy) làm working tree lẫn CRLF/LF trong khi index toàn LF → cs-fixer báo sai, Edit không khớp chuỗi, smoke lệch hash. `* text=auto eol=lf` + `*.bat text eol=crlf` + binary xlsx/exe/png; index không đổi nội dung.
 Rejected: giữ autocrlf (mỗi máy một kiểu); `eol=crlf` (PSR-12 đòi LF).
+
+### D-009 Client API: gặp `csrf_error` thì làm mới token và gửi lại đúng 1 lần
+Date: 2026-11-26 · Status: Active · Scope: fe-app, fe-admin, http · From: F-018
+Why: middleware `csrf` chặn trước controller nên request đầu chưa ghi gì; người dùng không phải bấm lại khi token hết hạn. Một client duy nhất `modules/api.js`.
+Rejected: chỉ làm mới rồi trả lỗi (bản cũ api.js); hai client api/admin-api.
+
+### D-010 Hàm `data-fn` của admin tự đăng ký vào registry khi module nạp
+Date: 2026-11-26 · Status: Active · Scope: fe-admin · From: F-018
+Why: bỏ `window.*`; thêm nút chỉ sửa một chỗ (`registerActions({...})` cuối module); tên chưa đăng ký không làm gì.
+Rejected: `window.*` + whitelist (3 chỗ sửa mỗi nút); listener riêng từng nút (trái D-007).
+
+### D-011 Toast là ES module tự tạo container, không `window.toast`
+Date: 2026-11-26 · Status: Active · Scope: fe-app, fe-admin, components · From: F-018
+Why: component PHP chứa script inline bị CSP chặn và bị include 2 lần; module chỉ nạp ở trang cần.
+Rejected: script thường + global.
+
+### D-012 Dữ liệu PHP → JS qua `<script type="application/json">` + `readPageData()`
+Date: 2026-11-26 · Status: Active · Scope: views, fe-app, fe-chart · From: F-018
+Why: CSP `script-src 'self'` chặn `window.appConfig = {...}` inline; JSON qua `json_encode` (JSON_HEX_TAG|JSON_HEX_AMP) không lỗi escape.
+Rejected: script inline gán global.

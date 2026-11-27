@@ -4,7 +4,7 @@
      Giữ dạng bảng, mỗi mục một dòng. Lý do nằm ở DECISIONS.md, mẹo nằm ở KNOWLEDGE.md. -->
 
 Status: READY
-Last updated: 2026-11-25 by /go F-017
+Last updated: 2026-11-26 by /go F-018
 Synced at commit: 9765f3d
 
 ## Modules
@@ -36,7 +36,7 @@ Synced at commit: 9765f3d
 Nguồn sự thật: `config/routes.php` (prefix `/baonangsuat/api`). Shape `{success, message?, data?}`; lỗi CSRF kèm `csrf_error: true`. Mọi POST/PUT/DELETE có `csrf` (trừ `POST user-permissions/bulk` chỉ đọc). Cột "Used by" là suy luận theo tên module JS, `?` = chưa kiểm.
 | Method Path | Module | Defined by | Used by |
 |---|---|---|---|
-| GET /api/csrf-token | http | (legacy) | api.js, admin-api.js |
+| GET /api/csrf-token | http | (legacy) | modules/api.js |
 | POST /api/auth/select-line · * /api/auth/session | auth | F-001 | index view ?, app.js ? |
 | GET /api/context (`report`) | context-danh-muc | F-002 | app.js |
 | GET,POST /api/bao-cao · GET,DELETE /api/bao-cao/{id} · GET …/{id}/routing | bao-cao | F-002; F-015 (+po_number/sub_art_code, 422/503, GET thêm khối `po`) | app.js |
@@ -88,22 +88,28 @@ DB `nang_suat` trừ khi ghi khác. Schema: `database/nang_suat_schema.sql` (+ `
 ### Shared FE components / stores
 | Name | Path | Defined by | Used by |
 |---|---|---|---|
-| api / admin-api (fetch + CSRF auto-refresh; `API_BASE` từ modules/config.js ← `<meta name="bns-base">`) | public/assets/js/modules/api.js, admin-api.js | (legacy) | app.js, admin.js, modules/admin/* |
+| api (`api`, `apiUpload`, `fetchCsrfToken`; tự lấy token trước khi ghi, `csrf_error` → làm mới + gửi lại 1 lần; `fetch(` chỉ ở đây; `API_BASE` từ modules/config.js ← `<meta name="bns-base">`) | public/assets/js/modules/api.js | (legacy); F-018 | mọi trang |
 | Router (hash) | modules/router.js | (legacy) | app.js, admin.js ? |
 | grid (auto-save debounce) | modules/grid.js | (legacy) | app.js |
 | report-view, history | modules/report-view.js, history.js | (legacy) | app.js (màn nhập + chi tiết lịch sử dùng chung) |
 | luy-ke-calculator / luy-ke-config | modules/luy-ke-*.js | (legacy) | app.js, history ? |
 | realtime-service + worker | modules/realtime-service.js, workers/realtime-worker.js | (legacy) | các trang có đồng hồ server |
-| utils (`escapeHtml` duy nhất), admin-utils, time-manager, network-monitor | modules/*.js | (legacy) | app.js, admin.js |
+| utils (`escapeHtml` duy nhất, `showLoading/hideLoading` khoá modal đang mở, `showToast`, `closeModal`, `showConfirmModal`, `confirmDialog` → Promise), time-manager, network-monitor | modules/*.js | (legacy); F-018 | mọi trang |
+| toast (ES module, tự tạo `#toast-container`) | modules/toast.js | F-018 | utils.js, login.js, network-monitor.js |
+| admin action registry (`registerActions`, `runAction`) | modules/admin/actions.js | F-018 | admin.js, modules/admin/* |
+| page-data (`readPageData(id)` đọc `<script type="application/json">`) | modules/page-data.js | F-018 | login.js, bieu-do/{state,filters}.js |
+| nav (sidebar, `setActiveNav`, đồng hồ từ `data-server-time`) + nav-early (script thường chống nháy) | modules/nav.js, nav-early.js | F-018 | layouts/app.php, admin.js, app.js |
+| tabs (bind `[data-tabs]`) | modules/tabs.js | F-018 | components/tabs.php |
 | admin state | modules/admin/state.js | (legacy) | modules/admin/* |
 | admin po-subart (tab SL Subart, deps ma-hang) | modules/admin/po-subart.js | F-015 | admin.js, navbar mục "SL Subart" |
-| PHP UI components | components/*.php (toast, modal-base, confirm-modal, tabs, status-badge, line-preset-table…) | (legacy) | views/ |
+| PHP UI components | components/*.php (modal-base, confirm-modal, tabs, status-badge, line-preset-table…) | (legacy) | views/ |
 
 ## Architecture rules
 
 - Giao diện không gọi host ngoài: một bundle `public/assets/tailwind/dist/app.css` (commit), thứ tự import trong `src/app.css` là hợp đồng (CSS tay → preflight → compat → utility, không layer). Xem D-005.
 - Controller không `new` service: khai ở constructor, `Container` dựng (`structure_test` khoá).
-- HTML không có `on*=`; dùng `data-action` / `data-fn` + listener uỷ quyền. Dữ liệu vào `innerHTML` qua `escapeHtml`.
+- HTML không có `on*=`; dùng `data-action` / `data-fn` + listener uỷ quyền; hàm admin đăng ký qua `registerActions` (D-010). Dữ liệu vào `innerHTML` qua `escapeHtml`.
+- CSP `script-src 'self'`: không `<script>` inline thực thi, không `window.*`; dữ liệu PHP → JS qua `application/json` + `readPageData` (D-012). `fe_structure_test` khoá.
 - Request: `.htaccess` → `public/index.php` → Router (`config/routes.php`) → middleware → Controller → Service → `Database::get*()`. Chi tiết: `.claude/rules/`.
 - Controller gọi service, không truy DB (UserPermissionsController đã dùng UserPermissionService). View không truy DB.
 - Quyền/đăng nhập/CSRF chỉ qua middleware, không kiểm tay trong controller.

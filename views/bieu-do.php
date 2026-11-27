@@ -315,12 +315,9 @@ $page = [
         </div>
     </div>
     
-    <?php include BNS_ROOT . '/components/toast.php'; ?>
     
-    <script>
-        window.appConfig = {
-            isAdmin: <?php echo $isAdmin ? 'true' : 'false'; ?>,
-            lineId: <?php echo $session['line_id'] ?? 'null'; ?>,
-            lineTen: "<?php echo htmlspecialchars($session['line_ten'] ?? ''); ?>"
-        };
-    </script>
+    <script id="bnsPageData" type="application/json"><?php echo json_encode([
+        'isAdmin' => (bool) $isAdmin,
+        'lineId' => isset($session['line_id']) ? (int) $session['line_id'] : null,
+        'lineTen' => $session['line_ten'] ?? '',
+    ], JSON_HEX_TAG | JSON_HEX_AMP | JSON_UNESCAPED_UNICODE); ?></script>

@@ -1,28 +1,28 @@
-<?php
-// Toast manager using pure JS/CSS
-// Usage: include this component once in layout, then call window.toast.show()
-?>
+const CONTAINER_ID = 'toast-container';
+const CONTAINER_CLASS = 'fixed top-4 right-4 z-[1000] flex flex-col gap-3 pointer-events-none';
 
-<div id="toast-container" class="fixed top-4 right-4 z-[1000] flex flex-col gap-3 pointer-events-none">
-    <!-- Toasts will be injected here -->
-</div>
+function getContainer() {
+    let container = document.getElementById(CONTAINER_ID);
+    if (!container) {
+        container = document.createElement('div');
+        container.id = CONTAINER_ID;
+        container.className = CONTAINER_CLASS;
+        document.body.appendChild(container);
+    }
+    return container;
+}
 
-<script>
-window.toast = {
+export const toast = {
     activeToasts: {},
 
-    show: function(message, type = 'info', duration = 3000) {
-        const container = document.getElementById('toast-container');
-        if (!container) return;
+    show(message, type = 'info', duration = 3000) {
+        const container = getContainer();
 
-        // Create a unique key for grouping
         const key = `${type}|${message}`;
 
-        // Check if this toast already exists
         if (this.activeToasts[key]) {
             const data = this.activeToasts[key];
-            
-            // If toast is currently animating out (being dismissed), resurrect it
+
             if (data.removeTimeoutId) {
                 clearTimeout(data.removeTimeoutId);
                 data.removeTimeoutId = null;
@@ -30,44 +30,39 @@ window.toast = {
             }
 
             data.count++;
-            
-            // Update or create badge
+
             let badge = data.element.querySelector('.toast-badge');
             if (!badge) {
                 badge = document.createElement('div');
                 badge.className = 'toast-badge absolute -top-2 -left-2 w-6 h-6 flex items-center justify-center bg-red-600 text-white text-xs font-bold rounded-full shadow border border-white z-10';
                 data.element.appendChild(badge);
-                data.element.classList.add('relative'); // Ensure relative positioning
+                data.element.classList.add('relative');
             }
-            
+
             badge.textContent = data.count > 99 ? '99+' : data.count;
             badge.classList.remove('hidden');
 
-            // Reset timeout
             if (data.timeoutId) clearTimeout(data.timeoutId);
             if (duration > 0) {
                 data.timeoutId = setTimeout(() => {
                     this.dismiss(key);
                 }, duration);
             }
-            
-            // Visual feedback (shake/pulse)
-            data.element.classList.remove('scale-105'); // Reset first
-            void data.element.offsetWidth; // Trigger reflow
+
+            data.element.classList.remove('scale-105');
+            void data.element.offsetWidth;
             data.element.classList.add('scale-105');
             setTimeout(() => {
                 data.element.classList.remove('scale-105');
             }, 100);
-            
+
             return;
         }
 
-        const id = 'toast-' + Date.now();
         const el = document.createElement('div');
-        
-        // Colors based on type
+
         let bgClass, iconHtml;
-        switch(type) {
+        switch (type) {
             case 'success':
                 bgClass = 'bg-[#4CAF50]';
                 iconHtml = '<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>';
@@ -81,7 +76,7 @@ window.toast = {
                 bgClass = 'bg-[#ff9800]';
                 iconHtml = '<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>';
                 break;
-            default: // info
+            default:
                 bgClass = 'bg-[#143583]';
                 iconHtml = '<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>';
         }
@@ -98,13 +93,10 @@ window.toast = {
 
         el.querySelector('.break-words').textContent = message;
 
-        // Bind click event for close button
-        const closeBtn = el.querySelector('button');
-        closeBtn.onclick = () => this.dismiss(key);
+        el.querySelector('button').addEventListener('click', () => this.dismiss(key));
 
         container.appendChild(el);
 
-        // Store active toast data
         let timeoutId = null;
         if (duration > 0) {
             timeoutId = setTimeout(() => {
@@ -115,38 +107,33 @@ window.toast = {
         this.activeToasts[key] = {
             element: el,
             count: 1,
-            timeoutId: timeoutId,
+            timeoutId,
             removeTimeoutId: null
         };
 
-        // Animate in
         requestAnimationFrame(() => {
             el.classList.remove('translate-x-full', 'opacity-0');
         });
     },
 
-    dismiss: function(key) {
+    dismiss(key) {
         if (!this.activeToasts[key]) return;
 
         const data = this.activeToasts[key];
         const { element, timeoutId } = data;
-        
+
         if (timeoutId) clearTimeout(timeoutId);
 
-        // Animate out
         element.classList.add('translate-x-full', 'opacity-0');
 
-        // Cleanup after animation
-        // Store the remove timeout ID so we can cancel it if the toast is resurrected
         data.removeTimeoutId = setTimeout(() => {
             if (element.parentElement) element.remove();
             delete this.activeToasts[key];
         }, 300);
     },
 
-    success: function(msg, dur) { this.show(msg, 'success', dur); },
-    error: function(msg, dur) { this.show(msg, 'error', dur); },
-    warning: function(msg, dur) { this.show(msg, 'warning', dur); },
-    info: function(msg, dur) { this.show(msg, 'info', dur); },
+    success(msg, dur) { this.show(msg, 'success', dur); },
+    error(msg, dur) { this.show(msg, 'error', dur); },
+    warning(msg, dur) { this.show(msg, 'warning', dur); },
+    info(msg, dur) { this.show(msg, 'info', dur); }
 };
-</script>

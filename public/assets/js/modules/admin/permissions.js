@@ -1,6 +1,7 @@
-import { api } from '../admin-api.js';
-import { escapeHtml, showToast } from '../admin-utils.js';
+import { api } from '../api.js';
+import { escapeHtml, showToast } from '../utils.js';
 import { getState, setUsers, setAllUsersOptions, setUsersPermissions } from './state.js';
+import { registerActions } from './actions.js';
 
 export async function loadUsers() {
     try {
@@ -282,3 +283,5 @@ export function bindEvents() {
 export function init() {
     bindEvents();
 }
+
+registerActions({ toggleHistoryPermission, toggleCreateReportPermission, toggleCreateReportAnyLinePermission, toggleImportPermission });

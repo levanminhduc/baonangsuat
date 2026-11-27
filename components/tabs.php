@@ -56,29 +56,3 @@ if (!$hasActive && !empty($tabs)) {
         <?php endforeach; ?>
     </div>
 </div>
-
-<script>
-(function () {
-    const container = document.getElementById('<?= $id ?>');
-    if (!container) return;
-
-    container.querySelector('nav').addEventListener('click', (e) => {
-        const button = e.target.closest('button[data-tabs-target]');
-        if (!button) return;
-
-        container.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
-
-        container.querySelectorAll('nav button').forEach(btn => {
-            btn.classList.remove('border-[#143583]', 'text-[#143583]');
-            btn.classList.add('border-transparent', 'text-gray-500', 'hover:text-gray-700', 'hover:border-gray-300');
-            btn.setAttribute('aria-current', 'false');
-        });
-
-        document.getElementById(button.dataset.tabsTarget).classList.remove('hidden');
-
-        button.classList.remove('border-transparent', 'text-gray-500', 'hover:text-gray-700', 'hover:border-gray-300');
-        button.classList.add('border-[#143583]', 'text-[#143583]');
-        button.setAttribute('aria-current', 'page');
-    });
-})();
-</script>

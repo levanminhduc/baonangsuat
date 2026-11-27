@@ -99,26 +99,14 @@ class NangSuatApp {
         window.addEventListener('popstate', (e) => {
             if (e.state && e.state.reportId) {
                 this.loadReport(e.state.reportId, false);
-            } else if (e.state === null) {
-                // Handle popstate for query param navigation if needed, 
-                // but hash router handles hash changes separately.
-                // This block is mainly for the "pushState" done in loadReport with query params.
-                
-                // If we are in hash mode, popstate might also trigger on hash change, 
-                // but hashchange event handles that.
-                // We only care about query param report detail state here.
-                if (window.location.search.includes('line=')) {
-                     // It's a query param state
-                     // Do nothing or reload list?
-                } else {
-                     this.showReportList(false);
-                }
+            } else if (e.state === null && !window.location.search.includes('line=')) {
+                this.showReportList(false);
             }
         });
     }
 
     checkHistoryPermission(callback) {
-        if (window.appContext && window.appContext.can_view_history) {
+        if (this.context && this.context.can_view_history) {
             callback();
         } else {
             showToast('Bạn không có quyền xem lịch sử', 'error');
@@ -188,13 +176,12 @@ class NangSuatApp {
             showLoading();
             const response = await api('GET', '/context');
             if (response.success) {
-                window.appContext = response.data;
                 this.context = response.data;
                 this.renderHeader(response.data);
                 
                 this.updateCreateButtonVisibility();
                 
-                if (window.appContext.can_view_history) {
+                if (this.context.can_view_history) {
                     const tabHistory = document.getElementById('tabHistory');
                     const mainTabs = document.getElementById('mainTabs');
                     if (tabHistory) tabHistory.classList.remove('hidden');
@@ -202,7 +189,6 @@ class NangSuatApp {
                     
                     if (!this.historyModule) {
                         this.historyModule = new HistoryModule(this);
-                        window.historyModule = this.historyModule;
                     }
                 }
 
@@ -264,6 +250,6 @@ Object.assign(NangSuatApp.prototype, reportListMethods, createModalMethods, poEd
 
 document.addEventListener('DOMContentLoaded', () => {
     if (document.getElementById('editorContainer')) {
-        window.app = new NangSuatApp();
+        new NangSuatApp();
     }
 });

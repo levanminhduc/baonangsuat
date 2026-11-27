@@ -7,3 +7,4 @@
 | 2026-11-17 | P-002 | ~/.claude/agents/implementer.md | + Learned rule: xét luồng ghi khi dịch vụ ngoài chết | F-015 S5 R1-B3 (1 bằng chứng, user duyệt) | implementer Blockers / step | 0.5 | |
 | 2026-11-17 | P-003 | .brain/features/_TEMPLATE.md | + gợi ý Check kết nối ngoài đo host không tới được | F-015 S2 R1-B1 (1 bằng chứng, user duyệt) | Runs PASS at verify round 1 | 0 / 1 | |
 | 2026-11-17 | P-004 | ~/.claude/commands/feature.md | + bước 2: xác nhận ngữ nghĩa dữ liệu có sẵn trong code | F-015 S5 amend lũy kế (1 bằng chứng, user duyệt) | Runs PASS at verify round 1 | 0 / 1 | |
+| 2026-11-25 | P-005 | ~/.claude/commands/feature.md | ~ bước 2: thay dòng P-004 bằng quy tắc kiểm mọi khẳng định về hành vi hiện có (dữ liệu, cascade CSS, "không đổi hành vi") kèm bằng chứng | F-015 S5, F-016 thiết kế CSS, F-017 S5 | Runs PASS at verify round 1; số Amended do giả định sai | 1 / 3; 1 mỗi run | |

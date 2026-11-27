@@ -2,7 +2,7 @@ import { api } from '../api.js';
 import { showToast } from '../utils.js';
 import { state } from './state.js';
 import { updateURL } from './filters.js';
-import { renderCongDoanChart, renderChart, showLoading, showNoData, showChart } from './charts.js';
+import { renderCongDoanChart, renderChart, showChartLoading, showNoData, showChart } from './charts.js';
 import { renderCongDoanTable, toggleMatrixView, renderMatrixTable, toggleTongQuanMatrix, renderTongQuanMatrix } from './matrix.js';
 
 export async function loadChartData() {
@@ -23,7 +23,7 @@ export async function loadChartData() {
     }
     
     // Show loading
-    showLoading();
+    showChartLoading();
     
     // Reset công đoạn and matrix data loaded flags when loading new data
     state.congDoanDataLoaded = false;

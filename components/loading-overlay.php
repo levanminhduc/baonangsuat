@@ -17,8 +17,3 @@
         </div>
     </div>
 </div>
-
-<script>
-    // Include minimal inline script to handle visibility toggle to avoid FOUC
-    // Full logic will be in admin.js
-</script>

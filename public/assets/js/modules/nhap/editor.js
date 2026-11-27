@@ -116,7 +116,7 @@ export const editorMethods = {
         const isEditable = !history && isDraft;
         const isCompleted = bc.trang_thai === 'completed';
         const canComplete = !history && !isCompleted && !isDraft;
-        const isAdmin = window.appContext?.session?.vai_tro === 'admin';
+        const isAdmin = this.context?.session?.vai_tro === 'admin';
         const ngay = formatNgay(bc.ngay_bao_cao);
         const title = [bc.ma_line, bc.ten_ca || bc.ma_ca].filter(Boolean).map(escapeHtml).join(' · ');
         const check = svgIcon('<path d="M20 6 9 17l-5-5"/>');

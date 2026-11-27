@@ -1,5 +1,5 @@
 import { api } from './api.js';
-import { showLoading, hideLoading, showToast, getStatusText, escapeHtml } from './utils.js';
+import { showLoading, hideLoading, showToast, getStatusText, escapeHtml, confirmDialog } from './utils.js';
 import { GridManager } from './grid.js';
 import { svgIcon, reportInfoHtml, bindInfoToggle, updateLuyKeSummary } from './report-view.js';
 
@@ -115,7 +115,7 @@ export class HistoryModule {
             return;
         }
 
-        const isAdmin = window.appContext?.session?.vai_tro === 'admin';
+        const isAdmin = this.app.context?.session?.vai_tro === 'admin';
         
         tbody.innerHTML = data.map(item => {
             const hieuSuat = item.chi_tieu > 0 ? ((item.thuc_te / item.chi_tieu) * 100).toFixed(1) : 0;
@@ -256,7 +256,7 @@ export class HistoryModule {
             bindInfoToggle(info);
         }
 
-        const isAdmin = window.appContext?.session?.vai_tro === 'admin';
+        const isAdmin = this.app.context?.session?.vai_tro === 'admin';
         const canUnlock = isAdmin && ['submitted', 'approved', 'locked'].includes(baoCao.trang_thai);
         const unlockBtn = canUnlock
             ? `<button type="button" class="bns-bar-btn is-ghost" title="Mở khóa báo cáo để chỉnh sửa" data-action="unlock-report" data-id="${parseInt(baoCao.id)}">${svgIcon('<rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 9.9-1"/>')}<span>Mở khóa</span></button>`
@@ -270,9 +270,8 @@ export class HistoryModule {
     }
 
     async unlockReport(reportId) {
-        if (!confirm('Bạn có chắc chắn muốn mở khóa báo cáo này? Báo cáo sẽ được chuyển về trạng thái nháp (draft) và người dùng sẽ phải gửi lại.')) {
-            return;
-        }
+        const confirmed = await confirmDialog('Bạn có chắc chắn muốn mở khóa báo cáo này? Báo cáo sẽ được chuyển về trạng thái nháp (draft) và người dùng sẽ phải gửi lại.');
+        if (!confirmed) return;
 
         try {
             showLoading();
@@ -296,98 +295,28 @@ export class HistoryModule {
         }
     }
 
-    deleteReport(reportId) {
+    async deleteReport(reportId) {
         const message = 'Bạn có chắc chắn muốn xóa báo cáo này? Hành động này không thể hoàn tác.';
-        this.showConfirmModal(message, async () => {
-            this.closeConfirmModal();
-            try {
-                showLoading();
-                const response = await api('DELETE', `/bao-cao/${reportId}`);
-                
-                if (response.success) {
-                    showToast('Xóa báo cáo thành công', 'success');
-                    this.historyCache = null;
-                    this.isLoaded = false;
-                    this.loadHistoryList(true);
-                } else {
-                    showToast(response.message || 'Lỗi xóa báo cáo', 'error');
-                }
-            } catch (error) {
-                console.error('Delete report error:', error);
-                showToast('Lỗi kết nối khi xóa báo cáo', 'error');
-            } finally {
-                hideLoading();
-            }
-        }, 'Xác nhận xóa', 'danger');
-    }
+        if (!await confirmDialog(message, { title: 'Xác nhận xóa', variant: 'danger' })) return;
 
-    showConfirmModal(message, callback, title = 'Xác nhận', variant = 'primary', confirmText = 'Xác nhận', cancelText = 'Hủy', isHtml = false) {
-        const modal = document.getElementById('confirmModal');
-        if (!modal) {
-            if (confirm(message)) callback();
-            return;
-        }
-        
-        const titleEl = document.getElementById('confirmModalTitle');
-        if (titleEl) titleEl.textContent = title;
-        
-        const header = document.getElementById('confirmModalHeader');
-        if (header) {
-            header.classList.remove('bg-navbar-theme', 'border-navbar-theme', 'bg-danger', 'border-danger');
-            if (variant === 'danger') {
-                header.classList.add('bg-danger', 'border-danger');
+        try {
+            showLoading();
+            const response = await api('DELETE', `/bao-cao/${reportId}`);
+
+            if (response.success) {
+                showToast('Xóa báo cáo thành công', 'success');
+                this.historyCache = null;
+                this.isLoaded = false;
+                this.loadHistoryList(true);
             } else {
-                header.classList.add('bg-navbar-theme', 'border-navbar-theme');
+                showToast(response.message || 'Lỗi xóa báo cáo', 'error');
             }
+        } catch (error) {
+            console.error('Delete report error:', error);
+            showToast('Lỗi kết nối khi xóa báo cáo', 'error');
+        } finally {
+            hideLoading();
         }
-        
-        const confirmBtn = document.getElementById('confirmBtn');
-        if (confirmBtn) {
-            confirmBtn.classList.remove('bg-primary', 'hover:bg-primary-dark', 'bg-danger', 'hover:bg-red-700');
-            if (variant === 'danger') {
-                confirmBtn.classList.add('bg-danger', 'hover:bg-red-700');
-            } else {
-                confirmBtn.classList.add('bg-primary', 'hover:bg-primary-dark');
-            }
-        }
-        
-        const messageEl = document.getElementById('confirmMessage');
-        if (isHtml) {
-            messageEl.innerHTML = message;
-        } else {
-            messageEl.textContent = message;
-        }
-
-        // Update button texts if provided
-        if (confirmBtn && confirmText) {
-            confirmBtn.textContent = confirmText;
-        }
-
-        const cancelBtn = document.getElementById('cancelConfirmBtn');
-        if (cancelBtn) {
-            if (cancelText === '') {
-                cancelBtn.classList.add('hidden');
-            } else {
-                cancelBtn.classList.remove('hidden');
-                cancelBtn.textContent = cancelText;
-            }
-        }
-
-        // Handle null callback (info-only modal)
-        if (callback === null) {
-            if (confirmBtn) {
-                confirmBtn.onclick = () => this.closeConfirmModal();
-            }
-        } else {
-            confirmBtn.onclick = callback;
-        }
-        
-        modal.classList.remove('hidden');
-    }
-
-    closeConfirmModal() {
-        const modal = document.getElementById('confirmModal');
-        if (modal) modal.classList.add('hidden');
     }
 
     hideDetail() {

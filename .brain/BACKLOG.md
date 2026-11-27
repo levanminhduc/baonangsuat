@@ -13,7 +13,7 @@
 - [ ] (debt) Các method cũ NangSuatService (updateEntries, trùng báo cáo…) trả 200 success:false khi lỗi — app/Services/NangSuatService.php · F-015 S3 · 2026-11-14
 - [ ] (debt) Prod: datchi_pg nên dùng role chỉ đọc `bns_reader` (local đang dùng postgres superuser) — C:/xampp/config/db.php · F-015 · 2026-11-14
 - [ ] (nit) getKhoiPo chạy trong mọi getBaoCao (cả submit, /routing) → gọi datchi thừa; chỉ cần ở GET show — app/Services/NangSuatService.php:374 · F-015 verifier · 2026-11-14
-- [ ] (nit) window.toast render message qua innerHTML; message lỗi F-015 phản chiếu po_number/sub_art_code client gửi — components/toast.php:92 · F-015 verifier · 2026-11-14
+- [x] F-018 (nit) window.toast render message qua innerHTML; message lỗi F-015 phản chiếu po_number/sub_art_code client gửi — components/toast.php:92 · F-015 verifier · 2026-11-14
 - [ ] (nit) PUT header luôn kiểm lại PO với datchi → PO bị huỷ sau này chặn đổi subart; ghi_chu bị xoá vì PUT header không gửi — NangSuatService::updateHeader · F-015 verifier · 2026-11-14
 - [ ] (nit) updatePoSubart khi auto-save đang chạy có thể dùng version cũ → báo xung đột — public/assets/js/app.js · F-015 verifier · 2026-11-14
 - [ ] (nit) ManualSubartSource join UPPER(TRIM(ma_hang)) không dùng index, gộp nếu 2 mã hàng trùng code; lọc theo ma_hang_id — app/Services/SubartSoLuong/ManualSubartSource.php:22 · F-015 verifier · 2026-11-14
@@ -33,10 +33,22 @@
 - [ ] (security) tests/router.spec.js (đã xoá) còn tài khoản hard-code trong lịch sử git; đổi mật khẩu nếu là thật · F-016 verifier · 2026-11-25
 - [ ] (debt) Router chỉ bắt `Exception`; TypeError ra HTML fatal thay vì JSON 500 — app/Http/Router.php · F-016 verifier · 2026-11-25
 - [ ] (debt) AdminController nhận 7 service nên bulk-create mở cả kết nối mysqli + nhân sự; ImportController mở DB trước khi kiểm file — app/Controllers/AdminController.php:24 · F-016 · 2026-11-25
-- [ ] (debt) toast.php bị include 2 lần ở bieu-do (view + navbar); `window.initialParams`, `window.historyModule` không ai đọc; popstate trong app.js còn nhánh chết — views/bieu-do.php:318 · F-016 · 2026-11-25
+- [x] F-018 (debt) toast.php bị include 2 lần ở bieu-do (view + navbar); `window.initialParams`, `window.historyModule` không ai đọc; popstate trong app.js còn nhánh chết — views/bieu-do.php:318 · F-016 · 2026-11-25
 - [ ] (debt) khối "Tailwind handles it" trong style.css chưa cắt (network-monitor.js, time-manager.js KHÔNG phải code chết: app.js:6, modules/nhap/autosave.js:3, modules/luy-ke-calculator.js:2 import — sửa ở F-017) — public/assets/css/style.css · F-016 · 2026-11-25
-- [ ] (debt) history.js `showConfirmModal(..., isHtml)` vẫn gán innerHTML, chưa soát caller — public/assets/js/modules/history.js:301 · F-016 · 2026-11-25
+- [x] F-018 (debt) history.js `showConfirmModal(..., isHtml)` vẫn gán innerHTML, chưa soát caller — public/assets/js/modules/history.js:301 · F-016 · 2026-11-25
 - [ ] (doc) README còn "PHP 7.4+", "13 bảng", mục mật khẩu/đăng nhập cũ — README.md · F-016 · 2026-11-25
 - [x] F-017 (cleanup) tailwindcss-windows-x64.exe 129 MB ở gốc repo (đã ignore) trùng tools/tailwindcss.exe · F-016 · 2026-11-25
 - [ ] (debt) Build Tailwind không tất định: tự dò source quét cả `.brain/`, docs → thêm `source(none)` cho import utilities hoặc tương đương — public/assets/tailwind/src/app.css:19 · F-017 · 2026-11-25
 - [ ] (nit) `.gitattributes` có thể khai thêm binary `*.xls *.jpg *.ico *.gif *.woff2` (text=auto đã tự nhận) — .gitattributes:3 · F-017 verifier · 2026-11-25
+- [ ] (nit) Nhiều request ghi cùng lúc khi chưa có token, mỗi cái tự gọi /csrf-token; dùng chung một promise đang chờ — public/assets/js/modules/api.js:23 · F-018 verifier · 2026-11-26
+- [ ] (nit) Làm mới token thất bại vẫn gửi lại với token cũ (upload gửi lại file) — public/assets/js/modules/api.js:51 · F-018 verifier · 2026-11-26
+- [ ] (debt) `modules/nav.js` không có cache-buster (để tránh 2 instance) → sau deploy trình duyệt có thể giữ bản cũ — views/layouts/app.php:37 · F-018 verifier · 2026-11-26
+- [ ] (nit) `applyConfirmContent` tra `#cancelConfirmBtn` không tồn tại → tham số cancelText chết — public/assets/js/modules/utils.js:160 · F-018 verifier · 2026-11-26
+- [ ] (nit) Callback của showConfirmModal còn gọi closeModal('confirmModal') thừa (modal đã ẩn trước callback) — public/assets/js/modules/admin/import.js:155 · F-018 verifier · 2026-11-26
+- [ ] (nit) `closeModal(id)` ném lỗi khi id không tồn tại — public/assets/js/modules/utils.js:65 · F-018 verifier · 2026-11-26
+- [ ] (nit) `admin.js` import `api` không dùng; `bulk-create` thiếu trong `legacyAliases` — public/assets/js/admin.js:2 · F-018 · 2026-11-26
+- [ ] (nit) `lineTen` trong bnsPageData không JS nào đọc; dòng trống có khoảng trắng thừa — views/bieu-do.php:317 · F-018 · 2026-11-26
+- [ ] (nit) Method `closeModal()` của create-modal (ẩn mọi .modal) trùng tên `utils.closeModal(id)` — public/assets/js/modules/nhap/create-modal.js:150 · F-018 verifier · 2026-11-26
+- [ ] (nit) Comment tiếng Anh chép nguyên từ import.js cũ — public/assets/js/modules/admin/import-preview.js · F-018 · 2026-11-26
+- [ ] (nit) `date_default_timezone_set` thừa trong navbar — views/partials/navbar.php · F-018 · 2026-11-26
+- [ ] (ops) Chụp lại `tests/smoke/baseline-auth.json` (body asset/HTML đổi): `php tools/smoke.php --cookie=<HTSSOSESSID> --update` — người dùng chạy · F-018 · 2026-11-26

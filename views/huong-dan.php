@@ -6,6 +6,7 @@ $page = [
     'navActive' => 'huong-dan',
     'showAddBtn' => false,
     'showHomeBtn' => true,
+    'modules' => ['assets/js/modules/tabs.js'],
 ];
 ?>
 

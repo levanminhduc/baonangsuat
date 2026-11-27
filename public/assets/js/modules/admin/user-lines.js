@@ -1,6 +1,7 @@
-import { api } from '../admin-api.js';
-import { escapeHtml, showToast, closeModal, showConfirmModal } from '../admin-utils.js';
+import { api } from '../api.js';
+import { escapeHtml, showToast, closeModal, showConfirmModal } from '../utils.js';
 import { getState, setUserLines, setUserLineFilterLineId } from './state.js';
+import { registerActions } from './actions.js';
 
 export async function loadUserLines() {
     try {
@@ -167,3 +168,5 @@ export function bindEvents() {
 export function init() {
     bindEvents();
 }
+
+registerActions({ deleteUserLine });

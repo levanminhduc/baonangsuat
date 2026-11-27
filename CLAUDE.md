@@ -71,18 +71,25 @@ public/assets/js/modules/nhap/     → NangSuatApp parts: report-list, create-mo
 public/assets/js/admin.js          → Admin SPA with lazy-loaded modules
 public/assets/js/bieu-do.js        → Chart page entry
 public/assets/js/modules/bieu-do/  → state, format, filters, data, charts, chart-type, matrix
-public/assets/js/modules/          → Shared modules (config, api, router, grid, utils, history)
-public/assets/js/modules/admin/    → Admin-specific modules (lazy-loaded)
+public/assets/js/modules/          → Shared modules (config, api, router, grid, utils, toast, nav, tabs, page-data, history)
+public/assets/js/modules/admin/    → Admin-specific modules (lazy-loaded; actions.js is the data-fn registry)
+public/assets/js/nav-early.js      → Classic sync script (navbar anti-flash); the only non-module app script (besides vendored Chart.js)
 ```
 
 Key patterns:
 
 - ES6 modules with dynamic imports for admin tabs
-- `modules/config.js` exports `BASE_PATH` (from `<meta name="bns-base">`) and `API_BASE`; never hard-code `/baonangsuat` in JS (`login.js`, a classic script, reads the meta itself)
-- One `escapeHtml`, in `modules/utils.js`; escape every API value put into `innerHTML`
-- No inline `on*=` handlers: use `data-action` / `data-fn` plus delegated listeners (`admin.js` `bindGlobalEvents`, `app.js` `bindEvents`, `modules/history.js`)
+- `modules/config.js` exports `BASE_PATH` (from `<meta name="bns-base">`) and `API_BASE`; never hard-code `/baonangsuat` in JS
+- One API client, `modules/api.js`: `api(method, endpoint, data)`, `apiUpload(endpoint, formData)`, `fetchCsrfToken()`. `fetch(` appears only there
+- One `modules/utils.js`: `escapeHtml` (escape every API value put into `innerHTML`), `showLoading`/`hideLoading`, `showToast`, `closeModal`, `showConfirmModal`, `confirmDialog(message, opts)` → `Promise<boolean>`. No native `confirm()`/`alert()`
+- Toast is the ES module `modules/toast.js` (`toast`, creates `#toast-container` itself); no `components/toast.php`
+- No `window.*` globals in JS
+- No inline `on*=` handlers and no inline executable `<script>` in `views/`/`components/`: use `data-action` / `data-fn` plus delegated listeners (`admin.js` `bindGlobalEvents`, `app.js` `bindEvents`, `modules/history.js`)
+- Admin `data-fn` handlers: each admin module calls `registerActions(map)` (`modules/admin/actions.js`) at the end of the file; `bindGlobalEvents` calls `runAction(name, args)`; unregistered names do nothing
+- PHP → JS data: `<script type="application/json" id="...">` read with `readPageData(id)` (`modules/page-data.js`)
+- Navbar: `modules/nav.js` (sidebar, server clock from `data-server-time` on `#server-clock`, `setActiveNav(key, updateTitle)`), `nav-early.js`; `modules/tabs.js` binds `components/tabs.php` (`data-tabs`)
 - Hash-based routing (`Router` class in router.js)
-- CSRF token auto-fetched and attached to POST/PUT/DELETE requests
+- CSRF: writes (POST/PUT/DELETE) auto-fetch the token if missing and send `X-CSRF-Token` and a JSON body; on `csrf_error: true` the token is refreshed and the request resent once
 - Auto-save with debounce for grid inputs
 
 ### Service Layer (`app/Services`)
@@ -211,6 +218,10 @@ $newVersion = intval($version) + 1;
 - Required for all POST/PUT/DELETE; stored in session key `bns_csrf_token`
 - Header: `X-CSRF-Token`
 - Fetch via: `GET /api/csrf-token`
+
+### CSP
+
+`SecurityHeaders` sends `script-src 'self'` (no `'unsafe-inline'`), so inline executable scripts and `on*=` handlers do not run. `style-src` still allows `'unsafe-inline'`. `tests/php/fe_structure_test.php` locks the frontend rules above.
 
 ### Authentication (authV2 SSO)
 

@@ -1,3 +1,5 @@
+import { toast } from './toast.js';
+
 export function escapeHtml(text) {
     return String(text ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 }
@@ -16,58 +18,56 @@ export function getStatusText(status) {
 export function showLoading(message = null) {
     const overlay = document.getElementById('loadingOverlay');
     if (!overlay) {
-        // Fallback cho trường hợp component chưa được include
         console.warn('loadingOverlay not found in DOM');
         return;
     }
-    
+
     overlay.classList.remove('hidden');
-    void overlay.offsetWidth; // Force reflow for animation
-    
+    void overlay.offsetWidth;
+
     overlay.style.pointerEvents = 'auto';
     overlay.classList.remove('opacity-0');
-    
-    const transformEl = overlay.querySelector('.transform');
-    if (transformEl) {
-        transformEl.classList.remove('scale-95');
+    overlay.querySelector('.transform')?.classList.remove('scale-95');
+
+    const activeModal = document.querySelector('.modal:not(.hidden)');
+    if (activeModal) {
+        activeModal.querySelectorAll('button, input, select, textarea').forEach(btn => {
+            if (!btn.disabled) {
+                btn.dataset.tempDisabled = 'true';
+                btn.disabled = true;
+                if (btn.classList.contains('btn-primary')) {
+                    btn.classList.add('opacity-70', 'cursor-wait');
+                }
+            }
+        });
     }
 }
 
 export function hideLoading() {
     const overlay = document.getElementById('loadingOverlay');
     if (!overlay) return;
-    
+
     overlay.classList.add('opacity-0');
-    
-    const transformEl = overlay.querySelector('.transform');
-    if (transformEl) {
-        transformEl.classList.add('scale-95');
-    }
-    
+    overlay.querySelector('.transform')?.classList.add('scale-95');
     overlay.style.pointerEvents = 'none';
-    
+
     setTimeout(() => {
         overlay.classList.add('hidden');
     }, 300);
+
+    document.querySelectorAll('[data-temp-disabled="true"]').forEach(el => {
+        el.disabled = false;
+        delete el.dataset.tempDisabled;
+        el.classList.remove('opacity-70', 'cursor-wait');
+    });
+}
+
+export function closeModal(modalId) {
+    document.getElementById(modalId).classList.add('hidden');
 }
 
 export function showToast(message, type = 'success') {
-    if (window.toast && typeof window.toast.show === 'function') {
-        window.toast.show(message, type);
-        return;
-    }
-    
-    const existing = document.querySelectorAll('.toast');
-    existing.forEach(t => t.remove());
-    
-    const toast = document.createElement('div');
-    toast.className = `toast ${type}`;
-    toast.textContent = message;
-    document.body.appendChild(toast);
-    
-    setTimeout(() => {
-        toast.remove();
-    }, 3000);
+    toast.show(message, type);
 }
 
 export function updateStatusBar(message, status = 'success') {
@@ -113,4 +113,81 @@ export function updateStatusBar(message, status = 'success') {
             alertText.textContent = reason.includes('chưa được lưu') ? reason : reason + '. Số vừa nhập chưa được lưu.';
         }
     }
+}
+
+let pendingConfirm = null;
+
+function settleConfirm(result) {
+    if (!pendingConfirm) return;
+    const { modal, resolve } = pendingConfirm;
+    pendingConfirm = null;
+    modal.removeEventListener('click', onConfirmModalClick);
+    modal.classList.add('hidden');
+    resolve(result);
+}
+
+function onConfirmModalClick(e) {
+    if (e.target.closest('#confirmBtn')) {
+        settleConfirm(true);
+        return;
+    }
+    const closeEl = e.target.closest('[data-action="close-modal"][data-target="confirmModal"]');
+    if (closeEl && (e.target === closeEl || !closeEl.classList.contains('modal'))) {
+        settleConfirm(false);
+    }
+}
+
+function applyConfirmContent(message, title, variant, confirmText, cancelText) {
+    const titleEl = document.getElementById('confirmModalTitle');
+    if (titleEl) titleEl.textContent = title;
+
+    const header = document.getElementById('confirmModalHeader');
+    if (header) {
+        header.classList.remove('bg-navbar-theme', 'border-navbar-theme', 'bg-danger', 'border-danger');
+        header.classList.add(...(variant === 'danger' ? ['bg-danger', 'border-danger'] : ['bg-navbar-theme', 'border-navbar-theme']));
+    }
+
+    const confirmBtn = document.getElementById('confirmBtn');
+    if (confirmBtn) {
+        confirmBtn.classList.remove('bg-primary', 'hover:bg-primary-dark', 'bg-danger', 'hover:bg-red-700');
+        confirmBtn.classList.add(...(variant === 'danger' ? ['bg-danger', 'hover:bg-red-700'] : ['bg-primary', 'hover:bg-primary-dark']));
+        if (confirmText) confirmBtn.textContent = confirmText;
+    }
+
+    const messageEl = document.getElementById('confirmMessage');
+    if (messageEl) messageEl.textContent = message;
+
+    const cancelBtn = document.getElementById('cancelConfirmBtn');
+    if (cancelBtn) {
+        if (cancelText === '') {
+            cancelBtn.classList.add('hidden');
+        } else {
+            cancelBtn.classList.remove('hidden');
+            cancelBtn.textContent = cancelText;
+        }
+    }
+}
+
+function openConfirm(message, title, variant, confirmText, cancelText) {
+    const modal = document.getElementById('confirmModal');
+    if (!modal) return Promise.resolve(false);
+
+    settleConfirm(false);
+    applyConfirmContent(message, title, variant, confirmText, cancelText);
+
+    return new Promise(resolve => {
+        pendingConfirm = { modal, resolve };
+        modal.addEventListener('click', onConfirmModalClick);
+        modal.classList.remove('hidden');
+    });
+}
+
+export function confirmDialog(message, { title = 'Xác nhận', variant = 'primary', confirmText = 'Xác nhận' } = {}) {
+    return openConfirm(message, title, variant, confirmText, 'Hủy');
+}
+
+export function showConfirmModal(message, callback, title = 'Xác nhận', variant = 'primary', confirmText = 'Xác nhận', cancelText = 'Hủy') {
+    openConfirm(message, title, variant, confirmText, cancelText).then(confirmed => {
+        if (confirmed && callback) callback();
+    });
 }

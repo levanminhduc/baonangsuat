@@ -237,7 +237,7 @@ export function renderChart(data) {
     renderTongQuan();
 }
 
-export function showLoading() {
+export function showChartLoading() {
     state.elements.loadingState.classList.remove('hidden');
     state.elements.noDataState.classList.add('hidden');
     state.elements.chartSection.classList.add('hidden');

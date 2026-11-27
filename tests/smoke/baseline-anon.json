@@ -8,7 +8,7 @@
             "x-frame-options": "DENY",
             "x-content-type-options": "nosniff",
             "x-xss-protection": "1; mode=block",
-            "content-security-policy": "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data:;",
+            "content-security-policy": "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data:;",
             "referrer-policy": "strict-origin-when-cross-origin"
         },
         "body": {
@@ -24,7 +24,7 @@
             "x-frame-options": "DENY",
             "x-content-type-options": "nosniff",
             "x-xss-protection": "1; mode=block",
-            "content-security-policy": "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data:;",
+            "content-security-policy": "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data:;",
             "referrer-policy": "strict-origin-when-cross-origin"
         },
         "body": {
@@ -40,7 +40,7 @@
             "x-frame-options": "DENY",
             "x-content-type-options": "nosniff",
             "x-xss-protection": "1; mode=block",
-            "content-security-policy": "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data:;",
+            "content-security-policy": "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data:;",
             "referrer-policy": "strict-origin-when-cross-origin"
         },
         "body": {
@@ -56,7 +56,7 @@
             "x-frame-options": "DENY",
             "x-content-type-options": "nosniff",
             "x-xss-protection": "1; mode=block",
-            "content-security-policy": "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data:;",
+            "content-security-policy": "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data:;",
             "referrer-policy": "strict-origin-when-cross-origin"
         },
         "body": {
@@ -72,7 +72,7 @@
             "x-frame-options": "DENY",
             "x-content-type-options": "nosniff",
             "x-xss-protection": "1; mode=block",
-            "content-security-policy": "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data:;",
+            "content-security-policy": "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data:;",
             "referrer-policy": "strict-origin-when-cross-origin"
         },
         "body": {
@@ -88,7 +88,7 @@
             "x-frame-options": "DENY",
             "x-content-type-options": "nosniff",
             "x-xss-protection": "1; mode=block",
-            "content-security-policy": "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data:;",
+            "content-security-policy": "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data:;",
             "referrer-policy": "strict-origin-when-cross-origin"
         },
         "body": {
@@ -104,7 +104,7 @@
             "x-frame-options": "DENY",
             "x-content-type-options": "nosniff",
             "x-xss-protection": "1; mode=block",
-            "content-security-policy": "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data:;",
+            "content-security-policy": "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data:;",
             "referrer-policy": "strict-origin-when-cross-origin"
         },
         "body": {
@@ -135,7 +135,7 @@
             "content-type": "text/javascript"
         },
         "body": {
-            "sha1": "d4c67cfdd5bc192cc8c2dbea2865bf7f9bfe9814"
+            "sha1": "d2c0de871201cc6fcff043e59ce7fd8c7d032e98"
         }
     },
     "GET /assets/js/modules/api.js": {
@@ -144,7 +144,7 @@
             "content-type": "text/javascript"
         },
         "body": {
-            "sha1": "325d8bab7edee623c2c0f1f57cf617655f5b7270"
+            "sha1": "20bd3de51067bdd38a75ad61ebc9e4c2dfcb5c2d"
         }
     },
     "GET /assets/js/workers/realtime-worker.js": {
@@ -162,7 +162,7 @@
             "content-type": "text/css"
         },
         "body": {
-            "sha1": "6121bc55245b017ff3105fa7eb0407b4cd9fad09"
+            "sha1": "f362693e7ba4e91fd5edb975b42427825584f479"
         }
     },
     "GET /assets/vendor/chart.umd.min.js": {

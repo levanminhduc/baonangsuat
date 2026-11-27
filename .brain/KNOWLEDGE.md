@@ -28,7 +28,7 @@
 - [php] `NangSuatService::updateHeader` mặc định so_lao_dong/ctns = 0 khi thiếu → mọi PUT header phải gửi lại cả hai — app/Services/NangSuatService.php · F-015 · 2026-11-14
 - [php] `JsonResponse` final + strict_types; service trả mảng có `status` thì controller bóc ra làm HTTP status (BaoCaoController::withStatus, PoSubartController::toResponse) — F-015 · 2026-11-14
 - [test] Test route thật: `(new Router(require BNS_ROOT . '/config/routes.php'))->match($method, $path)` → [status, route, params]; filter runner là substring tên file — tests/php/router_test.php · F-015 · 2026-11-14
-- [js] `API_BASE = '/baonangsuat/api'` hard-code trong api.js, admin-api.js, admin/import.js, login.js — chạy dưới vhost phải sửa — AGENTS.md · brain-init · 2026-11-14
+- [obsolete F-018: API_BASE lấy từ modules/config.js ← meta bns-base; admin-api.js đã xoá] [js] `API_BASE = '/baonangsuat/api'` hard-code trong api.js, admin-api.js, admin/import.js, login.js — AGENTS.md · brain-init · 2026-11-14
 - [admin] `GET /api/admin/lines` có side-effect: đồng bộ LINE từ `quan_ly_nhan_su.phong_ban` (INSERT line mới) mỗi lần gọi — app/Services/AdminService.php:41 · brain-init · 2026-11-14
 - [db] migrations đánh số trùng (hai file 010_) và thiếu 007/008; không có tool chạy migration, áp tay — database/migrations/ · brain-init · 2026-11-14
 - [php] Không bật strict_types cho code cũ (chỉ app/Http/ có); đừng thêm khi sửa bug vì đổi hành vi so sánh — .claude/rules/psr12-code-style.md · brain-init · 2026-11-14
@@ -40,7 +40,7 @@
 - [css] Tailwind v4 lệch v3 ở: bảng màu oklch, line-height dạng tỉ lệ, selector `space-x/y`, preflight xoá nền input + opacity select disabled + padding ô ngày. Đã vá trong `src/v3-*.css`; nâng Tailwind phải so lại computed style — public/assets/tailwind/src/ · F-016 · 2026-11-25
 - [css] `@utility` trùng tên built-in thì cả hai cùng sinh; muốn thay built-in: `@source not inline()` rồi viết CSS thường — src/v3-space.css · F-016 · 2026-11-25
 - [css] style.css định nghĩa `.modal`, `.hidden`, `.line-list`, `.login-*`; bundle áp cho MỌI trang nên view mới đừng dùng lại tên đó — public/assets/css/style.css · F-016 · 2026-11-25
-- [fe] components/confirm-modal.php dùng chung admin + nhập; mỗi trang tự bắt `close-modal` (admin.js / app.js) — trang mới include nó phải gắn listener · F-016 · 2026-11-25
+- [fe] components/confirm-modal.php dùng chung; `showConfirmModal`/`confirmDialog` (utils.js) tự gắn listener khi mở, gỡ khi đóng. Gốc `.modal` tự mang `data-action="close-modal"` → handler đóng phải kiểm `e.target === el || !el.classList.contains('modal')` — public/assets/js/modules/utils.js · F-016, F-018 · 2026-11-26
 - [fe] API trả `session.vai_tro` (không có `role`); `role` chỉ có ở bản ghi user của tab Quyền — app/Auth/Auth.php:72 · F-016 · 2026-11-25
 - [test] Kiểm trang đã đăng nhập không cần cookie: PHP built-in server + phiên giả (reflection vào Auth) + `BNS_DB_CONFIG` trỏ DB `*_test`; DB test thiếu bảng HR (`phong_ban`, `nhan_vien`, `user`) nên tab LINE/User cần bảng giả — tests/php/support/db.php · F-016 · 2026-11-25
 - [tool] Git Bash đổi pattern `rg` bắt đầu bằng `/` thành đường dẫn Windows: viết `[/]baonangsuat` · F-016 · 2026-11-25
@@ -50,3 +50,7 @@
 - [css] Tailwind v4 tự dò source cả repo ngoài các `@source` → build lại nhặt class từ `.brain/*.md` (`bg-[#…]`, `p-[30px]`), dist lệch bản commit; build xong phải soát `git diff dist/app.css` · F-017 · 2026-11-25
 - [test] Chuyển/xoá đường dẫn có trong `tests/smoke/urls.txt` → sửa urls.txt + `php tools/smoke.php --update` cùng bước; `baseline-auth.json` (local) cần `--cookie=<HTSSOSESSID> --update` riêng · F-017 · 2026-11-25
 - [tool] Bash tool: backslash trong python heredoc bị gộp (`\\b` → `\b`) nên sửa byte không ăn; viết script ra file (scratchpad) rồi chạy · F-017 · 2026-11-25
+- [js] Module nạp bằng thẻ có `?v=` mà module khác `import` không `?v=` → trình duyệt chạy 2 instance (2 listener, 2 đồng hồ). Layout nạp `modules/nav.js` không `?v=` + cờ `data-bns-sidebar-ready` — views/layouts/app.php:37 · F-018 · 2026-11-26
+- [tool] `cmd //c tools\build-css.bat` từ Git Bash mất `\`; chạy thẳng `tools/tailwindcss.exe -i public/assets/tailwind/src/app.css -o public/assets/tailwind/dist/app.css --minify` · F-018 · 2026-11-26
+- [test] Phiên giả cho kiểm trình duyệt: tạo bảng giả `phong_ban`, `nhan_vien`, `user`, `user_permissions` trong `nang_suat_test`, không thì `/api/admin/lines` 500; đổi LINE qua `$_SESSION['bns_line']` · F-018 · 2026-11-26
+- [test] Một `?>` trong comment `//` của file test PHP kết thúc chế độ PHP → lỗi parse "Unclosed '{'" — tests/php/ · F-018 · 2026-11-26
